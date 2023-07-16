@@ -44,6 +44,7 @@ Intellibrix is a software component framework that organizes functionality into 
 - [Events](#events)
 - [Bundled Bricks](#bundled-bricks)
 - [Development](#development)
+- [Other Notes](#other-notes)
 
 ---
 
@@ -370,3 +371,8 @@ Then run:
 ```bash
 npm run test:watch
 ```
+
+## Other Notes
+
+- A `Brick` can communicate with its parent `Structure` via `this.structure`
+- A `Structure` can enumerate and communicate with its child `Bricks` via `this.bricks`
