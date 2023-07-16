@@ -28,6 +28,7 @@ describe('Database (Memory)', () => {
 
 describe('Database (SQL)', () => {
   it('should create a table then populate, read, and drop it', async () => {
+    if (!process.env['DATABASE_URI']) throw new Error('DATABASE_URI not set')
     const database = new Database({ service: 'sql', uri: process.env['DATABASE_URI'] })
     const instance = database.interface as SQLInterface
 

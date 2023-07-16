@@ -22,7 +22,7 @@ Intellibrix is a software component framework that organizes functionality into 
 
 - A `Brick` is a software component that provides a specific functionality.
 - A `Structure` is a collection of `Bricks` that can easily be passed around in an application.
-- A `Brick` can contain many `Programs` that provide different related functionality
+- A `Brick` can contain many `Programs` that provide different related functionality.
 - A `Program` contains `Steps` that are executed in sequence to perform a specific task.
 - A `Step` contains `Actions` that are executed in sequence to act upon, process, and transform the data.
 - A `Database` can be attached to a `Brick` to provide database capabilities.
@@ -42,6 +42,7 @@ Intellibrix is a software component framework that organizes functionality into 
 - [Database](#database)
 - [Events](#events)
 - [Bundled Bricks](#bundled-bricks)
+- [Testing](#testing)
 
 ---
 
@@ -181,8 +182,8 @@ const foo = await keyValueBrick.db.interface.get('foo')
 console.log(foo)
 
 // Also access all of Sequelize's power directly with sqlBrick.db.sequelize
-sqlBrick.db.interface.query('CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `rank` TEXT NOT NULL)')
-sqlBrick.db.interface.query('INSERT INTO `users` (`name`, `rank`) VALUES (?, ?)', ['Belisarius Cawl', 'Archmagos'])
+await sqlBrick.db.interface.query('CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `rank` TEXT NOT NULL)')
+await sqlBrick.db.interface.query('INSERT INTO `users` (`name`, `rank`) VALUES (?, ?)', ['Belisarius Cawl', 'Archmagos'])
 const results = await sqlBrick.db.interface.query('SELECT * FROM `users`')
 console.log(results)
 ```
@@ -191,6 +192,7 @@ console.log(results)
 
 ```typescript
 import { Brick, Intelligence } from 'intellibrix'
+
 const intelligence = new Intelligence({
   service: 'custom',
   method: async function ({ name }) {
@@ -200,7 +202,7 @@ const intelligence = new Intelligence({
 })
 
 const brick = new Brick({ intelligence })
-const response = await brick.ai?.ask({ name: 'Belisarius Cawl' })
+const response = await brick.ai.ask({ name: 'Belisarius Cawl' })
 console.log(response)
 ```
 
@@ -214,7 +216,7 @@ class MyBrick extends Brick {
     super(opts)
   }
 
-  async myMethod ({ topic }) {
+  myMethod ({ topic }) {
     return `${topic} has ${topic.length} characters`
   }
 }
@@ -244,16 +246,16 @@ brick.log.fatal('This is a fatal message') // Outputs: Nothing because logLevel 
 
 ## Intelligence
 
-Intelligence is a class that provides AI capabilities to a `Brick`. It can currently utilize the [OpenAI API](https://platform.openai.com/docs/api-reference) or a custom function to manually process data.
+Intelligence is a class that provides AI or other custom processing capabilities to a `Brick`. It can currently utilize the [OpenAI API](https://platform.openai.com/docs/api-reference) or a custom function to manually process data.
 
 An `Intelligence` has these methods:
 
-- `ask('Tell me about the biggest event from 1938', context || [])` - Ask the AI a question and return the response
-- `image('A shiny red apple', '1024x1024')` - Generate an image from a text prompt (prompt, size)
+- `ask('Tell me about the biggest event from 1938', context?)` - Ask the AI a question and return the response (prompt, context?)
+- `image('A shiny red apple', '1024x1024')` - Generate an image from a text prompt (prompt, size? = `'256x256'`)
 
-You may pass a context array of the format `[{ role: ChatCompletionRequestMessageRoleEnum, content: string }]` to `ask()` to provide context to the AI.
+You may pass a `context` array of the format `[{ role: 'user' | 'assistant', content: string }]` to `ask()` to provide context to the AI.
 
-An OpenAI `Intelligence` supports the function-calling API (see `test/function.test.ts`):
+An OpenAI `Intelligence` supports the [function-calling API](https://platform.openai.com/docs/guides/gpt/function-calling) (see `test/function.test.ts`):
 
 ```typescript
 const intelligence = new Intelligence({
@@ -343,3 +345,13 @@ You can instantiate these like any brick, passing in the appropriate intelligenc
     - You may pass a `context` array to the payload of [this format](https://platform.openai.com/docs/api-reference/chat/create#chat/create-messages) to track the conversation history
 
 ---
+
+## Testing
+
+Create a `.jest` folder with an `env.js` file containing the following:
+
+```javascript
+process.env.USE_OPENAI=true // Set to false to disable OpenAI tests
+process.env.OPENAI_API_KEY="sk-OPENAIAPIKEY"
+process.env.DATABASE_URI="postgresql://user:pass@host:port/dbname"
+```

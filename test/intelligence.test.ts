@@ -39,19 +39,20 @@ describe('Intelligence Function Brick', () => {
   it('should get the AI to call our function', async () => {
     const brick = new Brick({ intelligence })
     expect(brick.ai).toBeDefined()
-    // disabled to save money
-    // const result = await brick.ai!.ask('What is 42 + 42?')
-    // expect(result.function_result.answer).toEqual('84')
-    // expect(result.function_result.processed).toEqual(true)
-    // expect(result.function_result.explanation).toBeDefined()
+    if (process.env['USE_OPENAI'] !== 'true') return
+    const result = await brick.ai!.ask('What is 42 + 42?')
+    expect(result.function_result.answer).toEqual('84')
+    expect(result.function_result.processed).toEqual(true)
+    expect(result.function_result.explanation).toBeDefined()
   }, 20000)
 })
 
 describe('Intelligence Question Brick', () => {
   it('should return an answer to a question', async () => {
     const qa = new QA({ intelligence: new Intelligence({ key: process.env['OPENAI_API_KEY'] }) })
-    expect(qa).toBeDefined() // disabled to save money
-    // const { text } = await qa.run('qa', { question: 'What is 42 + 42?' })
-    // expect(text).toContain('84')
+    expect(qa).toBeDefined()
+    if (process.env['USE_OPENAI'] !== 'true') return
+    const { text } = await qa.run('qa', { question: 'What is 42 + 42?' })
+    expect(text).toContain('84')
   }, 20000)
 })
