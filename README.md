@@ -141,7 +141,7 @@ brick.program({
       description: 'Add a random integer between 10 and 50 to the result and return the floor',
       actions: [
         {
-          name: 'add_one',
+          name: 'add_random',
           description: 'Add a random integer between 10 and 50 to the result',
           method: async function (payload) {
             return payload + Math.floor(Math.random() * (50 - 10 + 1) + 10)
@@ -149,7 +149,7 @@ brick.program({
         },
         {
           name: 'floor',
-          description: 'Round a number down to the nearest integer',
+          description: 'Round the result down to the nearest integer',
           method: async function (payload) {
             return Math.floor(payload)
           }
@@ -166,7 +166,7 @@ console.log(result)
 ## Database Example
 
 ```typescript
-import { Brick } from 'intellibrix'
+import { Brick, Database, Structure } from 'intellibrix'
 
 const structure = new Structure()
 const keyValueDatabase = new Database()
@@ -215,12 +215,13 @@ class MyBrick extends Brick {
   }
 
   async myMethod ({ topic }) {
-    return await this.ai.ask(`Write a poem about ${topic}`)
+    return `${topic} has ${topic.length} characters`
   }
 }
 
-const brick = new MyBrick({ intelligence })
-const { text } = await brick.myMethod({ topic: 'TypeScript' })
+const brick = new MyBrick({ name: 'My Brick' })
+const lengthString = await brick.myMethod({ topic: 'TypeScript' })
+console.log(lengthString)
 ```
 
 ---
