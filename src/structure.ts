@@ -44,6 +44,7 @@ export default class Structure {
   }
 
   add(brick: Brick) {
+    if (this.#bricks.find((b) => b.name === brick.name || b.id === brick.id)) throw new Error('Brick already exists in structure')
     brick.structure = this
     for (const brick of this.#bricks) brick.events.emit('add-brick', brick)
     this.#bricks.push(brick)
@@ -52,6 +53,7 @@ export default class Structure {
   }
 
   remove(brick: Brick) {
+    if (!this.#bricks.find((b) => b.name === brick.name || b.id === brick.id)) throw new Error('Brick does not exist in structure')
     brick.structure = undefined
     for (const brick of this.#bricks) brick.events.emit('remove-brick', brick)
     this.#bricks = this.#bricks.filter((b) => b !== brick)
@@ -70,6 +72,7 @@ export default class Structure {
     }
 
     this.#bricks = []
+    this.events.emit('demolish')
     this.log.info('Demolished Structure')
   }
 }

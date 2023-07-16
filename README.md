@@ -32,17 +32,18 @@ Intellibrix is a software component framework that organizes functionality into 
 ---
 
 - [Installation](#installation)
-- [AI Smart Brick Example](#ai-smart-brick-example)
-- [Dumb Brick Example](#dumb-brick-example)
-- [Database Example](#database-example)
-- [Custom Intelligence Example](#custom-intelligence-example)
-- [Extending a Brick](#extending-a-brick)
+- [Examples](#examples)
+  - [AI Smart Brick Example](#ai-smart-brick-example)
+  - [Dumb Brick Example](#dumb-brick-example)
+  - [Database Example](#database-example)
+  - [Custom Intelligence Example](#custom-intelligence-example)
+  - [Extending a Brick](#extending-a-brick)
 - [Logging](#logging)
 - [Intelligence](#intelligence)
 - [Database](#database)
 - [Events](#events)
 - [Bundled Bricks](#bundled-bricks)
-- [Testing](#testing)
+- [Development](#development)
 
 ---
 
@@ -52,7 +53,9 @@ Intellibrix is a software component framework that organizes functionality into 
 npm install --save intellibrix # or your package manager's equivalent
 ```
 
-## AI Smart Brick Example
+## Examples
+
+### AI Smart Brick Example
 
 ```typescript
 import { Brick, Intelligence, Structure } from 'intellibrix'
@@ -101,7 +104,7 @@ console.log(text)
 // console.log(text)
 ```
 
-## Dumb Brick Example
+### Dumb Brick Example
 
 ```typescript
 import { Brick, Structure } from 'intellibrix'
@@ -164,7 +167,7 @@ const result = await brick.run('calculate', { x: 1, y: 2 })
 console.log(result)
 ```
 
-## Database Example
+### Database Example
 
 ```typescript
 import { Brick, Database, Structure } from 'intellibrix'
@@ -188,7 +191,7 @@ const results = await sqlBrick.db.interface.query('SELECT * FROM `users`')
 console.log(results)
 ```
 
-## Custom Intelligence Example
+### Custom Intelligence Example
 
 ```typescript
 import { Brick, Intelligence } from 'intellibrix'
@@ -206,7 +209,7 @@ const response = await brick.ai.ask({ name: 'Belisarius Cawl' })
 console.log(response)
 ```
 
-## Extending a Brick
+### Extending a Brick
 
 ```typescript
 import { Brick } from 'intellibrix'
@@ -346,12 +349,24 @@ You can instantiate these like any brick, passing in the appropriate intelligenc
 
 ---
 
-## Testing
+## Development
+
+```bash
+git clone https://github.com/intellibrix/intellibrix.git # or your fork
+cd intellibrix
+npm install # or your package manager's equivalent
+```
 
 Create a `.jest` folder with an `env.js` file containing the following:
 
 ```javascript
 process.env.USE_OPENAI=true // Set to false to disable OpenAI tests
-process.env.OPENAI_API_KEY="sk-OPENAIAPIKEY"
-process.env.DATABASE_URI="postgresql://user:pass@host:port/dbname"
+process.env.OPENAI_API_KEY="sk-YOUROPENAIAPIKEY" // Your OpenAI API key
+process.env.DATABASE_URI="postgresql://user:pass@host:port/dbname" // Your database URI
+```
+
+Then run:
+
+```bash
+npm run test:watch
 ```
