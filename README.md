@@ -2,11 +2,12 @@
 
 ## AI-Powered Software Component Framework <!-- omit in toc -->
 
+[![View Docs](https://img.shields.io/badge/view-docs-blue?style=for-the-badge)](https://intellibrix.dev)
+
 [![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://web3os.sh)
 [![Last Commit](https://img.shields.io/github/last-commit/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/commit/master)
 [![Open issues](https://img.shields.io/github/issues/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues)
 [![Closed issues](https://img.shields.io/github/issues-closed/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues?q=is%3Aissue+is%3Aclosed)
-
 [![Sponsors](https://img.shields.io/github/sponsors/intellibrix?color=red)](https://github.com/intellibrix/intellibrix/blob/master/LICENSE)
 [![Contributors](https://img.shields.io/github/contributors/intellibrix/intellibrix?color=yellow)](https://github.com/intellibrix/intellibrix/graphs/contributors)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue)](https://github.com/intellibrix/intellibrix/blob/master/LICENSE)
