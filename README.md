@@ -20,6 +20,10 @@
 
 ---
 
+![Diagram](https://raw.githubusercontent.com/intellibrix/intellibrix/master/assets/intellibrix-diagram.svg)
+
+---
+
 Intellibrix is a software component framework that organizes functionality into `Structures` and `Bricks`.
 
 - A `Brick` is a software component that provides a specific functionality.
