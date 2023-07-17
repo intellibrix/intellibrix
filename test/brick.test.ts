@@ -110,8 +110,8 @@ describe('Extended Brick', () => {
     class ExtendedBrick extends Brick {
       data: { greeted: string } = { greeted: '' }
 
-      constructor(opts?: BrickOptions) {
-        super(opts)
+      constructor(options?: BrickOptions) {
+        super(options)
       }
 
       async hello(payload: any) {

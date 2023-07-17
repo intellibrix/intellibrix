@@ -1,0 +1,9 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Intellibrix",
+  "entryPoints": ["./src"],
+  "out": "docs",
+  "commentStyle": "all",
+  "cleanOutputDir": true,
+  "hideGenerator": true
+}

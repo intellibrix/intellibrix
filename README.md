@@ -216,8 +216,8 @@ console.log(response)
 import { Brick } from 'intellibrix'
 
 class MyBrick extends Brick {
-  constructor (opts) {
-    super(opts)
+  constructor (options) {
+    super(options)
   }
 
   myMethod ({ topic }) {

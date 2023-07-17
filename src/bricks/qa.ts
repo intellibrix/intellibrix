@@ -1,8 +1,8 @@
 import Brick, { BrickOptions } from '../brick'
 
 export default class QA extends Brick {
-  constructor(opts: BrickOptions = {}) {
-    super(opts)
+  constructor(options: BrickOptions = {}) {
+    super(options)
 
     this.program({
       name: 'qa',
