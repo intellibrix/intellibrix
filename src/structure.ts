@@ -73,10 +73,10 @@ export default class Structure {
   add(brick: Brick) {
     if (this.#bricks.find((b) => b.name === brick.name || b.id === brick.id)) throw new Error('Brick already exists in structure')
     brick.structure = this
-    for (const brick of this.#bricks) brick.events.emit('add-brick', brick)
+    for (const brick of this.#bricks) brick.events.emit('add-brick', { brick, structure: this })
     this.#bricks.push(brick)
-    this.events.emit('add', brick)
-    this.log.info(`Added Brick: ${brick.name}`)
+    this.events.emit('add', { brick, structure: this })
+    this.log.debug(`Added Brick: ${brick.name}`)
   }
 
   /**
@@ -86,10 +86,10 @@ export default class Structure {
   remove(brick: Brick) {
     if (!this.#bricks.find((b) => b.name === brick.name || b.id === brick.id)) throw new Error('Brick does not exist in structure')
     brick.structure = undefined
-    for (const brick of this.#bricks) brick.events.emit('remove-brick', brick)
+    for (const brick of this.#bricks) brick.events.emit('remove-brick', { brick, structure: this })
     this.#bricks = this.#bricks.filter((b) => b !== brick)
-    this.events.emit('remove', brick)
-    this.log.info(`Removed Brick: ${brick.name}`)
+    this.events.emit('remove', { brick, structure: this })
+    this.log.debug(`Removed Brick: ${brick.name}`)
   }
 
   /**
@@ -111,6 +111,6 @@ export default class Structure {
 
     this.#bricks = []
     this.events.emit('demolish')
-    this.log.info('Demolished Structure')
+    this.log.debug('Demolished Structure')
   }
 }
