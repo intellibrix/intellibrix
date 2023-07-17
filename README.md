@@ -4,7 +4,7 @@
 
 [![View Docs](https://img.shields.io/badge/view-docs-blue?style=for-the-badge)](https://intellibrix.dev)
 
-[![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://web3os.sh)
+[![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://intellibrix.dev)
 [![Last Commit](https://img.shields.io/github/last-commit/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/commit/master)
 [![Open issues](https://img.shields.io/github/issues/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues)
 [![Closed issues](https://img.shields.io/github/issues-closed/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues?q=is%3Aissue+is%3Aclosed)
