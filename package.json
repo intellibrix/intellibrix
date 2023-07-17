@@ -4,6 +4,7 @@
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
   "description": "AI-Powered Software Component Framework",
+  "main": "dist/index.js",
   "scripts": {
     "build": "npm-run-all build:library build:docs",
     "build:library": "tsc",
