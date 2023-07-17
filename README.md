@@ -339,7 +339,7 @@ brick.events.emit('bar')
 
 ## Bundled Bricks
 
-The core `intellibrix` package comes with some bricks that provide basic functionality.
+The core `intellibrix` package comes with some bricks that provide basic functionality and serve as examples.
 
 You can instantiate these like any brick, passing in the appropriate intelligence and options.
 
