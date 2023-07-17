@@ -64,8 +64,8 @@ npm install --save intellibrix # or your package manager's equivalent
 import { Brick, Intelligence, Structure } from 'intellibrix'
 
 const structure = new Structure() // We add our bricks to this (optional)
-structure.events.on('add', (brick) => { // Listen for bricks being added to the structure (optional)
-  console.log(`Added brick ${brick.id}`)
+structure.events.on('add', ({ brick, structure }) => { // Listen for bricks being added to the structure (optional)
+  console.log(`Added brick ${brick.id} to ${structure.id}`)
 })
 
 const intelligence = new Intelligence({ // Define our intelligence
