@@ -3,13 +3,13 @@ graph LR
   I --> B["Brick"]
   I --> S("Structure")
   B --> S
-  B --> P(("Program"))
-  P --> St>"Step"]
-  St --> A>"Action"]
-  B --> D(("Database"))
-  D --> M>"Memory"]
-  D --> SQL>"SQL"]
-  B --> AI(("Intelligence"))
-  AI --> OAI>"OpenAI"]
-  AI --> CAI>"Custom Function"]
+  P(("Program")) --> B
+  St>"Step"] --> P
+  A>"Action"]-->St
+  D(("Database")) --> B
+  M>"Memory"] --> D
+  SQL>"SQL"] --> D
+  AI(("Intelligence")) --> B
+  OAI>"OpenAI"] --> AI
+  CAI>"Custom Function"] --> AI
   
