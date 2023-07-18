@@ -4,6 +4,7 @@
   "entryPoints": ["./src"],
   "out": "docs",
   "commentStyle": "all",
-  "cleanOutputDir": false,
-  "hideGenerator": true
+  "cleanOutputDir": true,
+  "hideGenerator": true,
+  "cname": "intellibrix.dev"
 }
