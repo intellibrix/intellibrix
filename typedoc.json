@@ -6,5 +6,9 @@
   "commentStyle": "all",
   "cleanOutputDir": true,
   "hideGenerator": true,
-  "cname": "intellibrix.dev"
+  "searchInComments": true,
+  "cname": "intellibrix.dev",
+  "navigationLinks": {
+    "Github": "https://github.com/intellibrix/intellibrix"
+  }
 }
