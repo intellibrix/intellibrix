@@ -9,6 +9,7 @@
     "build": "npm-run-all build:library build:docs",
     "build:library": "tsc",
     "build:docs": "typedoc",
+    "build:docs:watch": "typedoc --watch",
     "test": "jest --verbose",
     "test:watch": "jest --verbose --watchAll",
     "test:coverage": "jest --verbose --coverage",
