@@ -9,7 +9,7 @@
 [![Open issues](https://img.shields.io/github/issues/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues)
 [![Closed issues](https://img.shields.io/github/issues-closed/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues?q=is%3Aissue+is%3Aclosed)
 
-[![Sponsors](https://img.shields.io/github/sponsors/intellibrix?color=red)](https://github.com/intellibrix/intellibrix/blob/master/LICENSE)
+[![Sponsors](https://img.shields.io/github/sponsors/mathiscode?color=red)](https://github.com/sponsors/mathiscode)
 [![Contributors](https://img.shields.io/github/contributors/intellibrix/intellibrix?color=yellow)](https://github.com/intellibrix/intellibrix/graphs/contributors)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue)](https://github.com/intellibrix/intellibrix/blob/master/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/intellibrix/intellibrix/compare)
@@ -264,6 +264,8 @@ An `Intelligence` has these methods:
 - `image('A shiny red apple', '1024x1024')` - Generate an image from a text prompt (prompt, size? = `'256x256'`)
 
 You may pass a `context` array of the format `[{ role: 'user' | 'assistant', content: string }]` to `ask()` to provide context to the AI.
+
+You may also access the `openai` library directly with `brick.ai.instance`.
 
 An OpenAI `Intelligence` supports the [function-calling API](https://platform.openai.com/docs/guides/gpt/function-calling) (see `test/function.test.ts`):
 
