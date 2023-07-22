@@ -380,8 +380,19 @@ The core `intellibrix` package comes with some bricks that provide basic functio
 
 You can instantiate these like any brick, passing in the appropriate intelligence and options.
 
+- Express Web Server
+  - A brick that provides a basic [Express](https://expressjs.com) web server
+  - `import ExpressBrick from 'intellibrix/bricks/express'`
+    - `const routes = [{ method: 'get', path: '/', handler: (req, res) => res.send('Hello World!') }]`
+    - `const brick = new ExpressBrick({ port: 3000, routes })`
+- Terminal
+  - A brick that provides a basic terminal interface powered by [TerminalKit](https://github.com/cronvel/terminal-kit)
+  - `import TerminalBrick from 'intellibrix/bricks/terminal'`
+    - `const brick = new TerminalBrick()`
+    - `brick.print('What is your name? ')`
+    - `const name = await brick.input()`
 - Question and Answer
-  - Simple question and answer functionality
+  - Simple question and answer functionality powered by [OpenAI](https://openai.com)
   - `import QA from 'intellibrix/bricks/qa'`
     - `const qa = new QA({ intelligence })`
     - `const { text } = qa.run('qa', { question: 'What is the meaning of life?' })`
