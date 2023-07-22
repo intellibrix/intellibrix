@@ -1,7 +1,7 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "name": "Intellibrix",
-  "entryPoints": ["./src"],
+  "entryPoints": ["./src", "./src/bricks"],
   "out": "docs",
   "commentStyle": "all",
   "cleanOutputDir": true,

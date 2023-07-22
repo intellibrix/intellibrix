@@ -1,15 +1,21 @@
 graph LR
   I{"Intellibrix"}
   I --> B["Brick"]
-  I --> S("Structure")
+  I --> S{{"Structure"}}
   B --> S
+  T[["Task"]] --> B
   P(("Program")) --> B
-  St>"Step"] --> P
-  A>"Action"]-->St
-  D(("Database")) --> B
+  St1>"Step"] --> P
+  St2>"Step"] --> P
+  A1>"Action"]-->St1
+  A2>"Action"]-->St1
+  A3>"Action"]-->St2
+  A4>"Action"]-->St2
+  D[("Database")] --> B
   M>"Memory"] --> D
   SQL>"SQL"] --> D
-  AI(("Intelligence")) --> B
+  AI((("Intelligence"))) --> B
   OAI>"OpenAI"] --> AI
   CAI>"Custom Function"] --> AI
-  
+  ECO[/"Node Ecosystem"/] --> B
+  ECO --> S

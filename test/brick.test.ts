@@ -156,3 +156,21 @@ describe('Brick Event Bus', () => {
     expect(spy).toHaveBeenCalledWith({ bar: 'baz' })
   })
 })
+
+describe('Brick Task Scheduler', () => {
+  it('should schedule a task and run it', done => {
+    const brick = new Brick()
+
+    brick.schedule({
+      name: 'Test Task',
+      description: 'Test Task Description',
+      schedule: new Date(Date.now() + 1000),
+      start: true,
+      method: (brick) => {
+        expect(brick).toBeInstanceOf(Brick)
+        brick.log.info('Test Task Executed')
+        done()
+      },
+    })
+  })
+})

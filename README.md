@@ -31,9 +31,12 @@ Intellibrix is a software component framework that organizes functionality into 
 - A `Brick` can contain many `Programs` that provide different related functionality.
 - A `Program` contains `Steps` that are executed in sequence to perform a specific task.
 - A `Step` contains `Actions` that are executed in sequence to act upon, process, and transform the data.
+- A `Brick` can also contain `Tasks` that are scheduled to run at a specific time or interval.
 - A `Database` can be attached to a `Brick` to provide database capabilities.
 - An `Intelligence` can be attached to a `Brick` to provide AI or other custom processing capabilities.
 - Both `Bricks` and `Structures` have an EventEmitter that can be used to emit and listen for events.
+
+- You aren't limited to using `Programs`, `Databases`, and `Intelligence` - extend a brick and make it work however you want!
 
 ---
 
@@ -48,6 +51,7 @@ Intellibrix is a software component framework that organizes functionality into 
 - [Intelligence](#intelligence)
 - [Database](#database)
 - [Events](#events)
+- [Tasks](#tasks)
 - [Bundled Bricks](#bundled-bricks)
 - [Development](#development)
 - [Other Notes](#other-notes)
@@ -339,6 +343,33 @@ structure.events.on('foo', () => console.log('foo'))
 brick.events.on('bar', () => console.log('bar'))
 structure.events.emit('foo')
 brick.events.emit('bar')
+```
+
+## Tasks
+
+Bricks can be assigned scheduled tasks to perform at a certain time or interval. Both cron syntax and Date objects are supported.
+
+```typescript
+const brick = new Brick()
+
+const cronTask = brick.schedule({
+  name: 'New Year Cron',
+  description: 'This uses cron syntax and will run on January 1st at 12:00 AM',
+  cron: '0 0 1 1 *',
+  start: true, // Start the task immediately, otherwise you must call task.cronjob.start() manually - this does not execute the task
+  method: () => console.log('Happy New Year!')
+})
+
+const dateTask = brick.schedule({
+  name: 'New Year Date',
+  description: 'This uses a Date object and will run on January 1st at 12:00 AM',
+  date: new Date('January 1, 2022 00:00:00'),
+  start: false,
+  method: () => console.log('Happy New Year!')
+})
+
+brick.unschedule('New Year Cron')
+dateTask.cronjob.start() // Since we didn't use the start option, we must start the task manually or it won't run when the date is reached
 ```
 
 ---
