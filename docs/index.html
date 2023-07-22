@@ -120,10 +120,29 @@
 </code><button>Copy</button></pre>
 <hr>
 <a id="md:bundled-bricks" class="tsd-anchor"></a><h2><a href="#md:bundled-bricks">Bundled Bricks</a></h2><p>The core <code>intellibrix</code> package comes with some bricks that provide basic functionality and serve as examples.</p>
-<p>You can instantiate these like any brick, passing in the appropriate intelligence and options.</p>
+<p>You can instantiate these like any brick, passing in the appropriate intelligence, database, and options.</p>
 <ul>
+<li>Express Web Server<ul>
+<li>A brick that provides a basic <a href="https://expressjs.com">Express</a> web server</li>
+<li><code>import ExpressBrick from &#39;intellibrix/bricks/express&#39;</code><ul>
+<li><code>const routes = [{ method: &#39;get&#39;, path: &#39;/&#39;, handler: (req, res) =&gt; res.send(&#39;Hello World!&#39;) }]</code></li>
+<li><code>const brick = new ExpressBrick({ port: 3000, routes })</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Terminal<ul>
+<li>A brick that provides a basic terminal interface powered by <a href="https://github.com/cronvel/terminal-kit">TerminalKit</a></li>
+<li><code>import TerminalBrick from &#39;intellibrix/bricks/terminal&#39;</code><ul>
+<li><code>const brick = new TerminalBrick()</code></li>
+<li><code>brick.print(&#39;What is your name? &#39;)</code></li>
+<li><code>const name = await brick.input()</code></li>
+</ul>
+</li>
+</ul>
+</li>
 <li>Question and Answer<ul>
-<li>Simple question and answer functionality</li>
+<li>Simple question and answer functionality powered by <a href="https://openai.com">OpenAI</a></li>
 <li><code>import QA from &#39;intellibrix/bricks/qa&#39;</code><ul>
 <li><code>const qa = new QA({ intelligence })</code></li>
 <li><code>const { text } = qa.run(&#39;qa&#39;, { question: &#39;What is the meaning of life?&#39; })</code></li>

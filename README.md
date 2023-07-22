@@ -378,7 +378,7 @@ dateTask.cronjob.start() // Since we didn't use the start option, we must start 
 
 The core `intellibrix` package comes with some bricks that provide basic functionality and serve as examples.
 
-You can instantiate these like any brick, passing in the appropriate intelligence and options.
+You can instantiate these like any brick, passing in the appropriate intelligence, database, and options.
 
 - Express Web Server
   - A brick that provides a basic [Express](https://expressjs.com) web server
