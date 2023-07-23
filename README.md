@@ -4,7 +4,7 @@
 
 [![View Docs](https://img.shields.io/badge/view-docs-blue?style=for-the-badge)](https://intellibrix.dev)
 
-[![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://intellibrix.dev)
+[![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://www.npmjs.com/package/intellibrix)
 [![Last Commit](https://img.shields.io/github/last-commit/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/commit/master)
 [![Open issues](https://img.shields.io/github/issues/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues)
 [![Closed issues](https://img.shields.io/github/issues-closed/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues?q=is%3Aissue+is%3Aclosed)
@@ -349,13 +349,15 @@ brick.events.emit('bar')
 
 Bricks can be assigned scheduled tasks to perform at a certain time or interval. Both cron syntax and Date objects are supported.
 
+Scheduled tasks are powered by [node-cron](https://www.npmjs.com/package/node-cron).
+
 ```typescript
 const brick = new Brick()
 
 const cronTask = brick.schedule({
   name: 'New Year Cron',
   description: 'This uses cron syntax and will run on January 1st at 12:00 AM',
-  cron: '0 0 1 1 *',
+  schedule: '0 0 1 1 *',
   start: true, // Start the task immediately, otherwise you must call task.cronjob.start() manually - this does not execute the task
   method: () => console.log('Happy New Year!')
 })
@@ -363,12 +365,12 @@ const cronTask = brick.schedule({
 const dateTask = brick.schedule({
   name: 'New Year Date',
   description: 'This uses a Date object and will run on January 1st at 12:00 AM',
-  date: new Date('January 1, 2022 00:00:00'),
+  schedule: new Date('January 1, 2022 00:00:00'),
   start: false,
   method: () => console.log('Happy New Year!')
 })
 
-brick.unschedule('New Year Cron')
+brick.unschedule('New Year Cron') // Remove a task from the brick's schedule
 dateTask.cronjob.start() // Since we didn't use the start option, we must start the task manually or it won't run when the date is reached
 ```
 
@@ -395,7 +397,7 @@ You can instantiate these like any brick, passing in the appropriate intelligenc
   - Simple question and answer functionality powered by [OpenAI](https://openai.com)
   - `import QA from 'intellibrix/bricks/qa'`
     - `const qa = new QA({ intelligence })`
-    - `const { text } = qa.run('qa', { question: 'What is the meaning of life?' })`
+    - `const { text } = await qa.run('qa', { question: 'What is the meaning of life?' })`
     - You may pass a `context` array to the payload of [this format](https://platform.openai.com/docs/api-reference/chat/create#chat/create-messages) to track the conversation history
 
 ---
