@@ -4,7 +4,7 @@ import express, { Application, Request, RequestHandler, Response } from 'express
 
 /**
  * Interface for the options of ExpressBrick.
- * It extends from BrickOptions and adds properties specific to ExpressBrick.
+ * It extends from {@link BrickOptions} and adds properties specific to ExpressBrick.
  * @extends BrickOptions
  * @namespace ExpressBrick
  */

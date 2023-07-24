@@ -54,7 +54,7 @@ export default class Structure {
       }
     })
 
-    this.log = logger.child({ name: `STRUCTURE:${this.name}` })
+    this.log = logger.child({ name: `🏢STRUCTURE:${this.name}` })
     this.log.level = options.logLevel || 'debug'
     this.log.debug('Structure created')
   }

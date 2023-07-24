@@ -164,7 +164,7 @@ describe('Brick Task Scheduler', () => {
     brick.schedule({
       name: 'Test Task',
       description: 'Test Task Description',
-      schedule: new Date(Date.now() + 1000),
+      schedule: new Date(Date.now() + 100),
       start: true,
       method: (brick) => {
         expect(brick).toBeInstanceOf(Brick)

@@ -4,7 +4,7 @@ import Brick, { BrickOptions } from '../brick'
  * Class representing a QA (Question-Answer) brick.
  * It extends from the {@link Core.Brick} class.
  */
-export default class QA extends Brick {
+export default class QABrick extends Brick {
   /**
    * Creates a new QA brick.
    * @param options - The options for the QA brick.

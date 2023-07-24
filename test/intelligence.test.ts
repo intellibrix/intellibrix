@@ -1,5 +1,5 @@
 import { Brick, Intelligence } from '../src'
-import QA from '../src/bricks/qa'
+import QABrick from '../src/bricks/qa'
 
 const intelligence = new Intelligence({
   model: 'gpt-3.5-turbo-0613',
@@ -49,7 +49,7 @@ describe('Intelligence Function Brick', () => {
 
 describe('Intelligence Question Brick', () => {
   it('should return an answer to a question', async () => {
-    const qa = new QA({ intelligence: new Intelligence({ key: process.env['OPENAI_API_KEY'] }) })
+    const qa = new QABrick({ intelligence: new Intelligence({ key: process.env['OPENAI_API_KEY'] }) })
     expect(qa).toBeDefined()
     if (process.env['USE_OPENAI'] !== 'true') return
     const { text } = await qa.run('qa', { question: 'What is 42 + 42?' })

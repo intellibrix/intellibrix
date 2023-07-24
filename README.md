@@ -28,6 +28,8 @@ Intellibrix is a software component framework that organizes functionality into 
 
 - A `Brick` is a software component that provides a specific functionality.
 - A `Structure` is a collection of `Bricks` that can easily be passed around in an application.
+- A `Brick` can interact with its parent `Structure` via `this.structure`
+- A `Structure` can enumerate and interact with its child `Bricks` via `this.bricks`
 - A `Brick` can contain many `Programs` that provide different related functionality.
 - A `Program` contains `Steps` that are executed in sequence to perform a specific task.
 - A `Step` contains `Actions` that are executed in sequence to act upon, process, and transform the data.
@@ -54,7 +56,6 @@ Intellibrix is a software component framework that organizes functionality into 
 - [Tasks](#tasks)
 - [Bundled Bricks](#bundled-bricks)
 - [Development](#development)
-- [Other Notes](#other-notes)
 
 ---
 
@@ -236,7 +237,7 @@ class MyBrick extends Brick {
 }
 
 const brick = new MyBrick({ name: 'My Brick' })
-const lengthString = await brick.myMethod({ topic: 'TypeScript' })
+const lengthString = brick.myMethod({ topic: 'TypeScript' })
 console.log(lengthString)
 ```
 
@@ -380,25 +381,35 @@ dateTask.cronjob.start() // Since we didn't use the start option, we must start 
 
 The core `intellibrix` package comes with some bricks that provide basic functionality and serve as examples.
 
-You can instantiate these like any brick, passing in the appropriate intelligence, database, and options.
+You can also find more complex Bricks under the [`@intellibrix`](https://www.npmjs.com/org/intellibrix) scope on [NPM](https://www.npmjs.com/org/intellibrix).
+
+If you would like to contribute a Brick, you may self-publish or if you'd like your Brick to be under the `@intellibrix` scope, contact `dev@intellibrix.dev`.
+
+You can instantiate these like any other Brick, passing in the appropriate Intelligence, Database, and options.
 
 - Express Web Server
   - A brick that provides a basic [Express](https://expressjs.com) web server
   - `import ExpressBrick from 'intellibrix/bricks/express'`
     - `const routes = [{ method: 'get', path: '/', handler: (req, res) => res.send('Hello World!') }]`
     - `const brick = new ExpressBrick({ port: 3000, routes })`
+- Internationalization
+  - A brick that provides internationalization support powered by [i18next](https://www.i18next.com)
+  - `import I18nBrick from 'intellibrix/bricks/i18n'`
+    - `const brick = new I18nBrick({ defaultLanguage: 'en', resources: { en: { translation: { hello: 'Hello World!' } } } })`
+    - `console.log(brick.t('hello'))`
 - Terminal
-  - A brick that provides a basic terminal interface powered by [TerminalKit](https://github.com/cronvel/terminal-kit)
+  - A brick that provides a terminal interface powered by [TerminalKit](https://github.com/cronvel/terminal-kit)
+  - TerminalKit allows for rich UI elements such as progress bars, tables, and more
   - `import TerminalBrick from 'intellibrix/bricks/terminal'`
     - `const brick = new TerminalBrick()`
     - `brick.print('What is your name? ')`
     - `const name = await brick.input()`
 - Question and Answer
   - Simple question and answer functionality powered by [OpenAI](https://openai.com)
-  - `import QA from 'intellibrix/bricks/qa'`
-    - `const qa = new QA({ intelligence })`
+  - `import QABrick from 'intellibrix/bricks/qa'`
+    - `const qa = new QABrick({ intelligence })`
     - `const { text } = await qa.run('qa', { question: 'What is the meaning of life?' })`
-    - You may pass a `context` array to the payload of [this format](https://platform.openai.com/docs/api-reference/chat/create#chat/create-messages) to track the conversation history
+    - You may pass a `context` array to the payload of [this format](https://platform.openai.com/docs/api-reference/chat/create#chat/create-messages) to provide conversation history to the AI
 
 ---
 
@@ -423,8 +434,3 @@ Then run:
 ```bash
 npm run test:watch
 ```
-
-## Other Notes
-
-- A `Brick` can communicate with its parent `Structure` via `this.structure`
-- A `Structure` can enumerate and communicate with its child `Bricks` via `this.bricks`

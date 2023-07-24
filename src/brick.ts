@@ -191,7 +191,7 @@ export default class Brick {
     this.db = options.database
     this.name = options.name || this.id
     this.structure = options.structure
-    this.log = logger.child({ name: `BRICK:${this.name}` })
+    this.log = logger.child({ name: `🧱BRICK:${this.name}` })
     this.log.level = options.logLevel || 'debug'
 
     this.events = new EventEmitter()
