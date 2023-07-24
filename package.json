@@ -16,6 +16,9 @@
     "test:coverage": "jest --verbose --coverage",
     "prepublishOnly": "npm run build:library"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/cron": "^2.0.1",
     "@types/express": "^4.17.17",
