@@ -28,7 +28,10 @@ describe('Express Brick', () => {
       }
     ]
 
-    const intelligence = new Intelligence({ key: process.env['OPENAI_API_KEY'] })
+    const intelligence = process.env['USE_OPENAI']
+      ? new Intelligence({ key: process.env['OPENAI_API_KEY'] })
+      : new Intelligence({ service: 'custom', method: async () => ({ text: 'int main() { return 0; }' }) })
+
     brick = new ExpressBrick({ name: 'AI Express Brick', intelligence, port, routes, middleware, builtinMiddleware: { json: true, urlencoded: true } })
     expect(brick).toBeInstanceOf(ExpressBrick)
     const api = supertest(brick.express)
