@@ -1,6 +1,6 @@
 # 🧱 Intellibrix 🧱 <!-- omit in toc -->
 
-[![NPM](https://nodei.co/npm/intellibrix.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/intellibrix/)
+[![NPM](https://nodei.co/npm/intellibrix.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/intellibrix)
 
 ## AI-Powered Software Component Framework <!-- omit in toc -->
 
