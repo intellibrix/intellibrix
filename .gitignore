@@ -1,4 +1,4 @@
-.jest
+.jest/env.js
 node_modules
 coverage
 dist
