@@ -5,7 +5,7 @@
 ## AI-Powered Software Component Framework <!-- omit in toc -->
 
 [![View Docs](https://img.shields.io/badge/view-docs-blue?style=for-the-badge)](https://intellibrix.dev)
-![Made with TypeScript](https://img.shields.io/badge/made_with-typescript-blue?style=for-the-badge)
+[![Made with TypeScript](https://img.shields.io/badge/made_with-typescript-blue?style=for-the-badge)](https://www.typescriptlang.org)
 
 [![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://www.npmjs.com/package/intellibrix)
 [![CircleCI](https://img.shields.io/circleci/build/github/intellibrix/intellibrix/master)](https://app.circleci.com/pipelines/github/intellibrix/intellibrix)
