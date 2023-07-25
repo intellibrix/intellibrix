@@ -8,6 +8,7 @@
 ![Made with TypeScript](https://img.shields.io/badge/made_with-typescript-blue?style=for-the-badge)
 
 [![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://www.npmjs.com/package/intellibrix)
+[![CircleCI](https://img.shields.io/circleci/build/github/intellibrix/intellibrix/master)](https://app.circleci.com/pipelines/github/intellibrix/intellibrix)
 [![Last Commit](https://img.shields.io/github/last-commit/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/commit/master)
 [![Open issues](https://img.shields.io/github/issues/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues)
 [![Closed issues](https://img.shields.io/github/issues-closed/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues?q=is%3Aissue+is%3Aclosed)
