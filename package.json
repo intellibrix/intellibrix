@@ -8,7 +8,6 @@
   "scripts": {
     "build": "npm-run-all build:library build:docs",
     "build:library": "tsc",
-    "build:browser": "tsc -p tsconfig.browser.json",
     "build:docs": "typedoc",
     "build:docs:watch": "typedoc --watch",
     "test": "jest --verbose",

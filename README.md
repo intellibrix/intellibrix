@@ -1,8 +1,11 @@
 # 🧱 Intellibrix 🧱 <!-- omit in toc -->
 
+[![NPM](https://nodei.co/npm/intellibrix.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/intellibrix/)
+
 ## AI-Powered Software Component Framework <!-- omit in toc -->
 
 [![View Docs](https://img.shields.io/badge/view-docs-blue?style=for-the-badge)](https://intellibrix.dev)
+![Made with TypeScript](https://img.shields.io/badge/made_with-typescript-blue?style=for-the-badge)
 
 [![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://www.npmjs.com/package/intellibrix)
 [![Last Commit](https://img.shields.io/github/last-commit/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/commit/master)
@@ -17,6 +20,8 @@
 [![Followers](https://img.shields.io/github/followers/intellibrix?style=social)](https://github.com/intellibrix)
 [![Watchers](https://img.shields.io/github/watchers/intellibrix/intellibrix?style=social)](https://github.com/intellibrix/intellibrix)
 [![Stars](https://img.shields.io/github/stars/intellibrix/intellibrix?style=social)](https://github.com/intellibrix/intellibrix)
+
+> Made with ❤️ by [Jay Mathis](https://github.com/mathiscode)
 
 ---
 
