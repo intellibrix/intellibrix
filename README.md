@@ -1,8 +1,12 @@
 # 🧱 Intellibrix 🧱 <!-- omit in toc -->
 
-[![NPM](https://nodei.co/npm/intellibrix.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/intellibrix)
-
 ## AI-Powered Software Component Framework <!-- omit in toc -->
+
+> “Software and cathedrals are much the same; first we build them, then we pray.” --Anonymous
+
+Made with ❤️ by [Jay Mathis](https://github.com/mathiscode)
+
+[![NPM](https://nodei.co/npm/intellibrix.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/intellibrix)
 
 [![View Docs](https://img.shields.io/badge/view-docs-blue?style=for-the-badge)](https://intellibrix.dev)
 [![Made with TypeScript](https://img.shields.io/badge/made_with-typescript-blue?style=for-the-badge)](https://www.typescriptlang.org)
@@ -22,8 +26,6 @@
 [![Watchers](https://img.shields.io/github/watchers/intellibrix/intellibrix?style=social)](https://github.com/intellibrix/intellibrix)
 [![Stars](https://img.shields.io/github/stars/intellibrix/intellibrix?style=social)](https://github.com/intellibrix/intellibrix)
 
-> Made with ❤️ by [Jay Mathis](https://github.com/mathiscode)
-
 ---
 
 ![Diagram](https://raw.githubusercontent.com/intellibrix/intellibrix/master/assets/intellibrix-diagram.svg)
@@ -33,7 +35,7 @@
 Intellibrix is a software component framework that organizes functionality into `Structures` and `Bricks`.
 
 - A `Brick` is a software component that provides a specific functionality.
-- A `Structure` is a collection of `Bricks` that can easily be passed around in an application.
+- A `Structure` is a collection of `Bricks` that can coordinate between them.
 - A `Brick` can interact with its parent `Structure` via `this.structure`
 - A `Structure` can enumerate and interact with its child `Bricks` via `this.bricks`
 - A `Brick` can contain many `Programs` that provide different related functionality.
@@ -427,7 +429,7 @@ cd intellibrix
 npm install # or your package manager's equivalent
 ```
 
-Create a `.jest` folder with an `env.js` file containing the following:
+Create an `env.js` file in the `.jest` folder containing the following:
 
 ```javascript
 process.env.USE_OPENAI=true // Set to false to disable OpenAI tests
