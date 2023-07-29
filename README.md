@@ -2,7 +2,7 @@
 
 ## AI-Powered Software Component Framework <!-- omit in toc -->
 
-> “Software and cathedrals are much the same; first we build them, then we pray.” --Anonymous
+> “Software and cathedrals are much the same; first we build them, then we pray.” --Sam Redwine
 
 Made with ❤️ by [Jay Mathis](https://github.com/mathiscode)
 
