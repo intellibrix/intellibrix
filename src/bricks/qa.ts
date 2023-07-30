@@ -3,6 +3,11 @@ import Brick, { BrickOptions } from '../brick'
 /**
  * Class representing a QA (Question-Answer) brick.
  * It extends from the {@link Core.Brick} class.
+ * 
+ * @example
+ * const qaBrick = new QABrick({ intelligence: new Intelligence({ key: process.env.OPENAI_API_KEY }) })
+ * const { text } = await qaBrick.run('qa', { question: 'What is 42 + 42?' })
+ * console.log(text.includes('84')) // Should include '84'
  */
 export default class QABrick extends Brick {
   /**

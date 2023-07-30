@@ -45,6 +45,29 @@ export interface ExpressBrickRequest extends Request {
 /**
  * Class representing a brick that sets up an Express server.
  * It extends from the {@link Core.Brick} class.
+ * 
+ * Access all of Express's functionality through the {@link ExpressBrick.express} property.
+ * 
+ * @example
+ * const brick = new ExpressBrick({
+ *   port: 3000,
+ *   routes: [
+ *     {
+ *       path: '/',
+ *       method: 'get',
+ *       handler: (req, res) => {
+ *         res.status(200).send('Hello World')
+ *       }
+ *     },
+ *     {
+ *       path: '/echo',
+ *       method: 'post',
+ *       handler: (req, res) => {
+ *         res.status(200).json(req.body)
+ *       }
+ *     }
+ *   ]
+ * })
  */
 export default class ExpressBrick extends Brick {
   /** The Express application instance. */

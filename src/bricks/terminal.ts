@@ -6,6 +6,28 @@ import Brick, { BrickOptions } from '../brick'
  * It extends from the {@link Core.Brick} class.
  * 
  * It uses the [TerminalKit](https://github.com/cronvel/terminal-kit) library to interact with the terminal.
+ * 
+ * @example
+ * const terminalBrick = new TerminalBrick({ logLevel: 'silent' })
+ * 
+ * while (true) {
+ *   terminalBrick.print('> ')
+ *   const input = await terminalBrick.input()
+ * 
+ *   switch (input.toLowerCase()) {
+ *     case 'exit':
+ *       terminalBrick.printSuccess('Bye!')
+ *       process.exit()
+ *     case 'error':
+ *       terminalBrick.printError('Error!')
+ *       break
+ *     case 'yellow':
+ *       terminalBrick.terminal.yellow('Yellow!')
+ *       break
+ *     default:
+ *       terminalBrick.printLine(`Command: ${input}`)
+ *   }
+ * }
  */
 export default class TerminalBrick extends Brick {
   /** The TerminalKit module. */
@@ -37,7 +59,7 @@ export default class TerminalBrick extends Brick {
    * @param text - The text to print.
    */
   printLine(text: string) {
-    this.terminal(text + '\n')
+    this.terminal('\n' + text + '\n')
   }
 
   /**
@@ -45,7 +67,7 @@ export default class TerminalBrick extends Brick {
    * @param text - The error message to print.
    */
   printError(text: string) {
-    this.terminal.red(text + '\n')
+    this.terminal.red('\n' + text + '\n')
   }
 
   /**
@@ -53,7 +75,7 @@ export default class TerminalBrick extends Brick {
    * @param text - The success message to print.
    */
   printSuccess(text: string) {
-    this.terminal.green(text + '\n')
+    this.terminal.green('\n' + text + '\n')
   }
 
   /**
@@ -61,7 +83,7 @@ export default class TerminalBrick extends Brick {
    * @param text - The warning message to print.
    */
   printWarning(text: string) {
-    this.terminal.yellow(text + '\n')
+    this.terminal.yellow('\n' + text + '\n')
   }
 
   /**
@@ -69,7 +91,7 @@ export default class TerminalBrick extends Brick {
    * @param text - The info message to print.
    */
   printInfo(text: string) {
-    this.terminal.blue(text + '\n')
+    this.terminal.blue('\n' + text + '\n')
   }
 
   /**
@@ -77,7 +99,7 @@ export default class TerminalBrick extends Brick {
    * @param text - The debug message to print.
    */
   printDebug(text: string) {
-    this.terminal.cyan(text + '\n')
+    this.terminal.cyan('\n' + text + '\n')
   }
 
   /**

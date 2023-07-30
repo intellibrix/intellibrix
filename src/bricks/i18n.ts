@@ -24,7 +24,10 @@ export interface I18nBrickOptions extends BrickOptions {
  * Class representing an I18n (Internationalization) Brick.
  * It extends from the {@link Brick} class.
  * 
- * @example const brick = new I18nBrick({ resources: { es: { translation: { 'Hello': 'Hola' } } } })
+ * @example
+ * const brick = new I18nBrick({ resources: { es: { translation: { 'Hello': 'Hola' } } } })
+ * brick.language = 'es'
+ * console.log(brick.t('Hello')) // 'Hola'
  */
 export default class I18nBrick extends Brick {
   /** The i18next instance. */
