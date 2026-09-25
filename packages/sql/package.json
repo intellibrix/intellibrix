@@ -1,0 +1,69 @@
+{
+  "name": "@intellibrix/sql",
+  "version": "1.0.0-alpha.0",
+  "description": "SQL-backed Database for intellibrix (Sequelize)",
+  "author": "Jay Mathis <code@mathis.network>",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "intellibrix": "workspace:^"
+  },
+  "peerDependencies": {
+    "sequelize": "^6.37.0",
+    "pg": "^8.11.0",
+    "pg-hstore": "^2.3.4",
+    "mariadb": "^3.2.0",
+    "sqlite3": "^5.1.6"
+  },
+  "peerDependenciesMeta": {
+    "pg": {
+      "optional": true
+    },
+    "pg-hstore": {
+      "optional": true
+    },
+    "mariadb": {
+      "optional": true
+    },
+    "sqlite3": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "sequelize": "^6.37.0",
+    "sqlite3": "^5.1.6",
+    "tsdown": "^0.23.0",
+    "typescript": "^5.6.0",
+    "vitest": "^5.0.0"
+  }
+}
