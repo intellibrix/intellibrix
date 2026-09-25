@@ -1,5 +1,5 @@
-/**
- * @intellibrix/ai-sdk — placeholder scaffold (Phase 1). Real adapter implementation lands in Phase 3.
- * Re-exports intellibrix core so the package resolves meaningfully even before adapters exist.
- */
-export * from 'intellibrix'
+export * from './convert/from-ai-sdk.js'
+export * from './convert/to-ai-sdk.js'
+export * from './convert/tools.js'
+export * from './provider.js'
+export * from './registry.js'
