@@ -16,6 +16,16 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./testing": {
+      "import": {
+        "types": "./dist/testing.d.mts",
+        "default": "./dist/testing.mjs"
+      },
+      "require": {
+        "types": "./dist/testing.d.cts",
+        "default": "./dist/testing.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
@@ -35,14 +45,13 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "cron": "^2.3.1",
+    "@standard-schema/spec": "^1.1.0",
+    "cron": "^4.4.0",
     "pino": "^8.14.1",
     "pino-pretty": "^10.0.1"
   },
   "devDependencies": {
-    "@types/cron": "^2.0.1",
     "@types/node": "^22.0.0",
-    "openai": "3.3.0",
     "tsdown": "^0.23.0",
     "typescript": "^5.6.0",
     "vitest": "^5.0.0"

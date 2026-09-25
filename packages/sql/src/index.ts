@@ -1,5 +1,7 @@
 import { Sequelize } from 'sequelize'
 
+export * from './keyvalue.js'
+
 /**
  * Represents a SQL interface for a database.
  */

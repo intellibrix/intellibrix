@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { Intelligence } from 'intellibrix'
+import { customProvider, Intelligence } from 'intellibrix'
 import supertest from 'supertest'
 import { afterEach, describe, expect, it } from 'vitest'
 import ExpressBrick, { type ExpressBrickRequest } from '../src/index.js'
@@ -29,12 +29,10 @@ describe('Express Brick', () => {
       },
     ]
 
-    const intelligence = process.env['USE_OPENAI']
-      ? new Intelligence({ key: process.env['OPENAI_API_KEY'] })
-      : new Intelligence({
-          service: 'custom',
-          method: async () => ({ text: 'int main() { return 0; }' }),
-        })
+    const intelligence = new Intelligence({
+      provider: customProvider(async () => 'int main() { return 0; }'),
+      model: 'mock',
+    })
 
     brick = new ExpressBrick({
       name: 'AI Express Brick',
@@ -52,7 +50,6 @@ describe('Express Brick', () => {
       .expect(200)
       .expect('Content-Type', /json/)
       .expect((res) => {
-        if (process.env['USE_OPENAI'] !== 'true') return true
         expect(res.body).toHaveProperty('error', false)
         expect(res.body).toHaveProperty('message', 'Hello World')
         expect(res.body).toHaveProperty('text')

@@ -1,11 +1,23 @@
+import { randomUUID } from 'node:crypto'
+import EventEmitter from 'node:events'
+import type { StandardSchemaV1 } from '@standard-schema/spec'
 import { CronJob } from 'cron'
-import { randomUUID } from 'crypto'
-import EventEmitter from 'events'
-import { pino } from 'pino'
+import type { pino } from 'pino'
 
-import type Database from './database.js'
+import { type KeyValueStore, MemoryKeyValueStore } from './database.js'
 import type Intelligence from './intelligence.js'
+import type { AskOptions, AskResult } from './intelligence.js'
+import { getSharedLogger } from './logger.js'
 import type Structure from './structure.js'
+import type { ToolDefinition } from './tool.js'
+
+/**
+ * A permissive Standard Schema that accepts any value unchanged. Used as the
+ * default `input`/`output` for a {@link Program} that declares neither.
+ */
+const passthroughSchema: StandardSchemaV1<any> = {
+  '~standard': { version: 1, vendor: 'intellibrix', validate: (value: unknown) => ({ value }) },
+}
 
 /**
  * Represents a program with a name, optional description and a list of steps.
@@ -15,6 +27,10 @@ export type Program = {
   name: string
   description?: string
   steps: Step[]
+  /** Optional Standard Schema validating the program's input, used when exposed via {@link Brick.tools}. */
+  input?: StandardSchemaV1
+  /** Optional Standard Schema validating the program's output. */
+  output?: StandardSchemaV1
 }
 
 /**
@@ -40,7 +56,7 @@ export type Action = {
 /**
  * Represents a Scheduled Task with a name, optional description, schedule, start flag, optional timezone and a method.
  *
- * Tasks are powered by the [node-cron](https://www.npmjs.com/package/node-cron) package.
+ * Tasks are powered by the [cron](https://www.npmjs.com/package/cron) package.
  *
  * An object of this type can be passed to the {@link Brick.schedule} method.
  */
@@ -60,7 +76,7 @@ export type Task = {
   /** The method to be executed when the task is completed. */
   onComplete?: (brick: Brick) => any
   /** An optional CronJob instance associated with the task. */
-  cronjob?: CronJob
+  cronjob?: CronJob<() => any, null>
 }
 
 /**
@@ -103,9 +119,9 @@ export type BrickOptions = {
   intelligence?: Intelligence
 
   /**
-   * The database of the Brick instance. This is used to manage the data storage and retrieval for the Brick.
+   * The key-value store of the Brick instance. Defaults to an in-memory store.
    */
-  database?: Database
+  database?: KeyValueStore
 }
 
 /**
@@ -124,9 +140,9 @@ export default class Brick {
   ai?: Intelligence
 
   /**
-   * The database of the Brick instance. This is used to manage the data storage and retrieval for the Brick.
+   * The key-value store of the Brick instance.
    */
-  db?: Database
+  db: KeyValueStore
 
   /**
    * The logger used by the Brick instance. This is used to log information about the operation of the Brick.
@@ -142,6 +158,11 @@ export default class Brick {
    * The programs of the Brick instance. This is a private property used to store the programs that the Brick can run.
    */
   #programs: { [key: string]: Program }
+
+  /**
+   * Tool arrays attached via {@link Brick.use}.
+   */
+  #attachedTools: ToolDefinition[] = []
 
   /**
    * The parent Structure of the Brick instance, if any.
@@ -165,34 +186,14 @@ export default class Brick {
 
   /**
    * Creates a new Brick instance.
-   * @param {Object} options - The options for creating a Brick.
-   * @param {string} options.id - The unique identifier of the Brick instance. If not provided, a random UUID will be generated.
-   * @param options.name - The name of the Brick instance. If not provided, the id will be used as the name.
-   * @param options.logLevel - The log level of the Brick instance.
-   * @param options.logJSON - A boolean indicating whether the logs should be in JSON format.
-   * @param options.pinoOptions - The options for the pino logger used by the Brick instance.
-   * @param options.structure - The parent Structure of the Brick, if any.
-   * @param options.intelligence - The Intelligence of the Brick instance. This is used to manage the AI capabilities of the Brick.
-   * @param options.database - The database of the Brick instance. This is used to manage the data storage and retrieval for the Brick.
+   * @param options The options for creating a Brick.
    */
   constructor(options: BrickOptions = {}) {
-    const logger = pino(
-      options.pinoOptions || {
-        transport: options.logJSON
-          ? undefined
-          : {
-              target: 'pino-pretty',
-              options: {
-                colorize: true,
-                ignore: 'pid,hostname',
-              },
-            },
-      },
-    )
+    const logger = getSharedLogger(options)
 
-    this.id = randomUUID()
+    this.id = options.id ?? randomUUID()
     this.ai = options.intelligence
-    this.db = options.database
+    this.db = options.database ?? new MemoryKeyValueStore()
     this.name = options.name || this.id
     this.structure = options.structure
     this.log = logger.child({ name: `🧱BRICK:${this.name}` })
@@ -231,6 +232,16 @@ export default class Brick {
     let result: any
     const program = this.#programs[name]
     if (!program) throw new Error('Program does not exist')
+
+    if (program.input) {
+      const validated = await program.input['~standard'].validate(payload)
+      if (validated.issues) {
+        const message = validated.issues.map((issue) => issue.message).join('; ')
+        throw new Error(`Invalid input for program "${name}": ${message}`)
+      }
+      payload = validated.value
+    }
+
     this.events.emit('run', { name, payload })
     this.structure?.events.emit('run', { brick: this, name, payload })
 
@@ -241,6 +252,15 @@ export default class Brick {
         result = await action.method(payload, this)
         payload = result
       }
+    }
+
+    if (program.output) {
+      const validated = await program.output['~standard'].validate(result)
+      if (validated.issues) {
+        const message = validated.issues.map((issue) => issue.message).join('; ')
+        throw new Error(`Invalid output for program "${name}": ${message}`)
+      }
+      result = validated.value
     }
 
     return result
@@ -272,6 +292,42 @@ export default class Brick {
   }
 
   /**
+   * Exposes every registered program as a {@link ToolDefinition}, each
+   * `execute` calling `this.run(program.name, input)`.
+   */
+  tools(): ToolDefinition[] {
+    return Object.values(this.#programs).map((program) => ({
+      name: program.name,
+      description: program.description ?? `Run the "${program.name}" program`,
+      input: program.input ?? passthroughSchema,
+      output: program.output,
+      execute: async (input: any) => this.run(program.name, input),
+    }))
+  }
+
+  /**
+   * Attaches external tool arrays (e.g. MCP-sourced tools) to this Brick,
+   * included whenever `ask()` builds its tool list.
+   */
+  use(...toolsets: ToolDefinition[][]) {
+    for (const toolset of toolsets) this.#attachedTools.push(...toolset)
+    return this
+  }
+
+  /**
+   * Runs a prompt through this Brick's `ai`, offering its programs (via
+   * {@link Brick.tools}) plus any tools attached via {@link Brick.use}.
+   */
+  async ask(prompt: string, options: AskOptions = {}): Promise<AskResult> {
+    if (!this.ai) throw new Error('Brick has no Intelligence configured')
+    return this.ai.ask(prompt, {
+      ...options,
+      brick: this,
+      tools: [...this.tools(), ...this.#attachedTools, ...(options.tools ?? [])],
+    })
+  }
+
+  /**
    * Returns a {@link Task} by its name.
    */
   task(name: string) {
@@ -280,7 +336,7 @@ export default class Brick {
 
   /**
    * Schedules a {@link Task} to run on a given schedule.
-   * This is a wrapper around the [node-cron](https://www.npmjs.com/package/node-cron) package.
+   * This is a wrapper around the [cron](https://www.npmjs.com/package/cron) package.
    *
    * @remarks The task will run on the schedule provided, and will run the method provided with the Brick instance as the first argument.
    * @param task - The {@link Task} to schedule.
@@ -293,8 +349,8 @@ export default class Brick {
     task.cronjob = new CronJob(
       task.schedule,
       () => task.method(this),
-      task.onComplete?.(this) || null,
-      task.start || true,
+      () => task.onComplete?.(this) ?? null,
+      task.start ?? true,
       task.timezone,
     )
     this.#tasks.push(task)

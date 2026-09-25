@@ -1,74 +1,138 @@
-/**
- * Represents the type of database service.
- */
-export type DatabaseService = 'memory'
+import type { Message } from './messages.js'
 
 /**
- * Represents the options for creating a Database instance.
+ * A simple, provider-agnostic key-value store.
  */
-export type DatabaseOptions = {
-  // The type of database service
-  service?: DatabaseService
+export interface KeyValueStore {
+  get(key: string): Promise<any>
+  set(key: string, value: any): Promise<void>
+  delete(key: string): Promise<boolean>
+  dump(): Promise<Record<string, any>>
+  load(data: Record<string, any>): Promise<void>
 }
 
 /**
- * Represents a key-value interface for a database.
+ * Persists and retrieves conversation history by thread id.
  */
-export interface KeyValueInterface {
-  // Gets a value by its key
-  get: (key: string) => Promise<any>
-  // Sets a value by its key
-  set: (key: string, value: any) => Promise<void>
-  // Deletes a value by its key
-  delete: (key: string) => Promise<boolean>
-  // Dumps the entire database
-  dump: () => Promise<any>
-  // Loads data into the database
-  load: (data: any) => Promise<void>
+export interface ConversationMemory {
+  append(threadId: string, message: Message): Promise<void>
+  getMessages(threadId: string): Promise<Message[]>
+  clear(threadId: string): Promise<void>
 }
 
 /**
- * Represents a database interface.
+ * A single entry in a {@link VectorStore}.
  */
-export type DatabaseInterface = KeyValueInterface
+export type VectorRecord = {
+  id: string
+  vector: number[]
+  metadata?: Record<string, any>
+}
 
 /**
- * Represents a Database that may be used by {@link Brick}s to manage data.
- *
- * SQL support has moved to `@intellibrix/sql`. This class will itself be replaced
- * in Phase 2 by the `KeyValueStore`/`ConversationMemory`/`VectorStore` interfaces.
+ * A vector-similarity search result.
  */
-export default class Database {
-  // The type of database service
-  service: DatabaseService
-  // The interface for interacting with the database
-  interface?: DatabaseInterface
-  // The in-memory database
-  memory: any
+export type VectorMatch = VectorRecord & { score: number }
 
-  /**
-   * Creates a new instance of the Database class.
-   * @param options The options for creating the Database instance.
-   */
-  constructor(options?: DatabaseOptions) {
-    this.service = options?.service || 'memory'
+/**
+ * A provider-agnostic vector store for semantic search / retrieval.
+ */
+export interface VectorStore {
+  upsert(records: VectorRecord[]): Promise<void>
+  query(vector: number[], opts?: { topK?: number }): Promise<VectorMatch[]>
+  delete(ids: string[]): Promise<void>
+}
 
-    switch (this.service) {
-      case 'memory': {
-        const memoryInterface: KeyValueInterface = {
-          get: async (key: string) => this.memory[key],
-          set: async (key: string, value: any) => (this.memory[key] = value),
-          delete: async (key: string) => delete this.memory[key],
-          dump: async () => this.memory,
-          load: async (data: any) => (this.memory = data),
-        }
+function cosineSimilarity(a: number[], b: number[]): number {
+  let dot = 0
+  let normA = 0
+  let normB = 0
 
-        this.memory = {}
-        this.interface = memoryInterface
-        break
-      }
-      default:
-        throw new Error('Invalid service')
-    }
+  for (let i = 0; i < a.length; i++) {
+    const av = a[i] ?? 0
+    const bv = b[i] ?? 0
+    dot += av * bv
+    normA += av * av
+    normB += bv * bv
+  }
+
+  if (normA === 0 || normB === 0) return 0
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB))
+}
+
+/**
+ * An in-memory {@link KeyValueStore}. The default store used by a {@link Brick}
+ * when no other is configured.
+ */
+export class MemoryKeyValueStore implements KeyValueStore {
+  #data: Record<string, any> = {}
+
+  async get(key: string): Promise<any> {
+    return this.#data[key]
+  }
+
+  async set(key: string, value: any): Promise<void> {
+    this.#data[key] = value
+  }
+
+  async delete(key: string): Promise<boolean> {
+    return delete this.#data[key]
+  }
+
+  async dump(): Promise<Record<string, any>> {
+    return this.#data
+  }
+
+  async load(data: Record<string, any>): Promise<void> {
+    this.#data = data
+  }
+}
+
+/**
+ * An in-memory {@link ConversationMemory}, keyed by thread id.
+ */
+export class MemoryConversationMemory implements ConversationMemory {
+  #threads = new Map<string, Message[]>()
+
+  async append(threadId: string, message: Message): Promise<void> {
+    const thread = this.#threads.get(threadId) ?? []
+    thread.push(message)
+    this.#threads.set(threadId, thread)
+  }
+
+  async getMessages(threadId: string): Promise<Message[]> {
+    return [...(this.#threads.get(threadId) ?? [])]
+  }
+
+  async clear(threadId: string): Promise<void> {
+    this.#threads.delete(threadId)
+  }
+}
+
+/**
+ * An in-memory {@link VectorStore} using brute-force cosine similarity.
+ * Fine for small datasets; see `@intellibrix/sql`'s `PgVectorStore` or
+ * `@intellibrix/memory-sqlite`'s `SQLiteVectorStore` for larger ones.
+ */
+export class MemoryVectorStore implements VectorStore {
+  #records = new Map<string, VectorRecord>()
+
+  async upsert(records: VectorRecord[]): Promise<void> {
+    for (const record of records) this.#records.set(record.id, record)
+  }
+
+  async query(vector: number[], opts?: { topK?: number }): Promise<VectorMatch[]> {
+    const topK = opts?.topK ?? 10
+    const matches: VectorMatch[] = [...this.#records.values()].map((record) => ({
+      ...record,
+      score: cosineSimilarity(vector, record.vector),
+    }))
+
+    matches.sort((a, b) => b.score - a.score)
+    return matches.slice(0, topK)
+  }
+
+  async delete(ids: string[]): Promise<void> {
+    for (const id of ids) this.#records.delete(id)
   }
 }

@@ -26,6 +26,6 @@
     }
   },
   "files": {
-    "includes": ["**", "!**/dist/**", "!**/docs/**", "!assets/**"]
+    "includes": ["**", "!**/dist", "!**/docs", "!assets"]
   }
 }

@@ -5,7 +5,7 @@ import { Brick, type BrickOptions } from 'intellibrix'
  * It extends from the {@link Core.Brick} class.
  *
  * @example
- * const qaBrick = new QABrick({ intelligence: new Intelligence({ key: process.env.OPENAI_API_KEY }) })
+ * const qaBrick = new QABrick({ intelligence: new Intelligence({ provider, model }) })
  * const { text } = await qaBrick.run('qa', { question: 'What is 42 + 42?' })
  * console.log(text.includes('84')) // Should include '84'
  */

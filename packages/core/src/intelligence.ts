@@ -1,167 +1,225 @@
-import type {
-  ChatCompletionFunctions,
-  ChatCompletionRequestMessage,
-  ChatCompletionRequestMessageRoleEnum,
-} from 'openai'
-import { Configuration, type CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
+import type { Checkpointer } from './checkpoint.js'
+import type { ConversationMemory } from './database.js'
+import { type ApprovalHook, type LoopEvent, runAgentLoop } from './loop.js'
+import { type Message, textMessage, textOf } from './messages.js'
+import type { Provider, StreamEvent } from './provider.js'
+import type { ToolDefinition } from './tool.js'
 
 /**
- * Represents the type of intelligence service to be used.
- */
-export type IntelligenceService = 'openai' | 'custom'
-
-/**
- * Represents the options for creating an Intelligence instance.
+ * Options for creating an {@link Intelligence} instance.
  */
 export type IntelligenceOptions = {
-  // The type of intelligence service to use
-  service?: IntelligenceService
-  // The model to use for the AI
-  model?: string
-  // The system message to use in the chat
+  provider: Provider
+  model: string
   system?: string
-  // The API key for the intelligence service
-  key?: string
-  // The method to use for the custom intelligence service
-  method?: (payload: any) => Promise<any>
-  // The functions to use for the intelligence service (OpenAI only)
-  functions?: {
-    schema: ChatCompletionFunctions[]
-    methods: { [key: string]: (payload: any) => Promise<any> }
+  tools?: ToolDefinition[]
+  maxSteps?: number
+  onToolApproval?: ApprovalHook
+  onEvent?: (event: LoopEvent) => void
+  checkpointer?: Checkpointer
+  /** Optional conversation memory; combine with `threadId` on `ask`/`stream`. */
+  memory?: ConversationMemory
+}
+
+/**
+ * Options for a single `ask`/`stream` call.
+ */
+export type AskOptions = {
+  tools?: ToolDefinition[]
+  maxSteps?: number
+  onToolApproval?: ApprovalHook
+  onEvent?: (event: LoopEvent) => void
+  abortSignal?: AbortSignal
+  runId?: string
+  brick?: unknown
+  /** Conversation thread id; requires `memory` to be set on the constructor. */
+  threadId?: string
+}
+
+export type AskResult = {
+  text: string
+  messages: Message[]
+  steps: number
+}
+
+/**
+ * Represents an intelligence service that can be used by a {@link Brick} to
+ * process and respond to messages, backed by any {@link Provider}.
+ */
+export default class Intelligence {
+  provider: Provider
+  model: string
+  system: string
+  tools: ToolDefinition[]
+  maxSteps: number
+  onToolApproval?: ApprovalHook
+  onEvent?: (event: LoopEvent) => void
+  checkpointer?: Checkpointer
+  memory?: ConversationMemory
+
+  constructor(options: IntelligenceOptions) {
+    this.provider = options.provider
+    this.model = options.model
+    this.system = options.system ?? 'You are a friendly assistant, ready to help with any task'
+    this.tools = options.tools ?? []
+    this.maxSteps = options.maxSteps ?? 10
+    this.onToolApproval = options.onToolApproval
+    this.onEvent = options.onEvent
+    this.checkpointer = options.checkpointer
+    this.memory = options.memory
+  }
+
+  private async loadHistory(threadId?: string): Promise<Message[]> {
+    if (!this.memory || !threadId) return []
+    return this.memory.getMessages(threadId)
+  }
+
+  private async persist(threadId: string | undefined, userMessage: Message, replies: Message[]) {
+    if (!this.memory || !threadId) return
+    await this.memory.append(threadId, userMessage)
+    for (const reply of replies) await this.memory.append(threadId, reply)
+  }
+
+  /**
+   * Sends a prompt through the agent loop and returns the final result.
+   */
+  async ask(prompt: string | Message, options: AskOptions = {}): Promise<AskResult> {
+    const userMessage: Message = typeof prompt === 'string' ? textMessage('user', prompt) : prompt
+    const history = await this.loadHistory(options.threadId)
+    const startLength = history.length
+
+    const result = await runAgentLoop({
+      provider: this.provider,
+      model: this.model,
+      system: this.system,
+      messages: [...history, userMessage],
+      tools: options.tools ?? this.tools,
+      maxSteps: options.maxSteps ?? this.maxSteps,
+      onToolApproval: options.onToolApproval ?? this.onToolApproval,
+      onEvent: options.onEvent ?? this.onEvent,
+      abortSignal: options.abortSignal,
+      runId: options.runId,
+      brick: options.brick,
+      checkpointer: this.checkpointer,
+    })
+
+    const newMessages = result.messages.slice(startLength + 1)
+    await this.persist(options.threadId, userMessage, newMessages)
+
+    const lastAssistant = [...result.messages]
+      .reverse()
+      .find((message) => message.role === 'assistant')
+
+    return {
+      text: lastAssistant ? textOf(lastAssistant) : '',
+      messages: result.messages,
+      steps: result.steps,
+    }
+  }
+
+  /**
+   * Sends a prompt through the agent loop, streaming events as they occur.
+   */
+  async *stream(prompt: string | Message, options: AskOptions = {}): AsyncIterable<StreamEvent> {
+    const userMessage: Message = typeof prompt === 'string' ? textMessage('user', prompt) : prompt
+    const history = await this.loadHistory(options.threadId)
+    const startLength = history.length
+
+    let finalMessages: Message[] = []
+    let completed = false
+
+    try {
+      const request = {
+        model: this.model,
+        system: this.system,
+        messages: [...history, userMessage],
+        tools: options.tools ?? this.tools,
+        abortSignal: options.abortSignal,
+      }
+
+      for await (const event of this.provider.stream(request)) {
+        yield event
+        if (event.type === 'finish') finalMessages = [...request.messages, event.result.message]
+      }
+
+      completed = true
+    } finally {
+      if (completed && finalMessages.length > 0) {
+        const newMessages = finalMessages.slice(startLength + 1)
+        await this.persist(options.threadId, userMessage, newMessages)
+      }
+    }
+  }
+
+  /**
+   * Forces a structured response via a synthetic tool call matching `schema`,
+   * returning its parsed input. Avoids per-provider JSON-mode plumbing.
+   */
+  async object<T>(schema: ToolDefinition<T>['input'], prompt: string | Message): Promise<T> {
+    const userMessage: Message = typeof prompt === 'string' ? textMessage('user', prompt) : prompt
+    let captured: T | undefined
+
+    const responderTool: ToolDefinition<T> = {
+      name: '_respond_with_schema',
+      description: 'Respond with a value matching the required schema.',
+      input: schema,
+      execute: async (input) => {
+        captured = input
+        return input
+      },
+    }
+
+    await runAgentLoop({
+      provider: this.provider,
+      model: this.model,
+      system: this.system,
+      messages: [userMessage],
+      tools: [responderTool],
+      maxSteps: 2,
+      stopWhen: () => captured !== undefined,
+    })
+
+    if (captured === undefined) throw new Error('Model did not produce a structured response')
+    return captured
+  }
+
+  /**
+   * Generates embeddings for the given input strings, if the provider supports it.
+   */
+  async embed(input: string[]): Promise<number[][]> {
+    if (!this.provider.embed)
+      throw new Error(`Provider "${this.provider.id}" does not support embed()`)
+    return this.provider.embed(input)
+  }
+
+  /**
+   * Generates an image from a prompt, if the provider supports it.
+   */
+  async image(prompt: string): Promise<{ url?: string; data?: string }> {
+    if (!this.provider.image)
+      throw new Error(`Provider "${this.provider.id}" does not support image()`)
+    return this.provider.image(prompt)
   }
 }
 
 /**
- * Represents an intelligence service that can be used by a {@link Brick} to process and respond to messages.
- * @remarks Currently, only OpenAI and custom functions are supported.
+ * Wraps a plain async function as a {@link Provider}, for simple custom
+ * integrations that don't need the full agent-loop machinery.
  */
-export default class Intelligence {
-  // The type of intelligence service to use
-  service: IntelligenceService
-  // The model to use for the AI
-  model: string
-  // The system message to use in the chat
-  system: string
-  // The instance of the intelligence service
-  instance: OpenAIApi | ((payload: any) => Promise<any>)
-  // The functions to use for the intelligence service
-  functions?: {
-    schema: ChatCompletionFunctions[]
-    methods: { [key: string]: (payload: any) => Promise<any> }
-  }
-
-  /**
-   * Creates a new instance of the Intelligence class.
-   * @param options The options to use for creating the Intelligence instance.
-   */
-  constructor(options: IntelligenceOptions) {
-    // Initialize properties from options
-    this.service = options.service || 'openai'
-    this.model = options.model || 'gpt-3.5-turbo'
-    this.system = options.system || 'You are a friendly assistant, ready to help with any task'
-    this.functions = options.functions
-
-    // Initialize the intelligence service instance
-    switch (this.service) {
-      case 'openai':
-        this.instance = new OpenAIApi(new Configuration({ apiKey: options.key }))
-        break
-      case 'custom':
-        this.instance = options.method || ((payload) => Promise.resolve(payload))
-        break
-      default:
-        throw new Error('Invalid service')
-    }
-  }
-
-  /**
-   * Sends a message to the intelligence service and gets a response.
-   * @param question The question to ask the intelligence service.
-   * @param context The context for the question.
-   * @returns The response from the intelligence service.
-   */
-  async ask(
-    question: any,
-    context?: [{ role: ChatCompletionRequestMessageRoleEnum; content: string }],
-  ) {
-    switch (this.service) {
-      case 'openai': {
-        let messages: ChatCompletionRequestMessage[] = [{ role: 'system', content: this.system }]
-        if (context) messages = [...messages, ...context]
-        messages = [
-          ...messages,
-          {
-            role: 'user',
-            content: typeof question === 'string' ? question : JSON.stringify(question),
-          },
-        ]
-
-        try {
-          const response = await (this.instance as OpenAIApi).createChatCompletion({
-            model: this.model,
-            functions: this.functions?.schema,
-            messages,
-          })
-
-          if (!response?.data?.choices?.[0]) throw new Error('Invalid response from AI')
-
-          let functionResult: any
-          if (response.data.choices[0].message?.function_call) {
-            const { function_call } = response.data.choices[0].message
-            if (!function_call?.name) throw new Error('Invalid function call')
-            const method = this.functions?.methods[function_call.name]
-            if (!method) throw new Error('Invalid function call')
-            functionResult = await method(JSON.parse(function_call.arguments || '{}'))
-          }
-
-          return {
-            text: response.data.choices[0].message?.content,
-            context: [...messages, response.data.choices[0].message],
-            function_result: functionResult,
-            finish_reason: response.data.choices[0].finish_reason,
-            usage: response.data.usage,
-          }
-        } catch (err) {
-          console.error((err as any).response?.data || (err as any).message)
-          throw new Error((err as any).message)
-        }
-      }
-
-      case 'custom':
-        return await (this.instance as (payload: any) => Promise<any>)(question)
-
-      default:
-        throw new Error('Invalid service')
-    }
-  }
-
-  /**
-   * Requests an image from the intelligence service (if supported).
-   * @param prompt The prompt for the image.
-   * @param size The size of the image.
-   * @returns The image from the intelligence service.
-   */
-  async image(prompt: string, size: CreateImageRequestSizeEnum = '256x256') {
-    switch (this.service) {
-      case 'openai':
-        try {
-          const response = await (this.instance as OpenAIApi).createImage({ prompt, size })
-          const image = response.data
-
-          return {
-            response,
-            image,
-          }
-        } catch (err) {
-          console.error((err as any).response?.data || (err as any).message)
-          throw new Error((err as any).message)
-        }
-
-      case 'custom':
-        return await (this.instance as (payload: any) => Promise<any>)(prompt)
-
-      default:
-        throw new Error('Invalid service')
-    }
+export function customProvider(fn: (prompt: string) => Promise<string>): Provider {
+  return {
+    id: 'custom',
+    async generate(req) {
+      const lastUser = [...req.messages].reverse().find((m) => m.role === 'user')
+      const text = await fn(lastUser ? textOf(lastUser) : '')
+      return { message: textMessage('assistant', text), finishReason: 'stop' }
+    },
+    async *stream(req) {
+      const lastUser = [...req.messages].reverse().find((m) => m.role === 'user')
+      const text = await fn(lastUser ? textOf(lastUser) : '')
+      const message = textMessage('assistant', text)
+      yield { type: 'text-delta', text }
+      yield { type: 'finish', result: { message, finishReason: 'stop' } }
+    },
   }
 }

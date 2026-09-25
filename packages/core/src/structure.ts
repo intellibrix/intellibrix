@@ -1,8 +1,19 @@
-import { randomUUID } from 'crypto'
-import EventEmitter from 'events'
-import { pino } from 'pino'
-
+import { randomUUID } from 'node:crypto'
+import EventEmitter from 'node:events'
+import type { pino } from 'pino'
 import type Brick from './brick.js'
+import { type KeyValueStore, MemoryKeyValueStore } from './database.js'
+import { getSharedLogger } from './logger.js'
+
+/**
+ * Typed events emitted on a {@link Structure}'s event bus.
+ */
+export type StructureEvents = {
+  add: [{ brick: Brick; structure: Structure }]
+  remove: [{ brick: Brick; structure: Structure }]
+  demolish: []
+  run: [{ brick: Brick; name: string; payload: any }]
+}
 
 /**
  * Represents the options for creating a Structure instance.
@@ -16,6 +27,8 @@ export type StructureOptions = {
   logJSON?: boolean
   // The options for the pino logger
   pinoOptions?: pino.LoggerOptions
+  // The shared key-value store for the structure. Defaults to an in-memory store.
+  state?: KeyValueStore
 }
 
 /**
@@ -32,6 +45,8 @@ export default class Structure {
   #bricks: Brick[]
   // The event emitter for the structure
   events: EventEmitter
+  // Shared key-value state across the structure's bricks
+  state: KeyValueStore
 
   /**
    * Creates a new instance of the Structure class.
@@ -43,21 +58,9 @@ export default class Structure {
     this.name = options.name || this.id
     this.#bricks = bricks
     this.events = new EventEmitter()
+    this.state = options.state ?? new MemoryKeyValueStore()
 
-    const logger = pino(
-      options.pinoOptions || {
-        transport: options.logJSON
-          ? undefined
-          : {
-              target: 'pino-pretty',
-              options: {
-                colorize: true,
-                ignore: 'pid,hostname',
-              },
-            },
-      },
-    )
-
+    const logger = getSharedLogger(options)
     this.log = logger.child({ name: `🏢STRUCTURE:${this.name}` })
     this.log.level = options.logLevel || 'debug'
     this.log.debug('Structure created')
