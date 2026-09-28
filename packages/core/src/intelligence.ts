@@ -1,9 +1,11 @@
 import type { Checkpointer } from './checkpoint.js'
 import type { ConversationMemory } from './database.js'
+import type { RunEventHandler } from './events.js'
 import { type ApprovalHook, type LoopEvent, runAgentLoop } from './loop.js'
 import { type Message, textMessage, textOf } from './messages.js'
-import type { Provider, StreamEvent } from './provider.js'
+import type { Provider, StreamEvent, Usage } from './provider.js'
 import type { ToolDefinition } from './tool.js'
+import { defaultPriceTable, type PriceTable, UsageAccumulator } from './usage.js'
 
 /**
  * Options for creating an {@link Intelligence} instance.
@@ -16,9 +18,12 @@ export type IntelligenceOptions = {
   maxSteps?: number
   onToolApproval?: ApprovalHook
   onEvent?: (event: LoopEvent) => void
+  onRunEvent?: RunEventHandler
   checkpointer?: Checkpointer
   /** Optional conversation memory; combine with `threadId` on `ask`/`stream`. */
   memory?: ConversationMemory
+  /** Price table for this instance's `usage` accumulator. Defaults to `defaultPriceTable`. */
+  priceTable?: PriceTable
 }
 
 /**
@@ -29,9 +34,12 @@ export type AskOptions = {
   maxSteps?: number
   onToolApproval?: ApprovalHook
   onEvent?: (event: LoopEvent) => void
+  onRunEvent?: RunEventHandler
   abortSignal?: AbortSignal
   runId?: string
   brick?: unknown
+  /** Annotates this call's `run:start`/`run:finish` `RunEvent`s. */
+  brickName?: string
   /** Conversation thread id; requires `memory` to be set on the constructor. */
   threadId?: string
 }
@@ -40,6 +48,7 @@ export type AskResult = {
   text: string
   messages: Message[]
   steps: number
+  usage: Usage
 }
 
 /**
@@ -54,8 +63,11 @@ export default class Intelligence {
   maxSteps: number
   onToolApproval?: ApprovalHook
   onEvent?: (event: LoopEvent) => void
+  onRunEvent?: RunEventHandler
   checkpointer?: Checkpointer
   memory?: ConversationMemory
+  /** Accumulates token usage/cost across every `ask`/`object` call on this instance. */
+  usage: UsageAccumulator
 
   constructor(options: IntelligenceOptions) {
     this.provider = options.provider
@@ -65,8 +77,10 @@ export default class Intelligence {
     this.maxSteps = options.maxSteps ?? 10
     this.onToolApproval = options.onToolApproval
     this.onEvent = options.onEvent
+    this.onRunEvent = options.onRunEvent
     this.checkpointer = options.checkpointer
     this.memory = options.memory
+    this.usage = new UsageAccumulator(options.priceTable ?? defaultPriceTable)
   }
 
   private async loadHistory(threadId?: string): Promise<Message[]> {
@@ -97,12 +111,15 @@ export default class Intelligence {
       maxSteps: options.maxSteps ?? this.maxSteps,
       onToolApproval: options.onToolApproval ?? this.onToolApproval,
       onEvent: options.onEvent ?? this.onEvent,
+      onRunEvent: options.onRunEvent ?? this.onRunEvent,
+      brickName: options.brickName,
       abortSignal: options.abortSignal,
       runId: options.runId,
       brick: options.brick,
       checkpointer: this.checkpointer,
     })
 
+    this.usage.add(result.usage, this.model)
     const newMessages = result.messages.slice(startLength + 1)
     await this.persist(options.threadId, userMessage, newMessages)
 
@@ -114,6 +131,7 @@ export default class Intelligence {
       text: lastAssistant ? textOf(lastAssistant) : '',
       messages: result.messages,
       steps: result.steps,
+      usage: result.usage,
     }
   }
 
@@ -169,7 +187,7 @@ export default class Intelligence {
       },
     }
 
-    await runAgentLoop({
+    const result = await runAgentLoop({
       provider: this.provider,
       model: this.model,
       system: this.system,
@@ -179,6 +197,7 @@ export default class Intelligence {
       stopWhen: () => captured !== undefined,
     })
 
+    this.usage.add(result.usage, this.model)
     if (captured === undefined) throw new Error('Model did not produce a structured response')
     return captured
   }

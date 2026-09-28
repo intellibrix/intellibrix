@@ -4,6 +4,7 @@ import type { pino } from 'pino'
 import type Brick from './brick.js'
 import { type KeyValueStore, MemoryKeyValueStore } from './database.js'
 import { getSharedLogger } from './logger.js'
+import { UsageAccumulator } from './usage.js'
 
 /**
  * Typed events emitted on a {@link Structure}'s event bus.
@@ -47,6 +48,8 @@ export default class Structure {
   events: EventEmitter
   // Shared key-value state across the structure's bricks
   state: KeyValueStore
+  /** Accumulates token usage/cost across every Brick added to this Structure. */
+  usage: UsageAccumulator
 
   /**
    * Creates a new instance of the Structure class.
@@ -59,6 +62,7 @@ export default class Structure {
     this.#bricks = bricks
     this.events = new EventEmitter()
     this.state = options.state ?? new MemoryKeyValueStore()
+    this.usage = new UsageAccumulator()
 
     const logger = getSharedLogger(options)
     this.log = logger.child({ name: `🏢STRUCTURE:${this.name}` })
@@ -81,6 +85,7 @@ export default class Structure {
     if (this.#bricks.find((b) => b.name === brick.name || b.id === brick.id))
       throw new Error('Brick already exists in structure')
     brick.structure = this
+    brick.usage = this.usage.child()
     for (const brick of this.#bricks) brick.events.emit('add-brick', { brick, structure: this })
     this.#bricks.push(brick)
     this.events.emit('add', { brick, structure: this })

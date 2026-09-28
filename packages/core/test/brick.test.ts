@@ -119,6 +119,25 @@ describe('Structure Event Bus', () => {
     await structure.state.set('foo', 'bar')
     expect(await structure.state.get('foo')).toEqual('bar')
   })
+
+  it('should sum two Bricks usage into `structure.usage` when added', async () => {
+    const structure = new Structure()
+    const provider = new MockProvider([{ text: 'reply a' }, { text: 'reply b' }])
+
+    const aiA = new Intelligence({ provider, model: 'mock' })
+    const brickA = new Brick({ intelligence: aiA })
+    structure.add(brickA)
+    await brickA.ask('question a')
+
+    const aiB = new Intelligence({ provider, model: 'mock' })
+    const brickB = new Brick({ intelligence: aiB })
+    structure.add(brickB)
+    await brickB.ask('question b')
+
+    expect(structure.usage.totals.totalTokens).toBe(
+      brickA.usage.totals.totalTokens + brickB.usage.totals.totalTokens,
+    )
+  })
 })
 
 describe('Brick Event Bus', () => {

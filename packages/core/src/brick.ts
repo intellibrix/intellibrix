@@ -10,6 +10,7 @@ import type { AskOptions, AskResult } from './intelligence.js'
 import { getSharedLogger } from './logger.js'
 import type Structure from './structure.js'
 import type { ToolDefinition } from './tool.js'
+import { UsageAccumulator } from './usage.js'
 
 /**
  * A permissive Standard Schema that accepts any value unchanged. Used as the
@@ -185,6 +186,15 @@ export default class Brick {
   #keepAliveInterval?: NodeJS.Timeout
 
   /**
+   * Accumulates token usage/cost across every `ask()` call on this Brick.
+   * Starts as a `.child()` of `this.ai.usage` when an `Intelligence` is
+   * configured (so totals also roll up there), or standalone otherwise.
+   * Rebound as a `.child()` of the parent `Structure`'s `usage` when added
+   * to one via `Structure.add()`.
+   */
+  usage: UsageAccumulator
+
+  /**
    * Creates a new Brick instance.
    * @param options The options for creating a Brick.
    */
@@ -201,6 +211,7 @@ export default class Brick {
 
     this.events = new EventEmitter()
     this.#programs = {}
+    this.usage = this.ai ? this.ai.usage.child() : new UsageAccumulator()
     this.log.debug('Brick created')
   }
 
@@ -320,11 +331,14 @@ export default class Brick {
    */
   async ask(prompt: string, options: AskOptions = {}): Promise<AskResult> {
     if (!this.ai) throw new Error('Brick has no Intelligence configured')
-    return this.ai.ask(prompt, {
+    const result = await this.ai.ask(prompt, {
       ...options,
       brick: this,
+      brickName: options.brickName ?? this.name,
       tools: [...this.tools(), ...this.#attachedTools, ...(options.tools ?? [])],
     })
+    this.usage.add(result.usage, this.ai.model)
+    return result
   }
 
   /**

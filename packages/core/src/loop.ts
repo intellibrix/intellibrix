@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 
 import { type Checkpointer, InMemoryCheckpointer } from './checkpoint.js'
+import type { RunEvent, RunEventHandler } from './events.js'
 import type { Message, Part, ToolResultPart, Trust } from './messages.js'
 import type { FinishReason, GenerateRequest, Provider, StepResult, Usage } from './provider.js'
 import {
@@ -51,6 +52,10 @@ export type LoopOptions = {
   stopWhen?: (result: StepResult) => boolean | Promise<boolean>
   onToolApproval?: ApprovalHook
   onEvent?: (event: LoopEvent) => void
+  /** Structural observability events, layered onto `onEvent`'s `LoopEvent`s. */
+  onRunEvent?: RunEventHandler
+  /** Annotates `run:start`/`run:finish` `RunEvent`s, e.g. with the owning Brick's name. */
+  brickName?: string
   abortSignal?: AbortSignal
   runId?: string
   brick?: unknown
@@ -94,11 +99,14 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
   const maxSteps = opts.maxSteps ?? 10
   const checkpointer = opts.checkpointer ?? new InMemoryCheckpointer()
   const emit = (event: LoopEvent) => opts.onEvent?.(event)
+  const emitRun = (event: RunEvent) => opts.onRunEvent?.(event)
 
   let messages = [...opts.messages]
   let stepIndex = 0
   let usage: Usage = {}
   let finishReason: FinishReason = 'stop'
+
+  emitRun({ type: 'run:start', runId, brickName: opts.brickName })
 
   if (opts.resume) {
     const saved = await checkpointer.load(runId)
@@ -124,6 +132,9 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
       abortSignal: opts.abortSignal,
     }
 
+    emitRun({ type: 'model:start', runId, stepIndex, model: opts.model })
+    const modelStart = Date.now()
+
     let result: StepResult
     try {
       result = await opts.provider.generate(request)
@@ -131,6 +142,14 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
       emit({ type: 'error', error })
       throw error
     }
+
+    emitRun({
+      type: 'model:finish',
+      runId,
+      stepIndex,
+      model: opts.model,
+      durationMs: Date.now() - modelStart,
+    })
 
     usage = addUsage(usage, result.usage)
     finishReason = result.finishReason
@@ -157,6 +176,14 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
           toolName: call.toolName,
           input: call.input,
         })
+        emitRun({
+          type: 'tool:call',
+          runId,
+          toolCallId: call.toolCallId,
+          toolName: call.toolName,
+          input: call.input,
+        })
+        const toolStart = Date.now()
 
         const tool = toolsByName.get(call.toolName)
         if (!tool) {
@@ -167,6 +194,13 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
             toolName: call.toolName,
             output,
             isError: true,
+          })
+          emitRun({
+            type: 'tool:error',
+            runId,
+            toolCallId: call.toolCallId,
+            toolName: call.toolName,
+            error: output.error,
           })
           return {
             type: 'tool-result',
@@ -190,10 +224,26 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
               toolName: call.toolName,
               input,
             })
+            emitRun({
+              type: 'approval:requested',
+              runId,
+              toolCallId: call.toolCallId,
+              toolName: call.toolName,
+              input,
+              trust,
+            })
 
             const decision = opts.onToolApproval
               ? await opts.onToolApproval({ toolName: call.toolName, input, runId, trust })
               : false
+
+            emitRun({
+              type: 'approval:resolved',
+              runId,
+              toolCallId: call.toolCallId,
+              toolName: call.toolName,
+              decision,
+            })
 
             if (decision === false) {
               emit({
@@ -233,6 +283,14 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
             toolName: call.toolName,
             output,
           })
+          emitRun({
+            type: 'tool:result',
+            runId,
+            toolCallId: call.toolCallId,
+            toolName: call.toolName,
+            output,
+            durationMs: Date.now() - toolStart,
+          })
           return {
             type: 'tool-result',
             toolCallId: call.toolCallId,
@@ -247,6 +305,13 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
             toolName: call.toolName,
             output,
             isError: true,
+          })
+          emitRun({
+            type: 'tool:error',
+            runId,
+            toolCallId: call.toolCallId,
+            toolName: call.toolName,
+            error,
           })
           return {
             type: 'tool-result',
@@ -267,5 +332,6 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
   }
 
   emit({ type: 'loop-finish', messages, steps: stepIndex })
+  emitRun({ type: 'run:finish', runId, brickName: opts.brickName, steps: stepIndex })
   return { messages, steps: stepIndex, usage, finishReason }
 }
