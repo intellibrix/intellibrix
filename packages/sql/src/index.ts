@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize'
 
 export * from './keyvalue.js'
+export * from './vectorstore.js'
 
 /**
  * Represents a SQL interface for a database.
@@ -26,8 +27,8 @@ export type SQLDatabaseOptions = {
  * Represents a SQL-backed Database that may be used by Bricks to manage data.
  *
  * This is a mechanical Phase 1 extraction of the old `service: 'sql'` branch from
- * intellibrix's core `Database` class. It will gain a `KeyValueStore`-conformant
- * interface (`SQLKeyValueStore`) plus a pgvector `VectorStore` in Phase 7.
+ * intellibrix's core `Database` class. See `SQLKeyValueStore` for the `KeyValueStore`-conformant
+ * store, and `PgVectorStore` for pgvector-backed similarity search.
  */
 export default class SQLDatabase {
   // The URI for the database

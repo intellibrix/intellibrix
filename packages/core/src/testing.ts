@@ -98,3 +98,5 @@ export function mockTool<In = any, Out = any>(
     execute: async (input: In) => impl(input),
   }
 }
+
+export * from './contracts.js'

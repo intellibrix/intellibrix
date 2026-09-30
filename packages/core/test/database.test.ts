@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import Brick from '../src/brick.js'
-import { MemoryKeyValueStore, MemoryVectorStore } from '../src/database.js'
+import {
+  MemoryConversationMemory,
+  MemoryKeyValueStore,
+  MemoryVectorStore,
+} from '../src/database.js'
+import {
+  conversationMemoryContract,
+  keyValueStoreContract,
+  vectorStoreContract,
+} from '../src/testing.js'
 
 describe('MemoryKeyValueStore', () => {
   it('should write, read, and delete a value', async () => {
@@ -62,4 +71,11 @@ describe('MemoryVectorStore', () => {
     const matches = await store.query([1, 0])
     expect(matches).toHaveLength(0)
   })
+})
+
+describe('in-memory store contracts', () => {
+  for (const c of keyValueStoreContract(() => new MemoryKeyValueStore())) it(`kv: ${c.name}`, c.run)
+  for (const c of conversationMemoryContract(() => new MemoryConversationMemory()))
+    it(`memory: ${c.name}`, c.run)
+  for (const c of vectorStoreContract(() => new MemoryVectorStore())) it(`vector: ${c.name}`, c.run)
 })
