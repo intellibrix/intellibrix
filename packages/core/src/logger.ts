@@ -19,6 +19,12 @@ export function getSharedLogger(options?: {
     return sharedLogger
   }
 
+  // stdout carries the protocol for stdio MCP servers, so logs must go elsewhere.
+  if (process.env.INTELLIBRIX_LOG_STDERR) {
+    sharedLogger = pino({}, pino.destination(2))
+    return sharedLogger
+  }
+
   const pretty =
     !options?.logJSON && Boolean(process.stdout.isTTY) && process.env.NODE_ENV !== 'production'
 

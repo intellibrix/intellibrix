@@ -1,4 +1,4 @@
-import type { StandardSchemaV1 } from '@standard-schema/spec'
+import type { StandardJSONSchemaV1, StandardSchemaV1 } from '@standard-schema/spec'
 
 import type { Trust } from './messages.js'
 
@@ -38,6 +38,23 @@ export type ToolDefinition<In = any, Out = any> = {
    * boolean or a predicate evaluated per-call (e.g. keying off `ctx.trust`).
    */
   needsApproval?: boolean | ((input: In, ctx: ToolContext) => boolean | Promise<boolean>)
+  /**
+   * Trust level stamped onto this tool's result `Part`s. Tools returning
+   * content fetched from outside the process (MCP, workspace reads, GitHub)
+   * should set `'untrusted'`.
+   */
+  resultTrust?: Trust
+}
+
+/**
+ * Returns a tool's input as JSON Schema (draft 2020-12), using the Standard
+ * JSON Schema interface when the schema implements it (Zod 4 does), and
+ * falling back to a permissive object schema otherwise.
+ */
+export function toolToJSONSchema(tool: ToolDefinition): Record<string, unknown> {
+  const standard = tool.input['~standard'] as Partial<StandardJSONSchemaV1.Props>
+  const schema = standard.jsonSchema?.input({ target: 'draft-2020-12' })
+  return schema ?? { type: 'object', additionalProperties: true }
 }
 
 /**

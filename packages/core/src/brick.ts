@@ -317,6 +317,14 @@ export default class Brick {
   }
 
   /**
+   * Every tool this Brick offers: its programs (via {@link Brick.tools}) plus
+   * anything attached via {@link Brick.use}.
+   */
+  toolset(): ToolDefinition[] {
+    return [...this.tools(), ...this.#attachedTools]
+  }
+
+  /**
    * Attaches external tool arrays (e.g. MCP-sourced tools) to this Brick,
    * included whenever `ask()` builds its tool list.
    */
@@ -335,7 +343,7 @@ export default class Brick {
       ...options,
       brick: this,
       brickName: options.brickName ?? this.name,
-      tools: [...this.tools(), ...this.#attachedTools, ...(options.tools ?? [])],
+      tools: [...this.toolset(), ...(options.tools ?? [])],
     })
     this.usage.add(result.usage, this.ai.model)
     return result

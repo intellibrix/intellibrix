@@ -1,4 +1,7 @@
 /**
- * @intellibrix/mcp — placeholder scaffold (Phase 1). Real implementation lands in Phase 6.
+ * @module MCP
  */
-export const placeholder = true
+
+export * from './client.js'
+export * from './sampling.js'
+export * from './server.js'

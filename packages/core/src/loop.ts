@@ -296,6 +296,7 @@ export async function runAgentLoop(opts: LoopOptions): Promise<LoopResult> {
             toolCallId: call.toolCallId,
             toolName: call.toolName,
             output,
+            ...(tool.resultTrust ? { trust: tool.resultTrust } : {}),
           }
         } catch (error) {
           const output = { error: error instanceof Error ? error.message : String(error) }

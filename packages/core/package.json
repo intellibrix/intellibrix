@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
+    "ajv": "^8.20.0",
     "cron": "^4.4.0",
     "pino": "^8.14.1",
     "pino-pretty": "^10.0.1"
