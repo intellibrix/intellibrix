@@ -3,7 +3,7 @@
 import { compatibleProvider } from '@intellibrix/ai-sdk'
 import TerminalBrick, { chatRepl } from '@intellibrix/terminal'
 import { workspaceTools } from '@intellibrix/workspace'
-import { Intelligence } from 'intellibrix'
+import { Intelligence, textToolCalls } from 'intellibrix'
 
 const root = process.argv[2] ?? process.cwd()
 const apiKey = process.env.OPENROUTER_API_KEY
@@ -18,11 +18,15 @@ const brick: TerminalBrick = new TerminalBrick({
   name: 'coding-agent',
   logLevel: 'fatal',
   intelligence: new Intelligence({
-    provider: compatibleProvider(model, {
-      name: 'openrouter',
-      baseURL: 'https://openrouter.ai/api/v1',
-      apiKey,
-    }),
+    // Free models often write tool calls as text instead of using native tool calling.
+    // textToolCalls() turns those into real calls, and passes native ones straight through.
+    provider: textToolCalls(
+      compatibleProvider(model, {
+        name: 'openrouter',
+        baseURL: 'https://openrouter.ai/api/v1',
+        apiKey,
+      }),
+    ),
     model,
     system: `You are a careful coding agent working in ${root}. Read before you edit.`,
     tools: workspaceTools({ root, shell: { allow: ['node', 'pnpm', 'git'] } }),

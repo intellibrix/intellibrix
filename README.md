@@ -118,6 +118,21 @@ await intelligence.image('a shiny red apple')                       // if the pr
 
 Vendor adapters (`@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/google`, `@ai-sdk/openai-compatible`) are optional peers, loaded lazily. Use `compatibleProvider(model, { baseURL, apiKey })` for local or self-hosted models, or `aiSdkProvider(languageModel)` to wrap any AI SDK model.
 
+### Models that write tool calls as text
+
+Some open and free models print tool calls into their reply (`<|tool_call_start|>[read_file(path='a.txt')]<|tool_call_end|>`, or Hermes/Qwen-style `<tool_call>{...}</tool_call>`) instead of using native tool calling. Wrap the provider and they drive the agent loop like any other:
+
+```typescript
+import { textToolCalls } from 'intellibrix'
+
+const intelligence = new Intelligence({
+  provider: textToolCalls(compatibleProvider(model, { baseURL, apiKey })),
+  model
+})
+```
+
+Native tool calls pass through untouched, markup is held back while streaming, and approvals and schema validation still apply. Pass `parsers` to add other formats, or `knownToolsOnly` to ignore calls to tools you didn't offer.
+
 ### Typed tools and Programs
 
 ```typescript
