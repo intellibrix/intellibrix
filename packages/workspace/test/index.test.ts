@@ -138,6 +138,12 @@ describe('shell tool', () => {
     )
   })
 
+  it('does not let a path satisfy an allowlisted name', async () => {
+    for (const command of [process.execPath, '/tmp/node', './node', '../node', 'bin\\node']) {
+      await expect(run(byName(tools(), 'shell'), { command })).rejects.toThrow(/not allowed/)
+    }
+  })
+
   it('does not interpret shell metacharacters', async () => {
     const r = await run(byName(tools(), 'shell'), {
       command: 'node',

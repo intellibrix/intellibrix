@@ -90,9 +90,9 @@ if you find a way to make one worse.
   restricts *which program starts*, not what the program does. The child process inherits the
   environment and is not otherwise confined. Allowlist narrowly, and use the sandbox for
   untrusted code.
-- **The shell allowlist matches the command's basename.** `command` values such as
-  `/some/dir/git` are checked as `git`. Keep untrusted binaries off paths the agent can write
-  to, and do not allowlist names you have not vetted.
+- **Allowlisted names resolve through `PATH`.** `command` must be a bare name on the allowlist;
+  values containing a path separator (`/some/dir/git`, `./git`) are rejected. The binary that runs
+  is whatever `PATH` resolves, so keep directories the agent can write to off `PATH`.
 - **The jail covers the intellibrix file tools, not the process.** Anything an allowlisted
   command does, or any code you run outside the sandbox, is not subject to the jail.
 - **Check-then-use races.** The jail resolves paths just before use. An attacker with

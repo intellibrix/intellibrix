@@ -1,5 +1,4 @@
 import { execFile } from 'node:child_process'
-import path from 'node:path'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
 import { resolveJailed } from './jail.js'
@@ -8,7 +7,7 @@ const MAX_OUTPUT = 64 * 1024
 
 export type ShellToolOptions = {
   root: string
-  /** Basenames of commands the model may run, e.g. `['node', 'pnpm', 'git']`. */
+  /** Bare command names the model may run, e.g. `['node', 'pnpm', 'git']`. Resolved through `PATH`. */
   allow: string[]
   /** Skip the approval prompt (CI / non-interactive use). @default false */
   alwaysApprove?: boolean
@@ -18,8 +17,10 @@ export type ShellToolOptions = {
 
 /**
  * A `shell` tool that runs allowlisted binaries via `execFile` — never through
- * a shell, so there is no metacharacter interpolation. The allowlist is
- * checked against `path.basename(command)`.
+ * a shell, so there is no metacharacter interpolation. `command` must be a
+ * bare name that is on the allowlist; anything containing a path separator is
+ * rejected, so an allowlisted name cannot be satisfied by an arbitrary binary
+ * at some path (e.g. `/tmp/x/git`).
  */
 export function shellTool(options: ShellToolOptions): ToolDefinition {
   const allow = new Set(options.allow)
@@ -35,7 +36,7 @@ export function shellTool(options: ShellToolOptions): ToolDefinition {
     needsApproval: !options.alwaysApprove,
     resultTrust: 'untrusted',
     execute: async ({ command, args, cwd, timeoutMs }, ctx) => {
-      if (!allow.has(path.basename(command))) {
+      if (!allow.has(command) || /[\\/]/.test(command)) {
         throw new Error(`Command not allowed: ${command}`)
       }
       const workdir = await resolveJailed(options.root, cwd ?? '.')
