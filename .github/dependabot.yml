@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories: ['/', '/packages/*', '/examples/*']
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      dev-tooling:
+        patterns: ['@biomejs/*', '@changesets/*', '@commitlint/*', 'lefthook', 'typedoc', 'vitest', 'tsdown', 'publint', '@arethetypeswrong/*', '@microsoft/api-extractor']
+      ai-sdk:
+        patterns: ['ai', '@ai-sdk/*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ['*']
