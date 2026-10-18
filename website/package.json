@@ -1,0 +1,15 @@
+{
+  "name": "intellibrix-website",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0 --port 10100",
+    "build:site": "astro build",
+    "preview": "astro preview --host 0.0.0.0 --port 10100"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.6",
+    "astro": "^7.4.0"
+  }
+}

@@ -11,3 +11,7 @@ docs/*
 
 # api-extractor scratch output
 temp/
+
+# docs site
+website/dist/
+website/.astro/

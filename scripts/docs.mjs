@@ -4,6 +4,8 @@ import { writeFile } from 'node:fs/promises'
 import { Application, Comment, PageEvent, ReflectionKind } from 'typedoc'
 
 const SITE = 'https://intellibrix.dev'
+// The typedoc pages are published under /api/ (see scripts/assemble-site.mjs); llms*.txt sit at the root.
+const API = `${SITE}/api`
 const OUT = 'docs'
 const SYMBOL_KINDS =
   ReflectionKind.Class |
@@ -77,7 +79,7 @@ const link = (r) => {
   let node = r
   while (node && !urls.has(node)) node = node.parent
   const url = node && urls.get(node)
-  return url ? `${SITE}/${url}` : SITE
+  return url ? `${API}/${url}` : API
 }
 let index = `# intellibrix\n\n> Model-agnostic, TypeScript-native, agent-native framework: Structure → Brick → Program, typed tools, an agent loop, MCP, multi-agent structures. Full reference: ${SITE}/llms-full.txt\n`
 let full = `# intellibrix — full API reference\n\nGenerated from TSDoc. Index: ${SITE}/llms.txt\n`

@@ -1,0 +1,44 @@
+---
+title: intellibrix
+description: A model-agnostic TypeScript framework for building agents and AI-powered components.
+template: splash
+hero:
+  tagline: Compose agents from small, typed, testable bricks. Any model, any provider, human approvals built in.
+  actions:
+    - text: Get started
+      link: /getting-started/
+      icon: right-arrow
+    - text: API reference
+      link: /api/
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/intellibrix/intellibrix
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+<CardGrid stagger>
+  <Card title="Model-agnostic" icon="puzzle">
+    One `Provider` interface over Anthropic, OpenAI, Google, OpenRouter, Ollama and anything
+    OpenAI-compatible. Swap models with one line.
+  </Card>
+  <Card title="Typed end to end" icon="pencil">
+    Tools and Programs use Zod 4 schemas (via Standard Schema). Inputs are validated before they
+    run, and structured output is validated before you see it.
+  </Card>
+  <Card title="Safe by default" icon="approve-check">
+    Writes, shell and code execution need approval. Outside content is tagged untrusted, and file
+    tools are jailed to a workspace.
+  </Card>
+  <Card title="Testable offline" icon="rocket">
+    `MockProvider`, record/replay and conformance suites make agents deterministic to test, with no
+    network or API keys.
+  </Card>
+  <Card title="MCP both ways" icon="random">
+    Mount remote MCP tools into a brick, or serve your bricks to Claude Desktop, Cursor and others.
+  </Card>
+  <Card title="Multi-agent" icon="setting">
+    Supervisors, routers, pipelines and handoffs, all built from the same bricks.
+  </Card>
+</CardGrid>
