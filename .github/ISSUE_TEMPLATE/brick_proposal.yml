@@ -1,0 +1,43 @@
+name: Brick or package proposal
+description: Propose a new brick, tool set or integration package
+labels: [brick-proposal]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Discuss first, build second. Third-party bricks can live in your own repository and
+        npm scope; this form is for packages you'd like to see in the `@intellibrix` scope.
+  - type: input
+    id: name
+    attributes:
+      label: Proposed name
+      placeholder: "@intellibrix/slack"
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: What does it do, and who is it for?
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: Sketch of the public API
+      render: typescript
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety considerations
+      description: Which tools write or execute (`needsApproval`)? Which return outside content (`resultTrust`)? What credentials does it need?
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies
+      description: Peer and runtime dependencies, and their licenses and maintenance status.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I'm willing to build and maintain it
