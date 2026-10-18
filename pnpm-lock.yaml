@@ -26,9 +26,9 @@ importers:
 
   examples/coding-agent:
     dependencies:
-      '@ai-sdk/anthropic':
+      '@ai-sdk/openai-compatible':
         specifier: ^3.0.0
-        version: 3.0.133(zod@4.6.7)
+        version: 3.0.48(zod@4.6.7)
       '@intellibrix/ai-sdk':
         specifier: workspace:^
         version: link:../../packages/ai-sdk
@@ -3821,6 +3821,12 @@ snapshots:
       '@ai-sdk/provider-utils': 5.0.40(zod@4.6.2)
       zod: 4.6.2
 
+  '@ai-sdk/openai-compatible@3.0.48(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.14
+      '@ai-sdk/provider-utils': 5.0.40(zod@4.6.7)
+      zod: 4.6.7
+
   '@ai-sdk/openai@4.0.66(zod@4.6.2)':
     dependencies:
       '@ai-sdk/provider': 4.0.14
@@ -3861,6 +3867,15 @@ snapshots:
       eventsource-parser: 3.1.1
       undici: 7.29.1
       zod: 4.6.2
+
+  '@ai-sdk/provider-utils@5.0.40(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.14
+      '@standard-schema/spec': 1.1.0
+      '@workflow/serde': 4.1.0
+      eventsource-parser: 3.1.1
+      undici: 7.29.1
+      zod: 4.6.7
 
   '@ai-sdk/provider@3.0.19':
     dependencies:

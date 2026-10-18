@@ -212,7 +212,7 @@ Runnable examples live in [`examples/`](./examples):
 
 | Example | Shows |
 |---|---|
-| `coding-agent` | A terminal coding agent with jailed workspace tools and human approvals |
+| `coding-agent` | A terminal coding agent with jailed workspace tools and human approvals, backed by OpenRouter (`OPENROUTER_API_KEY`) |
 | `supervisor` | Multi-agent delegation, running offline with `MockProvider` |
 | `qa` | A custom `Brick` subclass with a Program |
 | `mcp-server` | A Brick served over MCP |
@@ -221,8 +221,11 @@ Runnable examples live in [`examples/`](./examples):
 // A coding agent with human-in-the-loop approvals
 const brick = new TerminalBrick({
   intelligence: new Intelligence({
-    provider: provider('anthropic:claude-sonnet-5'),
-    model: 'claude-sonnet-5',
+    provider: compatibleProvider('openrouter/free', {
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: process.env.OPENROUTER_API_KEY
+    }),
+    model: 'openrouter/free',
     tools: workspaceTools({ root, shell: { allow: ['node', 'pnpm', 'git'] } }),
     onToolApproval: async (call) => {
       brick.print(`Approve ${call.toolName}(${JSON.stringify(call.input)})? [y/N] `)

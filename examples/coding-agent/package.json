@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.0",
+    "@ai-sdk/openai-compatible": "^3.0.0",
     "@intellibrix/ai-sdk": "workspace:^",
     "@intellibrix/terminal": "workspace:^",
     "@intellibrix/workspace": "workspace:^",
