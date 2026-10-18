@@ -7,3 +7,4 @@ public/dist
 docs/*
 !docs/CNAME
 !docs/.nojekyll
+.pnpm-store
