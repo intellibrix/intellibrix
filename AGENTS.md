@@ -32,6 +32,7 @@ intellibrix is a model-agnostic, TypeScript-native, agent-native framework built
 - `pnpm --filter <pkg> test` — run one package's tests only
 - `pnpm check:packages` — publint + attw against each packed package (needs a build)
 - `pnpm check:api` — fail if the public API of `intellibrix` drifted from `packages/core/etc/*.api.md`; after an intentional change run `pnpm --filter intellibrix api:update` and commit the report (and update `MIGRATION.md` for breaking changes)
+- `pnpm smoke:examples` — run every example offline and check its output (needs a build)
 - `pnpm docs` — generate the multi-package typedoc site + llms.txt
 
 ## Core API surface is fixed
