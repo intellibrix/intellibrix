@@ -277,6 +277,8 @@ You can also publish your own Bricks. To have one under the `@intellibrix` scope
 - **Untrusted content.** Every message `Part` may carry `trust: 'trusted' | 'untrusted'`. Workspace reads, GitHub data and MCP results are tagged `untrusted`, so approval policies can key off provenance to defend against indirect prompt injection.
 - **Jailed workspace.** File tools are confined to a root and re-checked after `realpath`, so symlinks can't escape.
 
+See the [threat model](THREAT_MODEL.md) for what each defense covers and its limits, and [SECURITY.md](SECURITY.md) to report a vulnerability.
+
 ## Use-cases
 
 - **Coding and repo agents:** PR-review bots and issue triage driven by webhooks.
