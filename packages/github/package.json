@@ -4,6 +4,22 @@
   "description": "GitHub tools + webhook bridge for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/intellibrix/intellibrix.git",
+    "directory": "packages/github"
+  },
+  "homepage": "https://github.com/intellibrix/intellibrix#readme",
+  "bugs": {
+    "url": "https://github.com/intellibrix/intellibrix/issues"
+  },
+  "keywords": [
+    "intellibrix",
+    "github",
+    "octokit",
+    "webhook",
+    "agent-tools"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -56,5 +72,9 @@
     "express": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

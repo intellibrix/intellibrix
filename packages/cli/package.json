@@ -4,6 +4,21 @@
   "description": "intellibrix CLI",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/intellibrix/intellibrix.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/intellibrix/intellibrix#readme",
+  "bugs": {
+    "url": "https://github.com/intellibrix/intellibrix/issues"
+  },
+  "keywords": [
+    "intellibrix",
+    "cli",
+    "scaffold",
+    "mcp"
+  ],
   "type": "module",
   "bin": {
     "intellibrix": "./dist/bin.mjs"
@@ -49,5 +64,9 @@
     "typescript": "^5.6.0",
     "vitest": "^5.0.0",
     "zod": "^4.6.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

@@ -4,6 +4,22 @@
   "description": "node:sqlite conversation memory + vector store for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/intellibrix/intellibrix.git",
+    "directory": "packages/memory-sqlite"
+  },
+  "homepage": "https://github.com/intellibrix/intellibrix#readme",
+  "bugs": {
+    "url": "https://github.com/intellibrix/intellibrix/issues"
+  },
+  "keywords": [
+    "intellibrix",
+    "sqlite",
+    "memory",
+    "vector-store",
+    "embeddings"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -42,5 +58,9 @@
     "tsdown": "^0.23.0",
     "typescript": "^5.6.0",
     "vitest": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

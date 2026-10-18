@@ -4,6 +4,24 @@
   "description": "AI-Powered Software Component Framework",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/intellibrix/intellibrix.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/intellibrix/intellibrix#readme",
+  "bugs": {
+    "url": "https://github.com/intellibrix/intellibrix/issues"
+  },
+  "keywords": [
+    "intellibrix",
+    "agent",
+    "llm",
+    "framework",
+    "typescript",
+    "tools",
+    "ai"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -56,5 +74,9 @@
     "tsdown": "^0.23.0",
     "typescript": "^5.6.0",
     "vitest": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

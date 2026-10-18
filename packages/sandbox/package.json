@@ -4,6 +4,22 @@
   "description": "Vendor-neutral hosted code-execution tool for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/intellibrix/intellibrix.git",
+    "directory": "packages/sandbox"
+  },
+  "homepage": "https://github.com/intellibrix/intellibrix#readme",
+  "bugs": {
+    "url": "https://github.com/intellibrix/intellibrix/issues"
+  },
+  "keywords": [
+    "intellibrix",
+    "sandbox",
+    "code-execution",
+    "e2b",
+    "daytona"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -55,5 +71,9 @@
     "@daytonaio/sdk": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

@@ -4,6 +4,23 @@
   "description": "AI SDK adapter for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/intellibrix/intellibrix.git",
+    "directory": "packages/ai-sdk"
+  },
+  "homepage": "https://github.com/intellibrix/intellibrix#readme",
+  "bugs": {
+    "url": "https://github.com/intellibrix/intellibrix/issues"
+  },
+  "keywords": [
+    "intellibrix",
+    "ai-sdk",
+    "anthropic",
+    "openai",
+    "gemini",
+    "openrouter"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -68,5 +85,9 @@
     "typescript": "^5.6.0",
     "vitest": "^5.0.0",
     "zod": "^4.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
