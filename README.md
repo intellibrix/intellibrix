@@ -90,6 +90,8 @@ const { text } = await brick.ask('What time is it?')
 console.log(text)
 ```
 
+Guides, a cookbook and the full API reference are at [intellibrix.dev](https://intellibrix.dev).
+
 ## Concepts
 
 - A **`Brick`** is a software component that provides specific functionality.
@@ -292,7 +294,7 @@ See the [threat model](THREAT_MODEL.md) for what each defense covers and its lim
 
 ## Development
 
-This is a pnpm monorepo (Node 22+). See [AGENTS.md](./AGENTS.md) for the contributor guide.
+This is a pnpm monorepo (Node 22+). See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to contribute, and [AGENTS.md](./AGENTS.md) if you are an AI coding agent.
 
 ```sh
 git clone https://github.com/intellibrix/intellibrix.git # or your fork
@@ -302,7 +304,7 @@ pnpm -r typecheck
 pnpm biome ci .
 pnpm -r test
 pnpm -r build
-pnpm docs   # typedoc site + llms.txt
+pnpm docs:site   # docs site + typedoc API reference + llms.txt
 ```
 
 Tests run offline using `MockProvider`; no API keys are needed.

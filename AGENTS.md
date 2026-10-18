@@ -21,6 +21,7 @@ intellibrix is a model-agnostic, TypeScript-native, agent-native framework built
 | `packages/github` (`@intellibrix/github`) | octokit issue/PR/review tools + webhook bridge |
 | `packages/cli` (`@intellibrix/cli`) | `intellibrix init`, `intellibrix mcp serve <entry>` |
 | `examples/*` | Runnable tsx examples |
+| `website` | Starlight docs site (guides, cookbook); `pnpm docs:site` builds it with the typedoc API reference under `/api/` |
 
 ## Build/test/lint commands
 
@@ -33,6 +34,7 @@ intellibrix is a model-agnostic, TypeScript-native, agent-native framework built
 - `pnpm check:packages` — publint + attw against each packed package (needs a build)
 - `pnpm check:api` — fail if the public API of `intellibrix` drifted from `packages/core/etc/*.api.md`; after an intentional change run `pnpm --filter intellibrix api:update` and commit the report (and update `MIGRATION.md` for breaking changes)
 - `pnpm smoke:examples` — run every example offline and check its output (needs a build)
+- `pnpm docs:site` — build the whole docs site (needs `pnpm -r build` first); `pnpm --filter intellibrix-website dev` serves it on port 10100
 - `pnpm docs` — generate the multi-package typedoc site + llms.txt
 
 ## Core API surface is fixed
