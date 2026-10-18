@@ -4,11 +4,11 @@ This is a clean-break rewrite. Every row below was checked against the public ex
 
 ## Status
 
-Pre-release (`1.0.0-next.x`, published under the `next` dist-tag). Requires Node 22+. The `openai` and `log-symbols` dependencies are gone from core; `sequelize`, `express`, `terminal-kit` and `i18next` are now peer dependencies of the packages that use them.
+Version 1.0.0. Requires Node 22+. The `openai` and `log-symbols` dependencies are gone from core; `sequelize`, `express`, `terminal-kit` and `i18next` are now peer dependencies of the packages that use them.
 
 | 0.x API | 1.0 API | Notes |
 |---|---|---|
-| `new Intelligence({ service: 'openai', key, model })` | `new Intelligence({ provider, model })` | `Intelligence` no longer hard-wires an SDK. A `Provider` (see `provider.ts`) does one model step per call; `runAgentLoop` in `loop.ts` owns iteration. The `openai` dependency is fully removed from `intellibrix`. `@intellibrix/ai-sdk` (Phase 3) will supply real provider adapters; `customProvider(fn)` replaces `service: 'custom'` for simple cases. |
+| `new Intelligence({ service: 'openai', key, model })` | `new Intelligence({ provider, model })` | `Intelligence` no longer hard-wires an SDK. A `Provider` (see `provider.ts`) does one model step per call; `runAgentLoop` in `loop.ts` owns iteration. The `openai` dependency is fully removed from `intellibrix`. `@intellibrix/ai-sdk` supplies real provider adapters; `customProvider(fn)` replaces `service: 'custom'` for simple cases. |
 | `intelligence.ask(question, context?)` → `{text, context, function_result, finish_reason, usage}` | `intelligence.ask(prompt, options?)` → `{text, messages, steps}` (`AskResult`) | Multi-step tool loops, parallel tool calls, and approvals are now built in; a `functions` schema/methods pair is replaced by `defineTool`/`ToolDefinition[]` passed via `tools`. |
 | `intelligence.image(prompt, size?)` | `intelligence.image(prompt)` | Delegates to `Provider.image()`; only available when the configured provider implements it. |
 | n/a | `intelligence.object(schema, prompt)` | New: forces a structured response via a synthetic tool call, returning parsed, schema-validated input. |
