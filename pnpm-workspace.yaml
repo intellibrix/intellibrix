@@ -3,5 +3,6 @@ packages:
   - 'examples/*'
 allowBuilds:
   esbuild: true
+  lefthook: true
   sqlite3: true
   protobufjs: false
