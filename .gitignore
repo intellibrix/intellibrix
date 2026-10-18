@@ -8,3 +8,6 @@ docs/*
 !docs/CNAME
 !docs/.nojekyll
 .pnpm-store
+
+# api-extractor scratch output
+temp/

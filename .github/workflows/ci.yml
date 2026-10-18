@@ -37,4 +37,5 @@ jobs:
       - run: pnpm biome ci .
       - run: pnpm -r build
       - run: pnpm check:packages
+      - run: pnpm check:api
       - run: pnpm -r test

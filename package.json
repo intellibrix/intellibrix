@@ -13,7 +13,8 @@
     "lint:fix": "biome check --write .",
     "docs": "node scripts/docs.mjs",
     "changeset": "changeset",
-    "check:packages": "bash scripts/check-packages.sh"
+    "check:packages": "bash scripts/check-packages.sh",
+    "check:api": "pnpm --filter intellibrix api:check"
   },
   "engines": {
     "node": ">=22.0.0"

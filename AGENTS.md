@@ -30,11 +30,13 @@ intellibrix is a model-agnostic, TypeScript-native, agent-native framework built
 - `pnpm -r build` — build every package (tsdown: ESM + CJS + dts)
 - `pnpm -r test` — run every package's Vitest suite
 - `pnpm --filter <pkg> test` — run one package's tests only
+- `pnpm check:packages` — publint + attw against each packed package (needs a build)
+- `pnpm check:api` — fail if the public API of `intellibrix` drifted from `packages/core/etc/*.api.md`; after an intentional change run `pnpm --filter intellibrix api:update` and commit the report (and update `MIGRATION.md` for breaking changes)
 - `pnpm docs` — generate the multi-package typedoc site + llms.txt
 
 ## Core API surface is fixed
 
-`packages/core/src/{messages,tool,provider,loop,intelligence,brick,structure,database,testing,checkpoint}.ts` define intellibrix's stable v1 surface. Do not change these signatures without updating `MIGRATION.md`.
+`packages/core/src/{messages,tool,provider,loop,intelligence,brick,structure,database,testing,checkpoint}.ts` define intellibrix's stable v1 surface. Do not change these signatures without updating `MIGRATION.md`. CI enforces this through the API reports in `packages/core/etc/`.
 
 ## Conventions
 
