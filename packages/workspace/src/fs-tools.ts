@@ -8,6 +8,31 @@ import { resolveJailed } from './jail.js'
 
 const MAX_READ_BYTES = 256 * 1024
 const MAX_RESULTS = 500
+const MAX_GLOB_LENGTH = 1024
+const MAX_BRACE_DEPTH = 5
+
+/**
+ * Glob patterns come from the model, so they are validated before reaching fast-glob. They must
+ * stay inside the workspace (no absolute paths, no `..` segments, even via brace expansion), and
+ * are bounded in length and brace nesting because deeply nested braces can exhaust the stack in
+ * the `braces` dependency.
+ */
+function assertSafeGlob(pattern: string): string {
+  if (pattern.length > MAX_GLOB_LENGTH) throw new Error('Glob pattern is too long')
+  let depth = 0
+  for (const char of pattern) {
+    if (char === '{') depth++
+    else if (char === '}') depth = Math.max(0, depth - 1)
+    if (depth > MAX_BRACE_DEPTH) throw new Error('Glob pattern nests braces too deeply')
+  }
+  if (
+    /^!*(?:[/\\~]|[a-zA-Z]:)/.test(pattern) ||
+    /(?:^|[/\\{,!(|])\.\.(?:$|[/\\},)|])/.test(pattern)
+  ) {
+    throw new Error('Glob pattern must be relative to the workspace and cannot contain ".."')
+  }
+  return pattern
+}
 
 export type FsToolOptions = {
   root: string
@@ -60,7 +85,7 @@ export function fsTools({ root, approveWrites = true }: FsToolOptions): ToolDefi
     execute: async ({ pattern }) => {
       const realRoot = await resolveJailed(root, '.')
       const ig = await gitignoreFilter(realRoot)
-      const files: string[] = await fg(pattern, {
+      const files: string[] = await fg(assertSafeGlob(pattern), {
         cwd: realRoot,
         dot: true,
         followSymbolicLinks: false,
@@ -85,7 +110,7 @@ export function fsTools({ root, approveWrites = true }: FsToolOptions): ToolDefi
       const realRoot = await resolveJailed(root, '.')
       const ig = await gitignoreFilter(realRoot)
       const re = new RegExp(input.pattern, input.ignoreCase ? 'i' : '')
-      const found: string[] = await fg(input.glob ?? '**/*', {
+      const found: string[] = await fg(assertSafeGlob(input.glob ?? '**/*'), {
         cwd: realRoot,
         dot: true,
         followSymbolicLinks: false,

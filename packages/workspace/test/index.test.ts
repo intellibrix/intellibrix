@@ -120,6 +120,37 @@ describe('fs tools', () => {
   })
 })
 
+describe('glob pattern validation', () => {
+  const tools = () => workspaceTools({ root, git: false })
+
+  it('rejects patterns that leave the workspace or could exhaust the glob engine', async () => {
+    const bad = [
+      '../*',
+      '../../**',
+      'a/../../*',
+      '{..,x}/*',
+      '!../x',
+      '/etc/*',
+      '~/*',
+      'C:/Windows/*',
+      `${'{'.repeat(6)}a${'}'.repeat(6)}`,
+      'a'.repeat(2000),
+    ]
+    for (const pattern of bad) {
+      await expect(run(byName(tools(), 'glob'), { pattern })).rejects.toThrow(/Glob pattern/)
+      await expect(run(byName(tools(), 'grep'), { pattern: 'x', glob: pattern })).rejects.toThrow(
+        /Glob pattern/,
+      )
+    }
+  })
+
+  it('still accepts ordinary patterns, including dotted names and braces', async () => {
+    for (const pattern of ['**/*.ts', 'src/{a,b}/*.{ts,js}', '**/..hidden', 'a..b/*']) {
+      await expect(run(byName(tools(), 'glob'), { pattern })).resolves.toBeDefined()
+    }
+  })
+})
+
 describe('shell tool', () => {
   const tools = () => workspaceTools({ root, git: false, shell: { allow: ['node', 'sleep'] } })
 

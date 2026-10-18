@@ -62,6 +62,8 @@ rules such as "never auto-approve a write that follows an untrusted read".
 File tools resolve every path against a root. The lexical check rejects `..` escapes, then the
 deepest existing ancestor is passed through `fs.realpath` and containment is checked again, so a
 symlink inside the root cannot point outside it. A `JailEscapeError` is thrown on violation.
+Glob patterns given to `glob` and `grep` are validated too: absolute paths and `..` segments are
+rejected, and length and brace nesting are capped, because the model controls these patterns.
 
 ### 4. Shell tool
 
