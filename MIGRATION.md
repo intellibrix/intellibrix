@@ -1,10 +1,10 @@
 # Migration: 0.x → 1.0
 
-This is a clean-break rewrite. This document is filled in progressively as each phase lands; it is not complete until Phase 9.
+This is a clean-break rewrite. Every row below was checked against the public exports of the 1.0 packages.
 
 ## Status
 
-Work in progress on `feat/v1.0.0`. This table will be finalized in Phase 9, diffed against every actually-changed public symbol.
+Pre-release (`1.0.0-next.x`, published under the `next` dist-tag). Requires Node 22+. The `openai` and `log-symbols` dependencies are gone from core; `sequelize`, `express`, `terminal-kit` and `i18next` are now peer dependencies of the packages that use them.
 
 | 0.x API | 1.0 API | Notes |
 |---|---|---|
@@ -59,6 +59,13 @@ Work in progress on `feat/v1.0.0`. This table will be finalized in Phase 9, diff
 | n/a | `@intellibrix/workspace`: `workspaceTools`, `fsTools`, `shellTool`, `gitTools`, `resolveJailed` | New (Phase 8): jailed `read_file`/`list_dir`/`glob`/`grep` (results `untrusted`), `write_file`/`edit_file`, allowlisted `shell` (`execFile`, no shell), and `git_status`/`git_diff`/`git_commit`/`git_branch`. Writes, shell and commits require approval by default. `resolveJailed` re-checks containment after `realpath`; do not remove that step. |
 | n/a | `@intellibrix/sandbox`: `sandboxTool(provider)`, `e2bProvider`, `daytonaProvider`, `cloudflareProvider` | New (Phase 8): one `run_code` tool (approval required, results `untrusted`) over a swappable `SandboxProvider`, one sandbox cached per `runId` (`closeRun`/`closeAll`, plus an idle TTL). Vendor SDKs are optional peers, imported lazily. The Cloudflare adapter wraps a caller-supplied sandbox handle because those are bound to a Worker environment. |
 | n/a | `@intellibrix/github`: `githubTools({auth})`, `githubWebhookRoute({secret, target})` | New (Phase 8): issue/PR/comment/review tools (reads `untrusted`, writes need approval) and an HMAC-verified webhook that re-emits `github.<event>[.<action>]` and a catch-all `github` on `target.events`. Must see the raw body: use `builtinMiddleware: { json: false }` on `ExpressBrick`, or mount before any JSON parser. |
+| n/a | Message model: `Message`, `Part` (`TextPart`/`ImagePart`/`FilePart`/`ToolCallPart`/`ToolResultPart`), `textMessage()`, `textOf()`, `is*Part()` guards (`messages.ts`) | New: the provider-neutral conversation shape used by `Intelligence`, `ConversationMemory`, MCP and the AI SDK adapter. The 0.x `context` array of `{role, content: string}` becomes `Message[]`. |
+| n/a | `Provider`, `GenerateRequest`, `StepResult`, `StreamEvent`, `Usage` (`provider.ts`) | New: implement `generate`/`stream` for exactly one model step; core owns iteration. |
+| n/a | `validateToolInput()`, `resolveNeedsApproval()` (`tool.ts`) | New helpers used by the loop; useful when calling a `ToolDefinition` directly in tests. |
+| n/a | `resetSharedLogger()`, `resetTracer()` | New test helpers that clear the process-wide logger / tracer singletons. |
+| n/a | `@intellibrix/ai-sdk` converters: `toAiSdkMessages`, `toAiSdkTools`, `fromAiSdkStep` and friends | New: exported for custom adapters; most callers only need `provider()`. |
+| `Task`, `Step`, `Action` types | Unchanged shapes | `Action.method(payload, brick)` receives the brick as its second argument; prefer it to `this`. |
+| n/a | `@intellibrix/cli`: `intellibrix init <dir> [--force]`, `intellibrix mcp serve <entry.ts> [--transport stdio\|http]` | New (Phase 9): `init` scaffolds a project pinned to the current release; `mcp serve` loads a TypeScript entry in-process via tsx and serves its default-exported Brick or Structure (logs go to stderr over stdio). |
 
 ## Notes
 

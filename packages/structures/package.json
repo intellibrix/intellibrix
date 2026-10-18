@@ -1,6 +1,6 @@
 {
   "name": "@intellibrix/structures",
-  "version": "1.0.0-alpha.0",
+  "version": "0.0.0",
   "description": "Multi-agent composition policies (supervisor, router, pipeline, handoff) for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",

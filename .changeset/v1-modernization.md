@@ -1,0 +1,25 @@
+---
+'intellibrix': major
+'@intellibrix/ai-sdk': major
+'@intellibrix/mcp': major
+'@intellibrix/structures': major
+'@intellibrix/sql': major
+'@intellibrix/memory-sqlite': major
+'@intellibrix/express': major
+'@intellibrix/terminal': major
+'@intellibrix/i18n': major
+'@intellibrix/workspace': major
+'@intellibrix/sandbox': major
+'@intellibrix/github': major
+'@intellibrix/cli': major
+---
+
+intellibrix 1.0: a clean-break modernization.
+
+- Provider-agnostic `Intelligence` with a typed agent loop, tools, structured output, streaming, memory, approvals, usage/cost accounting, OpenTelemetry spans, checkpoints and record/replay (replaces the OpenAI-3-specific `Intelligence`).
+- Programs expose input/output schemas and double as tools; `brick.ask()`, `brick.use()`.
+- `@intellibrix/ai-sdk`, `@intellibrix/mcp`, `@intellibrix/structures`, `@intellibrix/memory-sqlite`, `@intellibrix/workspace`, `@intellibrix/sandbox`, `@intellibrix/github` and `@intellibrix/cli` are new.
+- Express, Terminal and I18n bricks are now standalone packages; SQL moved to `@intellibrix/sql` with pgvector support.
+- Fixes: `Brick` honors `options.id`; `schedule()` passes `onComplete` as a callback and honors `start: false`; one shared logger instead of a pino-pretty worker per brick; `ExpressBrick` port `0`; per-instance i18next.
+
+See MIGRATION.md for the full 0.x to 1.0 mapping.

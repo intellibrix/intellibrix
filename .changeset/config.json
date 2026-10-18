@@ -7,12 +7,5 @@
   "access": "public",
   "baseBranch": "feat/v1.0.0",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "@intellibrix/mcp",
-    "@intellibrix/workspace",
-    "@intellibrix/github",
-    "@intellibrix/cli",
-    "@intellibrix/ai-sdk",
-    "@intellibrix/sandbox"
-  ]
+  "ignore": []
 }

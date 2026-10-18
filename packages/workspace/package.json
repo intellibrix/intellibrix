@@ -1,6 +1,6 @@
 {
   "name": "@intellibrix/workspace",
-  "version": "1.0.0-alpha.0",
+  "version": "0.0.0",
   "description": "Sandboxed fs/shell/git tools for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",

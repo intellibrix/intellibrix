@@ -1,6 +1,6 @@
 {
   "name": "@intellibrix/sql",
-  "version": "1.0.0-alpha.0",
+  "version": "0.0.0",
   "description": "SQL-backed Database for intellibrix (Sequelize)",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
