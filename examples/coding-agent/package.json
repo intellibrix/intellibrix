@@ -15,7 +15,8 @@
     "@intellibrix/workspace": "workspace:^",
     "ai": "^7.0.0",
     "intellibrix": "workspace:^",
-    "terminal-kit": "^3.0.0"
+    "terminal-kit": "^3.0.0",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

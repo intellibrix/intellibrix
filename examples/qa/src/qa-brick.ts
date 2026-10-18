@@ -1,4 +1,5 @@
 import { Brick, type BrickOptions } from 'intellibrix'
+import { z } from 'zod'
 
 /**
  * Class representing a QA (Question-Answer) brick.
@@ -23,6 +24,8 @@ export default class QABrick extends Brick {
       name: 'qa',
       /** The description of the program. */
       description: 'Return an answer to a question',
+      /** Validated before the program runs, and used as the tool's input schema. */
+      input: z.object({ question: z.string() }),
       /** The steps to be executed in the program. */
       steps: [
         {
@@ -38,7 +41,7 @@ export default class QABrick extends Brick {
               /** The description of the action. */
               description: 'Get the answer to the question',
               /** The method to be executed in the action. */
-              method: async (payload: any) => {
+              method: async (payload: { question: string }) => {
                 // If the AI is not configured, throw an error.
                 if (!this.ai) throw new Error('AI not configured')
                 // Ask the AI the question and return the answer.

@@ -47,6 +47,9 @@ importers:
       terminal-kit:
         specifier: ^3.0.0
         version: 3.1.4
+      zod:
+        specifier: ^4.6.2
+        version: 4.6.7
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -79,9 +82,21 @@ importers:
 
   examples/qa:
     dependencies:
+      '@ai-sdk/anthropic':
+        specifier: ^3.0.0
+        version: 3.0.133(zod@4.6.7)
+      '@intellibrix/ai-sdk':
+        specifier: workspace:^
+        version: link:../../packages/ai-sdk
+      ai:
+        specifier: ^7.0.0
+        version: 7.0.97(zod@4.6.7)
       intellibrix:
         specifier: workspace:^
         version: link:../../packages/core
+      zod:
+        specifier: ^4.6.2
+        version: 4.6.7
     devDependencies:
       '@types/node':
         specifier: ^22.0.0

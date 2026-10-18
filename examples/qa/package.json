@@ -8,7 +8,11 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "intellibrix": "workspace:^"
+    "@ai-sdk/anthropic": "^3.0.0",
+    "@intellibrix/ai-sdk": "workspace:^",
+    "ai": "^7.0.0",
+    "intellibrix": "workspace:^",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
