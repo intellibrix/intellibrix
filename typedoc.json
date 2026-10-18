@@ -1,0 +1,25 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "intellibrix",
+  "entryPointStrategy": "packages",
+  "entryPoints": [
+    "packages/core",
+    "packages/ai-sdk",
+    "packages/mcp",
+    "packages/structures",
+    "packages/sql",
+    "packages/memory-sqlite",
+    "packages/express",
+    "packages/terminal",
+    "packages/i18n",
+    "packages/workspace",
+    "packages/sandbox",
+    "packages/github",
+    "packages/cli"
+  ],
+  "out": "docs",
+  "cleanOutputDir": false,
+  "readme": "README.md",
+  "includeVersion": true,
+  "skipErrorChecking": true
+}

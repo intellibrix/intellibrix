@@ -24,6 +24,59 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0(@opentelemetry/api@1.9.1)(@types/node@22.20.2)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(tsx@4.23.13)(yaml@2.9.0))
 
+  examples/coding-agent:
+    dependencies:
+      '@ai-sdk/anthropic':
+        specifier: ^3.0.0
+        version: 3.0.133(zod@4.6.7)
+      '@intellibrix/ai-sdk':
+        specifier: workspace:^
+        version: link:../../packages/ai-sdk
+      '@intellibrix/terminal':
+        specifier: workspace:^
+        version: link:../../packages/terminal
+      '@intellibrix/workspace':
+        specifier: workspace:^
+        version: link:../../packages/workspace
+      ai:
+        specifier: ^7.0.0
+        version: 7.0.97(zod@4.6.7)
+      intellibrix:
+        specifier: workspace:^
+        version: link:../../packages/core
+      terminal-kit:
+        specifier: ^3.0.0
+        version: 3.1.4
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.2
+      tsx:
+        specifier: ^4.19.0
+        version: 4.23.15
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  examples/mcp-server:
+    dependencies:
+      '@intellibrix/cli':
+        specifier: workspace:^
+        version: link:../../packages/cli
+      intellibrix:
+        specifier: workspace:^
+        version: link:../../packages/core
+      zod:
+        specifier: ^4.6.2
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.2
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
   examples/qa:
     dependencies:
       intellibrix:
@@ -36,6 +89,25 @@ importers:
       tsx:
         specifier: ^4.19.0
         version: 4.23.13
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  examples/supervisor:
+    dependencies:
+      '@intellibrix/structures':
+        specifier: workspace:^
+        version: link:../../packages/structures
+      intellibrix:
+        specifier: workspace:^
+        version: link:../../packages/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.2
+      tsx:
+        specifier: ^4.19.0
+        version: 4.23.15
       typescript:
         specifier: ^5.6.0
         version: 5.9.3
@@ -415,6 +487,12 @@ importers:
 
 packages:
 
+  '@ai-sdk/anthropic@3.0.133':
+    resolution: {integrity: sha512-ODK8CN/Q4WH4xFG5CLj+0oz99bjGCkgBHopnuIfRH2OUtwqyitJSo9UuyvBFeaAm05kGYrmgwfZWCg4sEFPB/w==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/anthropic@4.0.53':
     resolution: {integrity: sha512-JMxAuCFte6mFOvoaUcig3Dp2LObin0wU2Li8ncsveh7hHKW7cG3g1bFjooxn1paxeT8UUf5XMSjhxtXG9wFLig==}
     engines: {node: '>=22'}
@@ -445,6 +523,12 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
+  '@ai-sdk/provider-utils@4.0.61':
+    resolution: {integrity: sha512-spROQutwsgm9ezXdoKP5PUPuHnNqMnuFqjioihmYDMJaaJnknYiEXYctH9hL4NJjaHuQBIl4ageCNsIZrQ+yCg==}
+    engines: {node: '>=18.17'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/provider-utils@5.0.39':
     resolution: {integrity: sha512-VIFp4Qv3j+V941crFB1y2VG5yeGbeLOFRxiPaZJETkkpo1H5WviLx6H5yRkFkrXIGxnTGygKsPgCAJG0X61Auw==}
     engines: {node: '>=22'}
@@ -456,6 +540,10 @@ packages:
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/provider@3.0.19':
+    resolution: {integrity: sha512-5lWq7zSfRaU5ylDESn3sDQjgGl2AI1vjZKO/6JY3aFW70ct4zcP1kN+ZUYOuTXr28fVsYbyu2YFhddLdIgQFZQ==}
+    engines: {node: '>=18'}
 
   '@ai-sdk/provider@4.0.13':
     resolution: {integrity: sha512-sJvnbFIFLzmKFXIjfwS8XCOAj6puHCawItwvA9PBZgk2f/l/TiC4OSfK3ueDbUVXfRCOn5eJN97EIF10toIOmQ==}
@@ -3443,6 +3531,10 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
+  undici@6.29.1:
+    resolution: {integrity: sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==}
+    engines: {node: '>=18.17'}
+
   undici@7.29.1:
     resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
     engines: {node: '>=20.18.1'}
@@ -3676,6 +3768,12 @@ packages:
 
 snapshots:
 
+  '@ai-sdk/anthropic@3.0.133(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.19
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.7)
+      zod: 4.6.7
+
   '@ai-sdk/anthropic@4.0.53(zod@4.6.2)':
     dependencies:
       '@ai-sdk/provider': 4.0.14
@@ -3688,6 +3786,13 @@ snapshots:
       '@ai-sdk/provider-utils': 5.0.39(zod@4.6.2)
       '@vercel/oidc': 3.2.0
       zod: 4.6.2
+
+  '@ai-sdk/gateway@4.0.78(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.13
+      '@ai-sdk/provider-utils': 5.0.39(zod@4.6.7)
+      '@vercel/oidc': 3.2.0
+      zod: 4.6.7
 
   '@ai-sdk/google@4.0.68(zod@4.6.2)':
     dependencies:
@@ -3707,6 +3812,14 @@ snapshots:
       '@ai-sdk/provider-utils': 5.0.40(zod@4.6.2)
       zod: 4.6.2
 
+  '@ai-sdk/provider-utils@4.0.61(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.19
+      '@standard-schema/spec': 1.1.0
+      eventsource-parser: 3.1.1
+      undici: 6.29.1
+      zod: 4.6.7
+
   '@ai-sdk/provider-utils@5.0.39(zod@4.6.2)':
     dependencies:
       '@ai-sdk/provider': 4.0.13
@@ -3716,6 +3829,15 @@ snapshots:
       undici: 7.29.1
       zod: 4.6.2
 
+  '@ai-sdk/provider-utils@5.0.39(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.13
+      '@standard-schema/spec': 1.1.0
+      '@workflow/serde': 4.1.0
+      eventsource-parser: 3.1.1
+      undici: 7.29.1
+      zod: 4.6.7
+
   '@ai-sdk/provider-utils@5.0.40(zod@4.6.2)':
     dependencies:
       '@ai-sdk/provider': 4.0.14
@@ -3724,6 +3846,10 @@ snapshots:
       eventsource-parser: 3.1.1
       undici: 7.29.1
       zod: 4.6.2
+
+  '@ai-sdk/provider@3.0.19':
+    dependencies:
+      json-schema: 0.4.0
 
   '@ai-sdk/provider@4.0.13':
     dependencies:
@@ -5045,6 +5171,13 @@ snapshots:
       '@ai-sdk/provider': 4.0.13
       '@ai-sdk/provider-utils': 5.0.39(zod@4.6.2)
       zod: 4.6.2
+
+  ai@7.0.97(zod@4.6.7):
+    dependencies:
+      '@ai-sdk/gateway': 4.0.78(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.13
+      '@ai-sdk/provider-utils': 5.0.39(zod@4.6.7)
+      zod: 4.6.7
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
@@ -6969,6 +7102,8 @@ snapshots:
   underscore@1.13.8: {}
 
   undici-types@6.21.0: {}
+
+  undici@6.29.1: {}
 
   undici@7.29.1: {}
 

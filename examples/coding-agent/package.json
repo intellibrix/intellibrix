@@ -1,0 +1,25 @@
+{
+  "name": "example-coding-agent",
+  "private": true,
+  "version": "0.0.0",
+  "description": "A coding agent: workspace tools behind an approval prompt",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.0",
+    "@intellibrix/ai-sdk": "workspace:^",
+    "@intellibrix/terminal": "workspace:^",
+    "@intellibrix/workspace": "workspace:^",
+    "ai": "^7.0.0",
+    "intellibrix": "workspace:^",
+    "terminal-kit": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -143,7 +143,7 @@ export function askStreamRoute(target: AskTarget): (req: Request, res: Response)
 
 /**
  * Class representing a brick that sets up an Express server.
- * It extends from the {@link Core.Brick} class.
+ * It extends from the {@link intellibrix!Brick} class.
  *
  * Access all of Express's functionality through the {@link ExpressBrick.express} property.
  *

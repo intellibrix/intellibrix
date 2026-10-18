@@ -2,7 +2,7 @@ import { Brick, type BrickOptions } from 'intellibrix'
 
 /**
  * Class representing a QA (Question-Answer) brick.
- * It extends from the {@link Core.Brick} class.
+ * It extends from the {@link intellibrix!Brick} class.
  *
  * @example
  * const qaBrick = new QABrick({ intelligence: new Intelligence({ provider, model }) })

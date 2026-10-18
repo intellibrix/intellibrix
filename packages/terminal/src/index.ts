@@ -4,7 +4,7 @@ import TerminalKit from 'terminal-kit'
 
 /**
  * Class representing a Terminal Brick.
- * It extends from the {@link Core.Brick} class.
+ * It extends from the {@link intellibrix!Brick} class.
  *
  * It uses the [TerminalKit](https://github.com/cronvel/terminal-kit) library to interact with the terminal.
  *
