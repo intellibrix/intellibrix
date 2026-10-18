@@ -36,4 +36,5 @@ jobs:
       - run: pnpm -r typecheck
       - run: pnpm biome ci .
       - run: pnpm -r build
+      - run: pnpm check:packages
       - run: pnpm -r test

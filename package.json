@@ -12,14 +12,18 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "docs": "node scripts/docs.mjs",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "check:packages": "bash scripts/check-packages.sh"
   },
   "engines": {
     "node": ">=22.0.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.9",
     "@changesets/cli": "^3.0.2",
+    "@microsoft/api-extractor": "^7.59.4",
+    "publint": "^0.3.25",
     "typedoc": "^0.28.20",
     "typescript": "^5.6.0",
     "vitest": "^5.0.0"
