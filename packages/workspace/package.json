@@ -35,7 +35,11 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "intellibrix": "workspace:^"
+    "fast-glob": "^3.3.3",
+    "ignore": "^7.0.12",
+    "intellibrix": "workspace:^",
+    "simple-git": "^4.0.2",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

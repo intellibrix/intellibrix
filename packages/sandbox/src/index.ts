@@ -1,4 +1,10 @@
 /**
- * @intellibrix/sandbox — placeholder scaffold (Phase 1). Real implementation lands in Phase 8.
+ * @module Sandbox
+ *
+ * A vendor-neutral `run_code` tool over swappable hosted sandboxes.
  */
-export const placeholder = true
+export * from './adapters/cloudflare.js'
+export * from './adapters/daytona.js'
+export * from './adapters/e2b.js'
+export * from './provider.js'
+export * from './tool.js'

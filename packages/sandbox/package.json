@@ -35,12 +35,25 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "intellibrix": "workspace:^"
+    "intellibrix": "workspace:^",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "tsdown": "^0.23.0",
     "typescript": "^5.6.0",
     "vitest": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@e2b/code-interpreter": ">=1.0.0",
+    "@daytonaio/sdk": ">=0.20.0"
+  },
+  "peerDependenciesMeta": {
+    "@e2b/code-interpreter": {
+      "optional": true
+    },
+    "@daytonaio/sdk": {
+      "optional": true
+    }
   }
 }

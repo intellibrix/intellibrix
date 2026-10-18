@@ -1,7 +1,7 @@
 import type { Application, Request, RequestHandler, Response } from 'express'
 import express from 'express'
 import type { IncomingMessage, Server, ServerResponse } from 'http'
-import { Brick, type BrickOptions } from 'intellibrix'
+import { type AskOptions, Brick, type BrickOptions, type Intelligence } from 'intellibrix'
 
 /**
  * Interface for the options of ExpressBrick.
@@ -41,6 +41,104 @@ export interface ExpressBrickOptions extends BrickOptions {
 export interface ExpressBrickRequest extends Request {
   /** The Brick instance associated with the request. */
   brick?: Brick
+}
+
+/** Anything `askRoute`/`askStreamRoute` can send a prompt to. */
+export type AskTarget = Brick | Intelligence
+
+function intelligenceOf(target: AskTarget): Intelligence {
+  const ai = target instanceof Brick ? target.ai : target
+  if (!ai) throw new Error('askStreamRoute target has no Intelligence configured')
+  return ai
+}
+
+function promptOf(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+/**
+ * POST handler: reads `{prompt, threadId?}` from the JSON body and replies
+ * `{reply}` with the target's answer. Responds 400 on a missing prompt and 500
+ * on failure.
+ */
+export function askRoute(target: AskTarget): (req: Request, res: Response) => Promise<void> {
+  return async (req, res) => {
+    const prompt = promptOf(req.body?.prompt)
+    if (!prompt) {
+      res.status(400).json({ error: 'prompt is required' })
+      return
+    }
+
+    const controller = new AbortController()
+    res.on('close', () => {
+      if (!res.writableEnded) controller.abort()
+    })
+    const options: AskOptions = {
+      abortSignal: controller.signal,
+      threadId: promptOf(req.body?.threadId),
+    }
+
+    try {
+      const result = await target.ask(prompt, options)
+      res.status(200).json({ reply: result.text })
+    } catch (error) {
+      if (!res.headersSent)
+        res.status(500).json({ error: error instanceof Error ? error.message : String(error) })
+    }
+  }
+}
+
+/**
+ * GET handler: reads `?prompt=` (and optional `threadId`) and streams the
+ * target's {@link Intelligence.stream} output as Server-Sent Events, one
+ * `event: <type>` / `data: <json>` frame per stream event. The run is aborted
+ * if the client disconnects.
+ */
+export function askStreamRoute(target: AskTarget): (req: Request, res: Response) => Promise<void> {
+  return async (req, res) => {
+    const prompt = promptOf(req.query.prompt)
+    if (!prompt) {
+      res.status(400).json({ error: 'prompt is required' })
+      return
+    }
+
+    const controller = new AbortController()
+    res.on('close', () => controller.abort())
+
+    res.status(200).set({
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    })
+    res.flushHeaders()
+
+    const send = (event: string, data: unknown) => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+    }
+
+    try {
+      const ai = intelligenceOf(target)
+      const tools = target instanceof Brick ? target.toolset() : undefined
+      for await (const event of ai.stream(prompt, {
+        abortSignal: controller.signal,
+        threadId: promptOf(req.query.threadId),
+        tools,
+      })) {
+        if (controller.signal.aborted) break
+        send(
+          event.type,
+          event.type === 'error'
+            ? { message: String((event.error as Error)?.message ?? event.error) }
+            : event,
+        )
+      }
+      send('done', {})
+    } catch (error) {
+      send('error', { message: error instanceof Error ? error.message : String(error) })
+    } finally {
+      res.end()
+    }
+  }
 }
 
 /**
@@ -99,7 +197,7 @@ export default class ExpressBrick extends Brick {
   ) {
     super(options)
     const host = options.host || 'localhost'
-    const port = options.port || 3000
+    const port = options.port ?? 3000
     const routes = options.routes || []
     const middleware = options.middleware || []
     const builtinMiddleware = options.builtinMiddleware || { json: true, urlencoded: true }
@@ -131,5 +229,23 @@ export default class ExpressBrick extends Brick {
         this.log.info(`Express Brick listening on ${host}:${port}`)
       })
     }
+  }
+
+  /**
+   * Registers `POST <path>` (default `/ask`) answering with {@link askRoute}.
+   * Defaults to this brick as the target.
+   */
+  askEndpoint(path = '/ask', target: AskTarget = this) {
+    this.express.post(path, askRoute(target))
+    return this
+  }
+
+  /**
+   * Registers `GET <path>` (default `/ask/stream`) streaming with {@link askStreamRoute}.
+   * Defaults to this brick as the target.
+   */
+  askStreamEndpoint(path = '/ask/stream', target: AskTarget = this) {
+    this.express.get(path, askStreamRoute(target))
+    return this
   }
 }

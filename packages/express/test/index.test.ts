@@ -4,6 +4,17 @@ import supertest from 'supertest'
 import { afterEach, describe, expect, it } from 'vitest'
 import ExpressBrick, { type ExpressBrickRequest } from '../src/index.js'
 
+const makeBrick = () =>
+  new ExpressBrick({
+    name: 'Ask Brick',
+    port: 0,
+    logLevel: 'fatal',
+    intelligence: new Intelligence({
+      provider: customProvider(async (p) => `echo: ${p}`),
+      model: 'mock',
+    }),
+  })
+
 describe('Express Brick', () => {
   let brick: ExpressBrick
 
@@ -60,5 +71,35 @@ describe('Express Brick', () => {
 
   afterEach(() => {
     brick.server?.close()
+  })
+
+  describe('ask routes', () => {
+    it('askEndpoint replies with {reply}', async () => {
+      brick = makeBrick().askEndpoint()
+      await supertest(brick.express)
+        .post('/ask')
+        .send({ prompt: 'hi' })
+        .expect(200)
+        .expect((res) => expect(res.body).toEqual({ reply: 'echo: hi' }))
+    })
+
+    it('askEndpoint rejects a missing prompt with 400', async () => {
+      brick = makeBrick().askEndpoint()
+      await supertest(brick.express).post('/ask').send({}).expect(400)
+    })
+
+    it('askStreamEndpoint emits well-formed SSE and closes', async () => {
+      brick = makeBrick().askStreamEndpoint()
+      const res = await supertest(brick.express)
+        .get('/ask/stream')
+        .query({ prompt: 'yo' })
+        .expect(200)
+        .expect('Content-Type', /text\/event-stream/)
+      const frames = res.text.trim().split('\n\n')
+      expect(frames.every((f) => /^event: [\w-]+\ndata: .+$/.test(f))).toBe(true)
+      expect(frames[0]).toContain('event: text-delta')
+      expect(frames[0]).toContain('echo: yo')
+      expect(frames.at(-1)).toBe('event: done\ndata: {}')
+    })
   })
 })

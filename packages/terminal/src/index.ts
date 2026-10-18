@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { Brick, type BrickOptions } from 'intellibrix'
 import TerminalKit from 'terminal-kit'
 
@@ -114,5 +115,54 @@ export default class TerminalBrick extends Brick {
         resolve(input || '')
       })
     })
+  }
+}
+
+/** The slice of {@link TerminalBrick} that {@link chatRepl} needs. */
+export interface ReplIO {
+  print(text: string): void
+  printLine(text: string): void
+  printError(text: string): void
+  input(): Promise<string>
+}
+
+export interface ChatReplOptions {
+  /** Thread id passed to `ask()`, so a configured `memory` carries the conversation. Defaults to a random id. */
+  threadId?: string
+  /** Prompt shown before each input. @default '> ' */
+  prompt?: string
+  /** Inputs (case-insensitive) that end the session. @default ['exit', 'quit'] */
+  exitCommands?: string[]
+  /** Aborts the session, including an in-flight `ask()`. */
+  signal?: AbortSignal
+}
+
+/**
+ * Runs an interactive chat loop: read a line with the brick's own `input()`,
+ * send it through `brick.ask()`, print the reply. Errors from `ask()` are
+ * printed and the loop continues. Resolves when an exit command is entered or
+ * `opts.signal` aborts.
+ *
+ * Uses the brick's `terminal-kit` input rather than `node:readline`, so two
+ * libraries never fight over stdin raw mode.
+ */
+export async function chatRepl(brick: Brick & ReplIO, opts: ChatReplOptions = {}): Promise<void> {
+  const prompt = opts.prompt ?? '> '
+  const exit = new Set((opts.exitCommands ?? ['exit', 'quit']).map((c) => c.toLowerCase()))
+  const threadId = opts.threadId ?? randomUUID()
+
+  while (!opts.signal?.aborted) {
+    brick.print(prompt)
+    const line = (await brick.input()).trim()
+    if (!line) continue
+    if (exit.has(line.toLowerCase())) return
+
+    try {
+      const { text } = await brick.ask(line, { threadId, abortSignal: opts.signal })
+      brick.printLine(text)
+    } catch (error) {
+      if (opts.signal?.aborted) return
+      brick.printError(error instanceof Error ? error.message : String(error))
+    }
   }
 }

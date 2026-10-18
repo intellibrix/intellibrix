@@ -1,4 +1,7 @@
 /**
- * @intellibrix/github — placeholder scaffold (Phase 1). Real implementation lands in Phase 8.
+ * @module GitHub
+ *
+ * octokit-backed issue/PR/review tools and a signed-webhook bridge.
  */
-export const placeholder = true
+export * from './tools.js'
+export * from './webhook.js'
