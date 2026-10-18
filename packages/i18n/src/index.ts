@@ -100,3 +100,6 @@ export default class I18nBrick extends Brick {
     return this.i18next.t(text)
   }
 }
+
+/** Named alias of the default export, so CommonJS and ESM consumers resolve the same shape. */
+export { I18nBrick }
