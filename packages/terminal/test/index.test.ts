@@ -1,6 +1,6 @@
 import { customProvider, Intelligence } from 'intellibrix'
 import { describe, expect, it } from 'vitest'
-import TerminalBrick, { chatRepl } from '../src/index.js'
+import TerminalBrick, { chatRepl, InputClosedError } from '../src/index.js'
 
 describe('Terminal Brick', () => {
   let brick: TerminalBrick
@@ -44,6 +44,17 @@ describe('chatRepl', () => {
     await chatRepl(brick)
     expect(out).toContain('error:boom')
     expect(out).toContain('line:ok')
+  })
+
+  it('stops cleanly when input closes', async () => {
+    const { brick, out } = makeRepl(['hello'], (p) => `got ${p}`)
+    let calls = 0
+    brick.input = async () => {
+      if (calls++ === 0) return 'hello'
+      throw new InputClosedError()
+    }
+    await chatRepl(brick)
+    expect(out).toContain('line:got hello')
   })
 
   it('stops when the signal aborts', async () => {

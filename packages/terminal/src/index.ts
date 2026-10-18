@@ -107,14 +107,36 @@ export default class TerminalBrick extends Brick {
    * Prompts the user for input in the terminal.
    * @param inputOptions - The options for the input field.
    * @returns A promise that resolves to the user's input.
+   * @throws {@link InputClosedError} if stdin ends (EOF, Ctrl+D, a closed pipe) before a line is entered.
    */
   async input(inputOptions: TerminalKit.Terminal.InputFieldOptions = {}) {
-    return new Promise<string>((resolve) => {
-      this.terminal.inputField(inputOptions, (error, input) => {
-        if (error) throw error
+    return new Promise<string>((resolve, reject) => {
+      const onClosed = () => {
+        field?.abort()
+        cleanup()
+        reject(new InputClosedError())
+      }
+      const cleanup = () => {
+        process.stdin.off('end', onClosed)
+        process.stdin.off('close', onClosed)
+      }
+      process.stdin.once('end', onClosed)
+      process.stdin.once('close', onClosed)
+
+      const field = this.terminal.inputField(inputOptions, (error, input) => {
+        cleanup()
+        if (error) return reject(error)
         resolve(input || '')
       })
     })
+  }
+}
+
+/** Thrown by {@link TerminalBrick.input} when stdin closes before input is entered. */
+export class InputClosedError extends Error {
+  constructor() {
+    super('Terminal input closed')
+    this.name = 'InputClosedError'
   }
 }
 
@@ -140,8 +162,8 @@ export interface ChatReplOptions {
 /**
  * Runs an interactive chat loop: read a line with the brick's own `input()`,
  * send it through `brick.ask()`, print the reply. Errors from `ask()` are
- * printed and the loop continues. Resolves when an exit command is entered or
- * `opts.signal` aborts.
+ * printed and the loop continues. Resolves when an exit command is entered,
+ * stdin closes ({@link InputClosedError}), or `opts.signal` aborts.
  *
  * Uses the brick's `terminal-kit` input rather than `node:readline`, so two
  * libraries never fight over stdin raw mode.
@@ -153,7 +175,13 @@ export async function chatRepl(brick: Brick & ReplIO, opts: ChatReplOptions = {}
 
   while (!opts.signal?.aborted) {
     brick.print(prompt)
-    const line = (await brick.input()).trim()
+    let line: string
+    try {
+      line = (await brick.input()).trim()
+    } catch (error) {
+      if (error instanceof InputClosedError) return
+      throw error
+    }
     if (!line) continue
     if (exit.has(line.toLowerCase())) return
 
