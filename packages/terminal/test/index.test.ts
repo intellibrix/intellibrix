@@ -57,6 +57,44 @@ describe('chatRepl', () => {
     expect(out).toContain('line:got hello')
   })
 
+  it('prints a quit hint once, and releases the terminal on exit', async () => {
+    const { brick, out } = makeRepl(['hi'], () => 'ok')
+    let released = 0
+    brick.release = () => void released++
+    await chatRepl(brick)
+    expect(out.filter((o) => o.includes('Ctrl+C'))).toEqual([
+      'print:Type "exit" or press Ctrl+C to quit.\n',
+    ])
+    expect(released).toBe(1)
+
+    const quiet = makeRepl([], () => 'ok')
+    await chatRepl(quiet.brick, { hint: false })
+    expect(quiet.out.some((o) => o.includes('Ctrl+C'))).toBe(false)
+  })
+
+  it('cancels only the current turn when Ctrl+C arrives during ask()', async () => {
+    const { brick, out } = makeRepl(['slow', 'next'], (p) => `got ${p}`)
+    const realAsk = brick.ask.bind(brick)
+    // Like a real provider's fetch, a hung call rejects when its signal aborts.
+    brick.ask = ((prompt: string, options: { abortSignal?: AbortSignal }) =>
+      prompt === 'slow'
+        ? new Promise((_, reject) =>
+            options.abortSignal?.addEventListener('abort', () => reject(new Error('aborted'))),
+          )
+        : realAsk(prompt, options)) as typeof brick.ask
+    let interrupt: () => void = () => {}
+    brick.onInterrupt = (h) => {
+      interrupt = h
+      return () => {}
+    }
+    const done = chatRepl(brick)
+    await new Promise((r) => setTimeout(r, 20))
+    interrupt()
+    await done
+    expect(out).toContain('error:Cancelled.')
+    expect(out).toContain('line:got next')
+  })
+
   it('stops when the signal aborts', async () => {
     const controller = new AbortController()
     const { brick } = makeRepl(['a', 'b'], () => {
