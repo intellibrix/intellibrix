@@ -83,6 +83,37 @@ describe('fs tools', () => {
     })
   })
 
+  it('reads line ranges, with optional line numbers', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(path.join(root, 'r.txt'), 'a\nb\nc\nd\ne\n')
+    expect(await run(byName(tools, 'read_file'), { path: 'r.txt', offset: 2, limit: 2 })).toEqual({
+      path: 'r.txt',
+      content: 'b\nc\n',
+      startLine: 2,
+      endLine: 3,
+      totalLines: 5,
+      truncated: true,
+    })
+    expect(
+      await run(byName(tools, 'read_file'), { path: 'r.txt', offset: 4, lineNumbers: true }),
+    ).toMatchObject({ content: '4\td\n5\te\n', endLine: 5, truncated: false })
+    expect(await run(byName(tools, 'read_file'), { path: 'r.txt', offset: 99 })).toMatchObject({
+      content: '',
+      totalLines: 5,
+    })
+  })
+
+  it('reads a slice of a file too big to read whole', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(path.join(root, 'big.txt'), `${'x'.repeat(300 * 1024)}\nlast\n`)
+    await expect(run(byName(tools, 'read_file'), { path: 'big.txt' })).rejects.toThrow(
+      /Pass offset and limit/,
+    )
+    expect(await run(byName(tools, 'read_file'), { path: 'big.txt', offset: 2 })).toMatchObject({
+      content: 'last\n',
+    })
+  })
+
   it('refuses to read through an escaping symlink', async () => {
     const tools = workspaceTools({ root, git: false })
     await symlink(path.join(outside, 'secret.txt'), path.join(root, 'link.txt'))

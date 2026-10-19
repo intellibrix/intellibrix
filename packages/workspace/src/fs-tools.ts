@@ -7,6 +7,8 @@ import { z } from 'zod'
 import { resolveJailed } from './jail.js'
 
 const MAX_READ_BYTES = 256 * 1024
+/** Largest file a ranged read will scan, since only a slice is returned. */
+const MAX_RANGED_READ_BYTES = 10 * 1024 * 1024
 const MAX_RESULTS = 500
 const MAX_GLOB_LENGTH = 1024
 const MAX_BRACE_DEPTH = 5
@@ -52,16 +54,54 @@ async function gitignoreFilter(root: string) {
 export function fsTools({ root, approveWrites = true }: FsToolOptions): ToolDefinition[] {
   const read_file = defineTool({
     name: 'read_file',
-    description: 'Read a UTF-8 text file inside the workspace.',
-    input: z.object({ path: z.string() }),
+    description:
+      'Read a UTF-8 text file inside the workspace. For large files pass offset (1-based first line) and limit (number of lines); lineNumbers prefixes each line with its number.',
+    input: z.object({
+      path: z.string(),
+      offset: z.number().int().min(1).optional(),
+      limit: z.number().int().min(1).optional(),
+      lineNumbers: z.boolean().default(false),
+    }),
     resultTrust: 'untrusted',
-    execute: async ({ path: p }) => {
+    execute: async ({ path: p, offset, limit, lineNumbers }) => {
       const file = await resolveJailed(root, p)
       const info = await stat(file)
-      if (info.size > MAX_READ_BYTES) {
-        throw new Error(`File is ${info.size} bytes; the limit is ${MAX_READ_BYTES}`)
+      const ranged = offset !== undefined || limit !== undefined
+      if (!ranged && !lineNumbers && info.size <= MAX_READ_BYTES) {
+        return { path: p, content: await readFile(file, 'utf8') }
       }
-      return { path: p, content: await readFile(file, 'utf8') }
+      if (info.size > MAX_RANGED_READ_BYTES || (!ranged && info.size > MAX_READ_BYTES)) {
+        const limitBytes = ranged ? MAX_RANGED_READ_BYTES : MAX_READ_BYTES
+        throw new Error(
+          `File is ${info.size} bytes; the limit is ${limitBytes}${ranged ? '' : '. Pass offset and limit to read part of it'}`,
+        )
+      }
+      const lines = (await readFile(file, 'utf8')).split('\n')
+      if (lines.at(-1) === '') lines.pop()
+      const start = (offset ?? 1) - 1
+      let end = Math.min(lines.length, start + (limit ?? lines.length))
+      // Cap what comes back at the size a whole-file read would allow.
+      let bytes = 0
+      for (let i = start; i < end; i++) {
+        bytes += Buffer.byteLength(lines[i] as string) + 1
+        if (bytes > MAX_READ_BYTES && i > start) {
+          end = i
+          break
+        }
+      }
+      const width = String(end).length
+      const content = lines
+        .slice(start, end)
+        .map((l, i) => (lineNumbers ? `${String(start + i + 1).padStart(width)}\t${l}` : l))
+        .join('\n')
+      return {
+        path: p,
+        content: end > start ? `${content}\n` : '',
+        startLine: start + 1,
+        endLine: end,
+        totalLines: lines.length,
+        truncated: end < lines.length,
+      }
     },
   })
 
