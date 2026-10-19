@@ -359,10 +359,66 @@ export const invokeToolCalls: TextToolCallParser = {
 }
 
 // ---------------------------------------------------------------------------
+// Bare JSON: {"tool": "name", "args": {...}}
+// ---------------------------------------------------------------------------
+
+const JSON_NAME_KEYS = ['name', 'tool', 'tool_name', 'function']
+const JSON_INPUT_KEYS = ['arguments', 'args', 'parameters', 'input']
+
+function jsonCall(value: unknown): ParsedToolCall | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const record = value as Record<string, unknown>
+  const nameKey = JSON_NAME_KEYS.find((k) => typeof record[k] === 'string')
+  if (!nameKey) return undefined
+  const inputKey = JSON_INPUT_KEYS.find((k) => k in record)
+  let input = inputKey ? record[inputKey] : {}
+  if (typeof input === 'string') input = JSON.parse(input)
+  return { toolName: record[nameKey] as string, input }
+}
+
+/**
+ * A reply that is nothing but a JSON tool call (optionally in a code fence),
+ * e.g. `{"tool": "read_file", "args": {"path": "a.txt"}}`. The name may be under
+ * `name`, `tool`, `tool_name` or `function`, and the input under `arguments`,
+ * `args`, `parameters` or `input`; a JSON array holds several calls.
+ *
+ * Not a default parser, because plain JSON is also a legitimate answer. Opt in
+ * with `knownToolsOnly: true` so only calls to offered tools are converted:
+ * `textToolCalls(p, { parsers: [...defaultToolCallParsers, jsonToolCalls], knownToolsOnly: true })`.
+ */
+export const jsonToolCalls: TextToolCallParser = {
+  name: 'json',
+  markers: ['{"tool"', '{"name"', '{"function"', '{"tool_name"', '```json'],
+  parse(text, accept) {
+    const body = text
+      .trim()
+      .replace(/^```(?:json)?\s*/, '')
+      .replace(/\s*```$/, '')
+    try {
+      const parsed: unknown = JSON.parse(body)
+      const calls = (Array.isArray(parsed) ? parsed : [parsed]).map(jsonCall)
+      const found = calls.filter((c): c is ParsedToolCall => c !== undefined)
+      if (!found.length || found.length !== calls.length) return { calls: [], text }
+      if (accept && !found.every((c) => accept(c.toolName))) return { calls: [], text }
+      return { calls: found, text: '' }
+    } catch {
+      return { calls: [], text }
+    }
+  },
+}
+
+// ---------------------------------------------------------------------------
 // Wrapper
 // ---------------------------------------------------------------------------
 
-const DEFAULT_PARSERS = [pythonicToolCalls, hermesToolCalls, xmlToolCalls, invokeToolCalls]
+/** The parsers {@link textToolCalls} uses unless `parsers` is given. */
+export const defaultToolCallParsers: TextToolCallParser[] = [
+  pythonicToolCalls,
+  hermesToolCalls,
+  xmlToolCalls,
+  invokeToolCalls,
+]
+const DEFAULT_PARSERS = defaultToolCallParsers
 
 type Accept = ((toolName: string) => boolean) | undefined
 

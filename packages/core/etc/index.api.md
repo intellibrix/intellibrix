@@ -122,6 +122,9 @@ export function customProvider(fn: (prompt: string) => Promise<string>): Provide
 export const defaultPriceTable: PriceTable;
 
 // @public
+export const defaultToolCallParsers: TextToolCallParser[];
+
+// @public
 export function defineTool<In, Out = any>(def: ToolDefinition<In, Out>): ToolDefinition<In, Out>;
 
 // @public
@@ -264,6 +267,9 @@ export type JSONSchema = Record<string, unknown>;
 
 // @public
 export type JSONSchemaBackedSchema<T = unknown> = StandardSchemaV1<T> & StandardJSONSchemaV1<T>;
+
+// @public
+export const jsonToolCalls: TextToolCallParser;
 
 // @public
 export interface KeyValueStore {

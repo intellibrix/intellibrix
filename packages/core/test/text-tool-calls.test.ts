@@ -3,8 +3,10 @@ import Intelligence from '../src/intelligence.js'
 import { isToolCallPart, textMessage } from '../src/messages.js'
 import type { GenerateRequest, Provider, StepResult, StreamEvent } from '../src/provider.js'
 import {
+  defaultToolCallParsers,
   hermesToolCalls,
   invokeToolCalls,
+  jsonToolCalls,
   pythonicToolCalls,
   textToolCalls,
   xmlToolCalls,
@@ -241,5 +243,39 @@ describe('invokeToolCalls', () => {
       events.push(e)
     expect(events.filter((e) => e.type === 'tool-call')).toHaveLength(1)
     expect(events.some((e) => e.type === 'text-delta')).toBe(false)
+  })
+})
+
+describe('jsonToolCalls', () => {
+  it('parses a bare or fenced JSON call under common key names', () => {
+    expect(
+      jsonToolCalls.parse('{"tool": "write_file", "args": {"path": "t.txt", "content": "x"}}'),
+    ).toEqual({
+      calls: [{ toolName: 'write_file', input: { path: 't.txt', content: 'x' } }],
+      text: '',
+    })
+    expect(
+      jsonToolCalls.parse('```json\n{"name":"a","arguments":"{\\"n\\":1}"}\n```').calls,
+    ).toEqual([{ toolName: 'a', input: { n: 1 } }])
+  })
+
+  it('leaves ordinary JSON answers and prose alone', () => {
+    for (const text of ['{"answer": 42}', 'see {"tool": "a"} here', '[{"tool":"a"}, 3]'])
+      expect(jsonToolCalls.parse(text).calls).toEqual([])
+  })
+
+  it('is opt-in, and with knownToolsOnly ignores unoffered names', async () => {
+    const wrap = (text: string) =>
+      textToolCalls(scripted([text]), {
+        parsers: [...defaultToolCallParsers, jsonToolCalls],
+        knownToolsOnly: true,
+      }).generate(req())
+    expect(calls(await wrap('{"tool":"read_file","args":{"path":"a"}}'))).toEqual([
+      ['read_file', { path: 'a' }],
+    ])
+    expect(calls(await wrap('{"tool":"nope","args":{}}'))).toEqual([])
+    expect(calls(await textToolCalls(scripted(['{"tool":"read_file"}'])).generate(req()))).toEqual(
+      [],
+    )
   })
 })

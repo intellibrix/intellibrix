@@ -3,7 +3,7 @@
 import { compatibleProvider } from '@intellibrix/ai-sdk'
 import TerminalBrick, { chatRepl } from '@intellibrix/terminal'
 import { workspaceTools } from '@intellibrix/workspace'
-import { Intelligence, textToolCalls } from 'intellibrix'
+import { defaultToolCallParsers, Intelligence, jsonToolCalls, textToolCalls } from 'intellibrix'
 
 const root = process.argv[2] ?? process.cwd()
 const apiKey = process.env.OPENROUTER_API_KEY
@@ -26,6 +26,8 @@ const brick: TerminalBrick = new TerminalBrick({
         baseURL: 'https://openrouter.ai/api/v1',
         apiKey,
       }),
+      // Some models reply with a bare {"tool": ..., "args": ...} object; only accept offered tools.
+      { parsers: [...defaultToolCallParsers, jsonToolCalls], knownToolsOnly: true },
     ),
     model,
     // Show progress so the prompt doesn't look frozen while the model works.
