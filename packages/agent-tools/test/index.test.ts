@@ -393,3 +393,29 @@ describe('apply_patch with a shared FileTracker', () => {
     await expect(run(tool, { patch: patchOf('a.txt') })).rejects.toThrow(/Read a\.txt before/)
   })
 })
+
+describe('apply_patch concurrency', () => {
+  it('serializes parallel patches to one file instead of losing updates', async () => {
+    const tool = applyPatchTool({ root })
+    await put('c.txt', `${Array.from({ length: 10 }, (_, i) => `<n${i}>`).join('\n')}\n`)
+    await Promise.all(
+      Array.from({ length: 10 }, (_, i) =>
+        run(tool, { patch: `--- c.txt\n+++ c.txt\n@@ -1 +1 @@\n-<n${i}>\n+<N${i}>\n` }),
+      ),
+    )
+    expect(await get('c.txt')).toBe(
+      `${Array.from({ length: 10 }, (_, i) => `<N${i}>`).join('\n')}\n`,
+    )
+  })
+
+  it('writes atomically: no temp files, and executable bits survive', async () => {
+    const { chmod, readdir, stat } = await import('node:fs/promises')
+    await put('s.sh', 'echo a\n')
+    await chmod(path.join(root, 's.sh'), 0o755)
+    await run(applyPatchTool({ root }), {
+      patch: '--- s.sh\n+++ s.sh\n@@ -1 +1 @@\n-echo a\n+echo b\n',
+    })
+    expect((await stat(path.join(root, 's.sh'))).mode & 0o777).toBe(0o755)
+    expect(await readdir(root)).toEqual(['s.sh'])
+  })
+})

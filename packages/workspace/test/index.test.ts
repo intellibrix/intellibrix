@@ -1,11 +1,30 @@
 import { execFileSync } from 'node:child_process'
-import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises'
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  realpath,
+  rm,
+  stat,
+  symlink,
+  writeFile,
+} from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { Intelligence, type ToolDefinition, validateToolInput } from 'intellibrix'
 import { MockProvider } from 'intellibrix/testing'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { FileTracker, JailEscapeError, resolveJailed, workspaceTools } from '../src/index.js'
+import {
+  FileTracker,
+  JailEscapeError,
+  resolveJailed,
+  withFileLock,
+  withFileLocks,
+  workspaceTools,
+  writeFileAtomic,
+} from '../src/index.js'
 
 let root: string
 let outside: string
@@ -342,5 +361,133 @@ describe('read-before-write tracking', () => {
     const tools = workspaceTools({ root, git: false })
     await writeFile(path.join(root, 'g.txt'), 'a')
     await run(byName(tools, 'edit_file'), { path: 'g.txt', oldString: 'a', newString: 'b' })
+  })
+})
+
+describe('grep counts as a read', () => {
+  it('lets the model edit files whose matching lines it saw, but not the rest', async () => {
+    const tracker = new FileTracker()
+    const tools = workspaceTools({ root, git: false, tracker })
+    await writeFile(path.join(root, 'hit.txt'), 'needle here\nother\n')
+    await writeFile(path.join(root, 'miss.txt'), 'nothing\n')
+    await run(byName(tools, 'grep'), { pattern: 'needle' })
+    await run(byName(tools, 'edit_file'), {
+      path: 'hit.txt',
+      oldString: 'needle',
+      newString: 'pin',
+    })
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'miss.txt', oldString: 'nothing', newString: 'x' }),
+    ).rejects.toThrow(/Read miss\.txt before/)
+  })
+
+  it('still notices a change after the grep, and glob alone is not a read', async () => {
+    const tracker = new FileTracker()
+    const tools = workspaceTools({ root, git: false, tracker })
+    await writeFile(path.join(root, 'a.txt'), 'needle\n')
+    await run(byName(tools, 'grep'), { pattern: 'needle' })
+    await writeFile(path.join(root, 'a.txt'), 'needle changed\n')
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'a.txt', oldString: 'needle', newString: 'x' }),
+    ).rejects.toThrow(/changed since you last read it/)
+    await run(byName(tools, 'glob'), { pattern: '**/*' })
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'a.txt', oldString: 'needle', newString: 'x' }),
+    ).rejects.toThrow(/changed since/)
+  })
+})
+
+describe('atomic writes', () => {
+  it('serializes parallel edits to one file instead of losing updates', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(
+      path.join(root, 'p.txt'),
+      Array.from({ length: 20 }, (_, i) => `<line${i}>`).join('\n'),
+    )
+    await Promise.all(
+      Array.from({ length: 20 }, (_, i) =>
+        run(byName(tools, 'edit_file'), {
+          path: 'p.txt',
+          oldString: `<line${i}>`,
+          newString: `<LINE${i}>`,
+        }),
+      ),
+    )
+    const text = await readFile(path.join(root, 'p.txt'), 'utf8')
+    expect(text.split('\n')).toEqual(Array.from({ length: 20 }, (_, i) => `<LINE${i}>`))
+  })
+
+  it('leaves no temporary files and keeps file permissions', async () => {
+    const tools = workspaceTools({ root, git: false })
+    const file = path.join(root, 'run.sh')
+    await writeFile(file, '#!/bin/sh\n')
+    await chmod(file, 0o755)
+    await run(byName(tools, 'edit_file'), { path: 'run.sh', oldString: 'sh', newString: 'bash' })
+    await run(byName(tools, 'write_file'), { path: 'run.sh', content: '#!/bin/bash\necho hi\n' })
+    expect((await stat(file)).mode & 0o777).toBe(0o755)
+    expect(await readdir(root)).toEqual(['run.sh'])
+  })
+
+  it('writeFileAtomic refuses when the file is no longer what the caller saw, and cleans up', async () => {
+    const file = path.join(root, 'x.txt')
+    await writeFile(file, 'seen')
+    await writeFile(file, 'someone else')
+    await expect(writeFileAtomic(file, 'mine', { expected: 'seen' })).rejects.toThrow(
+      /changed while/,
+    )
+    expect(await readFile(file, 'utf8')).toBe('someone else')
+    await expect(writeFileAtomic(file, 'mine', { expected: null })).rejects.toThrow(
+      /created by someone/,
+    )
+    expect(await readFile(file, 'utf8')).toBe('someone else')
+    expect(await readdir(root)).toEqual(['x.txt'])
+
+    await writeFileAtomic(path.join(root, 'new.txt'), 'fresh', { expected: null })
+    expect(await readFile(path.join(root, 'new.txt'), 'utf8')).toBe('fresh')
+    await writeFileAtomic(file, 'plain') // no check
+    expect(await readFile(file, 'utf8')).toBe('plain')
+  })
+
+  it('a failed write leaves the original in place', async () => {
+    const file = path.join(root, 'keep.txt')
+    await writeFile(file, 'original')
+    await expect(writeFileAtomic(path.join(root, 'no-dir', 'f.txt'), 'x')).rejects.toThrow()
+    await expect(writeFileAtomic(file, 'x', { expected: 'stale' })).rejects.toThrow()
+    expect(await readFile(file, 'utf8')).toBe('original')
+    expect(await readdir(root)).toEqual(['keep.txt'])
+  })
+})
+
+describe('withFileLock', () => {
+  it('runs holders of the same key one at a time, in order, and survives a throwing holder', async () => {
+    const order: string[] = []
+    const hold = (name: string, ms: number, fail = false) =>
+      withFileLock('/k', async () => {
+        order.push(`start ${name}`)
+        await new Promise((r) => setTimeout(r, ms))
+        order.push(`end ${name}`)
+        if (fail) throw new Error('boom')
+      })
+    await Promise.allSettled([hold('a', 30, true), hold('b', 5), hold('c', 1)])
+    expect(order).toEqual(['start a', 'end a', 'start b', 'end b', 'start c', 'end c'])
+  })
+
+  it('lets different keys run together, and multi-lock does not deadlock on opposite orders', async () => {
+    let running = 0
+    let peak = 0
+    const task = (key: string) =>
+      withFileLock(key, async () => {
+        peak = Math.max(peak, ++running)
+        await new Promise((r) => setTimeout(r, 10))
+        running--
+      })
+    await Promise.all([task('/x'), task('/y')])
+    expect(peak).toBe(2)
+    const done: string[] = []
+    await Promise.all([
+      withFileLocks(['/a', '/b'], async () => void done.push('1')),
+      withFileLocks(['/b', '/a'], async () => void done.push('2')),
+    ])
+    expect(done.sort()).toEqual(['1', '2'])
   })
 })

@@ -1,6 +1,11 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rm } from 'node:fs/promises'
 import path from 'node:path'
-import { type FileTracker, resolveJailed } from '@intellibrix/workspace'
+import {
+  type FileTracker,
+  resolveJailed,
+  withFileLocks,
+  writeFileAtomic,
+} from '@intellibrix/workspace'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
 
@@ -242,112 +247,130 @@ export function applyPatchTool(options: ApplyPatchOptions): ToolDefinition {
       if (filePatches.length === 0) throw new Error('No file changes found in the patch')
       stripGitPrefixes(filePatches)
 
-      type Plan = { file: string; before?: string; after?: string }
-      const plans: Plan[] = []
-      const summary: PatchedFile[] = []
-      const seen = new Set<string>()
-      const claim = (p: string) => {
-        if (seen.has(p)) throw new Error(`Patch touches ${p} more than once`)
-        seen.add(p)
-      }
+      // Hold every file's lock from first read to last write, so a parallel edit cannot slip in
+      // between and be silently overwritten.
+      const touched = await Promise.all(
+        filePatches
+          .flatMap((fp) => [fp.oldPath, fp.newPath])
+          .filter((p): p is string => p !== undefined)
+          .map((p) => resolveJailed(root, p)),
+      )
+      return withFileLocks(touched, async () => {
+        type Plan = { file: string; before?: string; after?: string; expected?: string | null }
+        const plans: Plan[] = []
+        const summary: PatchedFile[] = []
+        const seen = new Set<string>()
+        const claim = (p: string) => {
+          if (seen.has(p)) throw new Error(`Patch touches ${p} more than once`)
+          seen.add(p)
+        }
 
-      for (const fp of filePatches) {
-        const target = fp.newPath ?? fp.oldPath
-        if (!target) throw new Error('Patch has a file header with no path')
-        const label = fp.newPath ?? (fp.oldPath as string)
+        for (const fp of filePatches) {
+          const target = fp.newPath ?? fp.oldPath
+          if (!target) throw new Error('Patch has a file header with no path')
+          const label = fp.newPath ?? (fp.oldPath as string)
 
-        if (fp.newPath === undefined) {
-          // Deletion.
-          const oldPath = fp.oldPath as string
-          claim(oldPath)
-          const file = await resolveJailed(root, oldPath)
-          const before = await readFile(file, 'utf8').catch(() => {
-            throw new Error(`Cannot delete ${oldPath}: it does not exist`)
-          })
-          tracker?.assertFresh(file, before, oldPath)
-          const tf = toTextFile(before)
-          applyHunks(tf, fp.hunks, oldPath)
-          if (tf.lines.length > 0) {
-            throw new Error(`Cannot delete ${oldPath}: the patch does not remove every line`)
+          if (fp.newPath === undefined) {
+            // Deletion.
+            const oldPath = fp.oldPath as string
+            claim(oldPath)
+            const file = await resolveJailed(root, oldPath)
+            const before = await readFile(file, 'utf8').catch(() => {
+              throw new Error(`Cannot delete ${oldPath}: it does not exist`)
+            })
+            tracker?.assertFresh(file, before, oldPath)
+            const tf = toTextFile(before)
+            applyHunks(tf, fp.hunks, oldPath)
+            if (tf.lines.length > 0) {
+              throw new Error(`Cannot delete ${oldPath}: the patch does not remove every line`)
+            }
+            plans.push({ file, before })
+            summary.push({
+              path: oldPath,
+              action: 'delete',
+              hunks: fp.hunks.length,
+              ...countChanges(fp.hunks),
+            })
+            continue
           }
-          plans.push({ file, before })
+
+          const creating = fp.oldPath === undefined
+          const renaming = !creating && fp.oldPath !== fp.newPath
+          const sourcePath = (creating ? undefined : fp.oldPath) as string | undefined
+          claim(fp.newPath)
+          const dest = await resolveJailed(root, fp.newPath)
+
+          let before: string | undefined
+          if (sourcePath) {
+            const src = await resolveJailed(root, sourcePath)
+            before = await readFile(src, 'utf8').catch(() => {
+              throw new Error(`Cannot patch ${sourcePath}: it does not exist`)
+            })
+            tracker?.assertFresh(src, before, sourcePath)
+          } else if (
+            await readFile(dest).then(
+              () => true,
+              () => false,
+            )
+          ) {
+            throw new Error(`Cannot create ${fp.newPath}: it already exists`)
+          }
+
+          const tf = toTextFile(before ?? '')
+          if (creating) tf.finalNewline = true
+          applyHunks(tf, fp.hunks, label)
+          const after = fromTextFile(tf)
+
+          if (renaming && sourcePath) {
+            claim(sourcePath)
+            plans.push({ file: await resolveJailed(root, sourcePath), before })
+          }
+          plans.push({
+            file: dest,
+            before: renaming ? undefined : before,
+            after,
+            // Modifying: the file must still be what we patched. Creating: it must still not exist.
+            expected: renaming ? undefined : (before ?? null),
+          })
           summary.push({
-            path: oldPath,
-            action: 'delete',
+            path: fp.newPath,
+            action: creating ? 'create' : renaming ? 'rename' : 'modify',
+            ...(renaming && sourcePath ? { from: sourcePath } : {}),
             hunks: fp.hunks.length,
             ...countChanges(fp.hunks),
           })
-          continue
         }
 
-        const creating = fp.oldPath === undefined
-        const renaming = !creating && fp.oldPath !== fp.newPath
-        const sourcePath = (creating ? undefined : fp.oldPath) as string | undefined
-        claim(fp.newPath)
-        const dest = await resolveJailed(root, fp.newPath)
+        if (check) return { applied: false, checked: true, files: summary }
 
-        let before: string | undefined
-        if (sourcePath) {
-          const src = await resolveJailed(root, sourcePath)
-          before = await readFile(src, 'utf8').catch(() => {
-            throw new Error(`Cannot patch ${sourcePath}: it does not exist`)
-          })
-          tracker?.assertFresh(src, before, sourcePath)
-        } else if (
-          await readFile(dest).then(
-            () => true,
-            () => false,
-          )
-        ) {
-          throw new Error(`Cannot create ${fp.newPath}: it already exists`)
-        }
-
-        const tf = toTextFile(before ?? '')
-        if (creating) tf.finalNewline = true
-        applyHunks(tf, fp.hunks, label)
-        const after = fromTextFile(tf)
-
-        if (renaming && sourcePath) {
-          claim(sourcePath)
-          plans.push({ file: await resolveJailed(root, sourcePath), before })
-        }
-        plans.push({ file: dest, before: renaming ? undefined : before, after })
-        summary.push({
-          path: fp.newPath,
-          action: creating ? 'create' : renaming ? 'rename' : 'modify',
-          ...(renaming && sourcePath ? { from: sourcePath } : {}),
-          hunks: fp.hunks.length,
-          ...countChanges(fp.hunks),
-        })
-      }
-
-      if (check) return { applied: false, checked: true, files: summary }
-
-      const done: Plan[] = []
-      try {
-        for (const plan of plans) {
-          if (plan.after === undefined) {
-            await rm(plan.file, { force: true })
-          } else {
-            await mkdir(path.dirname(plan.file), { recursive: true })
-            // Re-resolve after mkdir so a symlinked parent created in between cannot redirect the write.
-            await writeFile(await resolveJailed(root, plan.file), plan.after)
+        const done: Plan[] = []
+        try {
+          for (const plan of plans) {
+            if (plan.after === undefined) {
+              await rm(plan.file, { force: true })
+            } else {
+              await mkdir(path.dirname(plan.file), { recursive: true })
+              // Re-resolve after mkdir so a symlinked parent created in between cannot redirect the write.
+              await writeFileAtomic(await resolveJailed(root, plan.file), plan.after, {
+                expected: plan.expected,
+              })
+            }
+            done.push(plan)
           }
-          done.push(plan)
+          for (const plan of plans) {
+            if (plan.after === undefined) tracker?.recordDelete(plan.file)
+            else tracker?.recordWrite(plan.file, plan.after)
+          }
+        } catch (error) {
+          // Roll back whatever was written so a failure never leaves a half-applied patch.
+          for (const plan of done.reverse()) {
+            if (plan.before === undefined) await rm(plan.file, { force: true }).catch(() => {})
+            else await writeFileAtomic(plan.file, plan.before).catch(() => {})
+          }
+          throw error
         }
-        for (const plan of plans) {
-          if (plan.after === undefined) tracker?.recordDelete(plan.file)
-          else tracker?.recordWrite(plan.file, plan.after)
-        }
-      } catch (error) {
-        // Roll back whatever was written so a failure never leaves a half-applied patch.
-        for (const plan of done.reverse()) {
-          if (plan.before === undefined) await rm(plan.file, { force: true }).catch(() => {})
-          else await writeFile(plan.file, plan.before).catch(() => {})
-        }
-        throw error
-      }
-      return { applied: true, files: summary }
+        return { applied: true, files: summary }
+      })
     },
   })
 }

@@ -92,8 +92,24 @@ const tools = [...workspaceTools({ root, tracker }), ...agentTools({ root, track
 
 It covers `write_file`, `edit_file` and `apply_patch`. Creating a new file needs no read, a model's own
 writes count as seen so it can keep editing, and reading part of a file with `offset`/`limit` counts as
-a read. The model gets a plain error ("changed since you last read it; read it again") and recovers by
+a read. So does `grep`, for each file it returned matches from, because the model saw those lines.
+`glob` does not: it returns names, not content, and one `**/*` would otherwise unlock every file. The model gets a plain error ("changed since you last read it; read it again") and recovers by
 reading. Tracking is off unless you pass a tracker.
+
+## Atomic writes
+
+`write_file`, `edit_file` and `apply_patch` each replace a file in one step: the new content goes to a
+temporary file beside it, which then takes its place with a single rename. A reader sees the old file or
+the new one, never half of it, a failure leaves the original untouched, and the file keeps its
+permissions (a script stays executable).
+
+The agent loop runs one step's tool calls in parallel, so two edits to the same file used to be able to
+overwrite each other. Writes to a file now take turns (`apply_patch` holds the lock for every file it
+touches, in a fixed order, so it cannot deadlock). Just before the swap the file is read again, and the
+write is abandoned if another writer changed it in the meantime. That serialization is exact inside one
+process. Against a different process the check narrows the race to the instant before the rename but
+cannot close it, since the filesystem offers no compare-and-swap for that. `withFileLock`, `withFileLocks`
+and `writeFileAtomic` are exported if your own tools write to the same workspace.
 
 ## Reading the web, asking questions, delegating
 

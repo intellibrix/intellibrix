@@ -1,9 +1,10 @@
-import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import fg from 'fast-glob'
 import ignore from 'ignore'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
+import { withFileLock, writeFileAtomic } from './atomic.js'
 import { resolveJailed } from './jail.js'
 import type { FileTracker } from './tracker.js'
 
@@ -170,17 +171,25 @@ export function fsTools({ root, approveWrites = true, tracker }: FsToolOptions):
       const matches: { file: string; line: number; text: string }[] = []
       for (const file of files) {
         let lines: string[]
+        let full: string
+        let text: string
         try {
-          const full = await resolveJailed(realRoot, file)
+          full = await resolveJailed(realRoot, file)
           if ((await stat(full)).size > MAX_READ_BYTES) continue
-          lines = (await readFile(full, 'utf8')).split('\n')
+          text = await readFile(full, 'utf8')
+          lines = text.split('\n')
         } catch {
           continue // symlink escaping the jail, unreadable, or a directory
         }
-        for (const [i, text] of lines.entries()) {
-          if (re.test(text)) matches.push({ file, line: i + 1, text: text.slice(0, 300) })
-          if (matches.length >= MAX_RESULTS) return matches
+        const before = matches.length
+        for (const [i, line] of lines.entries()) {
+          if (re.test(line)) matches.push({ file, line: i + 1, text: line.slice(0, 300) })
+          if (matches.length >= MAX_RESULTS) break
         }
+        // The model saw lines of this file, so it counts as read (see FileTracker). Files with no
+        // matches were not shown, so they do not.
+        if (matches.length > before) tracker?.recordRead(full, text)
+        if (matches.length >= MAX_RESULTS) return matches
       }
       return matches
     },
@@ -193,16 +202,17 @@ export function fsTools({ root, approveWrites = true, tracker }: FsToolOptions):
     needsApproval: approveWrites,
     execute: async ({ path: p, content }) => {
       const file = await resolveJailed(root, p)
-      if (tracker) {
+      // One writer per file at a time: parallel calls would otherwise overwrite each other.
+      return withFileLock(file, async () => {
         const existing = await readFile(file, 'utf8').catch(() => undefined)
-        tracker.assertFresh(file, existing, p)
-      }
-      await mkdir(path.dirname(file), { recursive: true })
-      // Re-resolve after mkdir so a symlinked parent created in between cannot redirect the write.
-      const target = await resolveJailed(root, p)
-      await writeFile(target, content, 'utf8')
-      tracker?.recordWrite(target, content)
-      return { path: p, bytes: Buffer.byteLength(content) }
+        tracker?.assertFresh(file, existing, p)
+        await mkdir(path.dirname(file), { recursive: true })
+        // Re-resolve after mkdir so a symlinked parent created in between cannot redirect the write.
+        const target = await resolveJailed(root, p)
+        await writeFileAtomic(target, content, { expected: existing ?? null })
+        tracker?.recordWrite(target, content)
+        return { path: p, bytes: Buffer.byteLength(content) }
+      })
     },
   })
 
@@ -214,14 +224,17 @@ export function fsTools({ root, approveWrites = true, tracker }: FsToolOptions):
     needsApproval: approveWrites,
     execute: async ({ path: p, oldString, newString }) => {
       const file = await resolveJailed(root, p)
-      const content = await readFile(file, 'utf8')
-      tracker?.assertFresh(file, content, p)
-      const count = content.split(oldString).length - 1
-      if (count !== 1) throw new Error(`oldString must match exactly once; found ${count} matches`)
-      const updated = content.replace(oldString, () => newString)
-      await writeFile(file, updated, 'utf8')
-      tracker?.recordWrite(file, updated)
-      return { path: p, replaced: 1 }
+      return withFileLock(file, async () => {
+        const content = await readFile(file, 'utf8')
+        tracker?.assertFresh(file, content, p)
+        const count = content.split(oldString).length - 1
+        if (count !== 1)
+          throw new Error(`oldString must match exactly once; found ${count} matches`)
+        const updated = content.replace(oldString, () => newString)
+        await writeFileAtomic(file, updated, { expected: content })
+        tracker?.recordWrite(file, updated)
+        return { path: p, replaced: 1 }
+      })
     },
   })
 

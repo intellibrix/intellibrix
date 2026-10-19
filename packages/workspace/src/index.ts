@@ -8,6 +8,7 @@ import { type FsToolOptions, fsTools } from './fs-tools.js'
 import { gitTools } from './git.js'
 import { type ShellToolOptions, shellTool } from './shell.js'
 
+export * from './atomic.js'
 export * from './fs-tools.js'
 export * from './git.js'
 export * from './jail.js'

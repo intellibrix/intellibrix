@@ -65,5 +65,6 @@ Each package's `test/*.test.ts`, run via Vitest.
 - Reintroducing a global `i18next.init()` singleton in `@intellibrix/i18n` — instances must use `i18next.createInstance()`.
 - Skipping the `fs.realpath` re-check in `@intellibrix/workspace`'s `resolveJailed` — a symlink can otherwise escape the jail.
 - Bypassing `needsApproval` for `shell`/`write_file`/`edit_file`/`apply_patch`/`run_checks`/`git_commit`/`run_code` tools.
+- Writing files in `@intellibrix/workspace` or `agent-tools` with a bare `writeFile`: use `writeFileAtomic` under `withFileLock(s)`, or parallel tool calls lose updates and a crash can leave a half-written file.
 - Weakening the connect-time address check in `fetch_url` (`packages/agent-tools/src/fetch.ts`): validating DNS before connecting, or following redirects without re-checking, reopens SSRF and DNS rebinding.
 - Passing model-supplied code or arguments to the container CLI on the command line in `@intellibrix/sandbox` — code goes over stdin only.
