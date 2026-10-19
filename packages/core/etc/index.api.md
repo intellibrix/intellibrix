@@ -242,6 +242,9 @@ export type IntelligenceOptions = {
 };
 
 // @public
+export const invokeToolCalls: TextToolCallParser;
+
+// @public
 export function isFilePart(part: Part): part is FilePart;
 
 // @public

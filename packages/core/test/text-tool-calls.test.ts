@@ -215,3 +215,30 @@ describe('xmlToolCalls', () => {
     expect(calls(r)).toEqual([['read_file', { path: 'a.txt' }]])
   })
 })
+
+describe('invokeToolCalls', () => {
+  it('parses invoke blocks inside any function-call wrapper, or bare', () => {
+    const wrapped = invokeToolCalls.parse(
+      'hi\n<dots_function_call>\n<invoke name="get_cwd">\n</invoke>\n</dots_function_call>',
+    )
+    expect(wrapped.calls).toEqual([{ toolName: 'get_cwd', input: {} }])
+    expect(wrapped.text.trim()).toBe('hi')
+    const bare = invokeToolCalls.parse(
+      '<invoke name="a"><parameter name="x">1</parameter></invoke><invoke name="b"></invoke>',
+    )
+    expect(bare.calls).toEqual([
+      { toolName: 'a', input: { x: '1' } },
+      { toolName: 'b', input: {} },
+    ])
+  })
+
+  it('is recognized by default when streaming, holding the markup back', async () => {
+    const events: StreamEvent[] = []
+    for await (const e of textToolCalls(
+      scripted(['<dots_function_call><invoke name="read_file"></invoke></dots_function_call>']),
+    ).stream(req()))
+      events.push(e)
+    expect(events.filter((e) => e.type === 'tool-call')).toHaveLength(1)
+    expect(events.some((e) => e.type === 'text-delta')).toBe(false)
+  })
+})
