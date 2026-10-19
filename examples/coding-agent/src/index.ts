@@ -28,6 +28,13 @@ const brick: TerminalBrick = new TerminalBrick({
       }),
     ),
     model,
+    // Show progress so the prompt doesn't look frozen while the model works.
+    onEvent: (event) => {
+      if (event.type === 'step-start') brick.printLine('\x1b[2m… thinking\x1b[0m')
+      else if (event.type === 'tool-call-start')
+        brick.printLine(`\x1b[2m→ ${event.toolName}(${JSON.stringify(event.input)})\x1b[0m`)
+      else if (event.type === 'tool-call-denied') brick.printLine('\x1b[2m✗ denied\x1b[0m')
+    },
     system: `You are a careful coding agent working in ${root}. Read before you edit.`,
     tools: workspaceTools({ root, shell: { allow: ['node', 'pnpm', 'git'] } }),
     // Writes, shell and commits need approval; ask the human.
