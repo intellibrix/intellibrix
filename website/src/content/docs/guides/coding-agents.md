@@ -44,7 +44,7 @@ const tools = [...workspaceTools({ root }), ...agentTools({ root })]
 | `apply_patch` | Apply a unified diff across several files, all or nothing | **yes** |
 | `run_checks` | Run named checks (test, typecheck, lint, build) and return parsed failures | **yes** |
 | `todo` | Keep a task list for the run | no |
-| `fetch_url`, `ask_user`, `delegate` | Read the web, ask the human, hand off to a sub-agent (see below) | `fetch_url`: yes unless `allowHosts` |
+| `web_search`, `fetch_url`, `ask_user`, `delegate` | Search and read the web, ask the human, hand off to a sub-agent (see below) | `fetch_url`: yes unless `allowHosts` |
 
 **`apply_patch`** takes a unified diff. Every hunk of every file is applied in memory first, and
 nothing is written unless all of them apply, so a bad hunk never leaves half a change behind. Line
@@ -78,6 +78,23 @@ parsers read `tsc`, Vitest and the common `file:line:col: message` format; pass 
 scoped to the run. Read it from your own code with `tool.store.get(runId)`, or pass `onChange` to
 render progress as it updates. Pass `checks: false` or `todo: false` to leave either out.
 
+## Refusing stale edits
+
+Give `workspaceTools` and `agentTools` one `FileTracker` and a write is refused when the model never read
+the file, or when the file changed after it did (another process, a formatter, you):
+
+```ts
+import { FileTracker, workspaceTools } from '@intellibrix/workspace'
+
+const tracker = new FileTracker() // one per session
+const tools = [...workspaceTools({ root, tracker }), ...agentTools({ root, tracker })]
+```
+
+It covers `write_file`, `edit_file` and `apply_patch`. Creating a new file needs no read, a model's own
+writes count as seen so it can keep editing, and reading part of a file with `offset`/`limit` counts as
+a read. The model gets a plain error ("changed since you last read it; read it again") and recovers by
+reading. Tracking is off unless you pass a tracker.
+
 ## Reading the web, asking questions, delegating
 
 Three more tools are included only when you configure them:
@@ -90,6 +107,11 @@ agentTools({
   delegate: { agents: { reviewer: { agent: reviewerIntelligence, description: 'reviews a diff' } } },
 })
 ```
+
+**`web_search`** (`search: { provider }`) returns titles, URLs and snippets from a backend you choose, tagged
+`untrusted`: `braveSearch({ apiKey })`, `tavilySearch({ apiKey })` or `searxngSearch({ baseUrl })` for a
+self-hosted instance. Or implement `SearchProvider` (an `id` and a `search(query, { limit, signal })`) for
+anything else. Pair it with `fetch_url` to read a result in full.
 
 **`fetch_url`** returns a page as readable text (or the source with `format: 'raw'`), tagged `untrusted`.
 A model that has read hostile text could try to use it to reach your internal network or to carry data

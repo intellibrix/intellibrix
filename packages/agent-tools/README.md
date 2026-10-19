@@ -17,11 +17,12 @@ Exports `agentTools`, plus each tool on its own:
 - `applyPatchTool`: apply a unified diff across several files, all or nothing.
 - `runChecksTool`: run the project's test, typecheck and lint commands and get structured failures back.
 - `todoTool`: a task list the model keeps up to date.
+- `webSearchTool`: search the web through Brave, Tavily, SearXNG or your own backend.
 - `fetchUrlTool`: read a web page as text, with protection against reaching internal addresses.
 - `askUserTool`: let the model ask the human a question.
 - `delegateTool`: hand a task to a named sub-agent.
 
-`fetch_url`, `ask_user` and `delegate` are included when you configure them. Patches and checks are confined to the workspace root and require approval by default.
+With a shared `FileTracker`, writes to unread or since-changed files are refused. `web_search`, `fetch_url`, `ask_user` and `delegate` are included when you configure them. Patches and checks are confined to the workspace root and require approval by default.
 
 ## Links
 

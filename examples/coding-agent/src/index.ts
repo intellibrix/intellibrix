@@ -1,14 +1,16 @@
 // OPENROUTER_API_KEY=... pnpm --filter example-coding-agent start [dir]
 // Set OPENROUTER_MODEL to use a model other than the default (openrouter/free).
-import { agentTools } from '@intellibrix/agent-tools'
+import { agentTools, braveSearch } from '@intellibrix/agent-tools'
 import { compatibleProvider } from '@intellibrix/ai-sdk'
 import TerminalBrick, { chatRepl } from '@intellibrix/terminal'
-import { workspaceTools } from '@intellibrix/workspace'
+import { FileTracker, workspaceTools } from '@intellibrix/workspace'
 import { defaultToolCallParsers, Intelligence, jsonToolCalls, textToolCalls } from 'intellibrix'
 
 const root = process.argv[2] ?? process.cwd()
 const apiKey = process.env.OPENROUTER_API_KEY
 const model = process.env.OPENROUTER_MODEL ?? 'openrouter/free'
+// Refuse edits to files the model has not read, or that changed since it did.
+const tracker = new FileTracker()
 
 if (!apiKey) {
   console.error('Set OPENROUTER_API_KEY to run this example (https://openrouter.ai/keys).')
@@ -38,13 +40,18 @@ const brick: TerminalBrick = new TerminalBrick({
         brick.printLine(`\x1b[2m→ ${event.toolName}(${JSON.stringify(event.input)})\x1b[0m`)
       else if (event.type === 'tool-call-denied') brick.printLine('\x1b[2m✗ denied\x1b[0m')
     },
-    system: `You are a careful coding agent working in ${root}. Read before you edit.
+    system: `You are a careful coding agent working in ${root}. Read a file before you edit it; edits to unread or changed files are refused.
 Use only these tools, by exact name: read_file (optionally with offset and limit), list_dir, glob, grep, write_file, edit_file, apply_patch (a unified diff, applied to several files all or nothing), run_checks (runs the project's test, typecheck and lint and returns the failures), todo (your task list for multi-step work), fetch_url (read a web page), ask_user (ask the human a question), shell (a command plus an args array; only node, pnpm and git are allowed), git_status, git_diff, git_commit, git_branch. The working directory is ${root}.`,
     tools: [
-      ...workspaceTools({ root, shell: { allow: ['node', 'pnpm', 'git'] } }),
+      ...workspaceTools({ root, tracker, shell: { allow: ['node', 'pnpm', 'git'] } }),
       ...agentTools({
         root,
+        tracker,
         fetch: true,
+        // Set BRAVE_API_KEY to let the agent search the web.
+        ...(process.env.BRAVE_API_KEY
+          ? { search: { provider: braveSearch({ apiKey: process.env.BRAVE_API_KEY }) } }
+          : {}),
         askUser: {
           ask: async ({ question, choices }) => {
             brick.print(`\n${question}${choices ? ` (${choices.join(' / ')})` : ''} `)
