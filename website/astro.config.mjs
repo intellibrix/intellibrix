@@ -3,6 +3,8 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   site: 'https://intellibrix.dev',
+  // The dev toolbar's audit app imports aria-query, which pnpm's strict layout can't resolve from the site.
+  devToolbar: { enabled: false },
   integrations: [
     starlight({
       title: 'intellibrix',
