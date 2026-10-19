@@ -1,6 +1,6 @@
 # @intellibrix/sandbox
 
-Vendor-neutral hosted code-execution tool for intellibrix (E2B, Daytona, Cloudflare).
+Vendor-neutral code-execution tool for intellibrix: local Podman/Docker containers, or hosted E2B, Daytona and Cloudflare sandboxes.
 
 Part of [intellibrix](https://github.com/intellibrix/intellibrix), a model-agnostic TypeScript framework for building agents and AI-powered software components. Requires Node 22+.
 
@@ -14,7 +14,7 @@ Peer dependencies are optional; install the ones you use.
 
 ## Usage
 
-Exports `sandboxTool`, an approval-gated `run_code` tool. Install the peer for the vendor you use.
+Exports `sandboxTool`, an approval-gated `run_code` tool. `containerProvider()` runs code in a local Podman or Docker container with no extra dependencies; for a hosted vendor, install its peer.
 
 ## Links
 
