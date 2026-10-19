@@ -4,6 +4,7 @@ import { isToolCallPart, textMessage } from '../src/messages.js'
 import type { GenerateRequest, Provider, StepResult, StreamEvent } from '../src/provider.js'
 import {
   hermesToolCalls,
+  invokeToolCalls,
   pythonicToolCalls,
   textToolCalls,
   xmlToolCalls,
