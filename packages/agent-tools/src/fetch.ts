@@ -320,6 +320,11 @@ export function fetchUrlTool(options: FetchUrlToolOptions = {}): ToolDefinition 
           ...('title' in page && page.title ? { title: page.title } : {}),
           content,
           truncated: res.truncated || page.text.length > (maxChars ?? 20_000),
+          ...(res.status >= 400
+            ? {
+                note: `The site answered HTTP ${res.status}, so this is not the page's content. Many sites refuse automated requests; do not retry it, use a different source.`,
+              }
+            : {}),
         }
       }
     },

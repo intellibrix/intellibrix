@@ -152,6 +152,28 @@ on it: delegating never widens what a tool call may do. The answer is `untrusted
 `trusted: true`, because a sub-agent that read a hostile file can pass its instructions along. Do not
 give the sub-agent the `delegate` tool.
 
+## Choosing what needs approval
+
+Every tool that writes, runs code or reaches the network asks for approval by default. Relax them one at a time:
+
+| Tool | How to skip the prompt |
+|---|---|
+| `write_file`, `edit_file`, `apply_patch` | `approveWrites: false` in `workspaceTools` and `agentTools` |
+| `shell` | `shell: { allow: [...], alwaysApprove: true }`; the allowlist still applies |
+| `run_checks` | `checks: { alwaysApprove: true }` |
+| `fetch_url` | `fetch: { allowHosts: ['apnews.com', '*.wikipedia.org'] }`, which also limits fetching to those hosts, or `fetch: { needsApproval: false }` for any public host |
+
+For anything else, or for rules that depend on the call, use the `onToolApproval` hook on `Intelligence`. It receives each call that needs approval:
+
+```ts
+onToolApproval: async (call) => {
+  if (call.toolName === 'fetch_url' || call.toolName === 'run_checks') return true
+  return askTheHuman(call)
+}
+```
+
+Keep approval on `shell`, `git_commit` and the write tools. Relax `fetch_url` only with `allowHosts`, because a URL can carry data out in its query string.
+
 ## Wiring it up
 
 ```ts

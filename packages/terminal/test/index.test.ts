@@ -35,6 +35,12 @@ describe('chatRepl', () => {
     expect(out.filter((o) => o.startsWith('line:'))).toEqual(['line:got hello'])
   })
 
+  it('says so when the model ends a turn without any text', async () => {
+    const { brick, out } = makeRepl(['hi', 'exit'], () => '')
+    await chatRepl(brick)
+    expect(out.find((o) => o.startsWith('line:'))).toMatch(/No reply.*after 1 steps/)
+  })
+
   it('keeps going after an ask() error', async () => {
     let n = 0
     const { brick, out } = makeRepl(['a', 'b', 'quit'], () => {

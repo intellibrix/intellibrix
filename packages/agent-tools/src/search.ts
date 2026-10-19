@@ -127,7 +127,7 @@ export function webSearchTool(
   const cap = options.maxResults ?? 10
   return defineTool({
     name: 'web_search',
-    description: `Search the web (${provider.id}) and return titles, URLs and snippets. Use fetch_url to read a result in full.`,
+    description: `Search the web (${provider.id}) and return titles, URLs and snippets. Snippets are short: call fetch_url on the most relevant result's URL to read it in full.`,
     input: z.object({
       query: z.string().min(1).max(500),
       limit: z.number().int().min(1).max(cap).default(Math.min(5, cap)),

@@ -30,6 +30,8 @@ beforeAll(async () => {
           'text/html; charset=utf-8',
           '<html><head><title>Hi &amp; bye</title><style>p{}</style></head><body><script>evil()</script><h1>Head</h1><p>One&nbsp;two &#33;</p><p>Three</p></body></html>',
         )
+      case '/blocked':
+        return send('text/html', '<title>Just a moment...</title>', 403)
       case '/json':
         return send('application/json', '{"a":1}')
       case '/big':
@@ -93,6 +95,15 @@ describe('isPrivateAddress', () => {
 
 describe('fetch_url', () => {
   const local = (extra = {}) => fetchUrlTool({ allowPrivateNetwork: true, ...extra })
+
+  it('explains an HTTP error status instead of returning a bare empty page', async () => {
+    const r = (await run(local(), { url: `${base}/blocked` })) as { status: number; note?: string }
+    expect(r.status).toBe(403)
+    expect(r.note).toMatch(/HTTP 403.*different source/)
+    expect(
+      ((await run(local(), { url: `${base}/json` })) as { note?: string }).note,
+    ).toBeUndefined()
+  })
 
   it('refuses private, loopback and metadata addresses by default', async () => {
     const tool = fetchUrlTool()

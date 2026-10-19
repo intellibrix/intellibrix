@@ -222,8 +222,11 @@ export async function chatRepl(brick: Brick & ReplIO, opts: ChatReplOptions = {}
       const signal = opts.signal ? AbortSignal.any([opts.signal, turn.signal]) : turn.signal
       const stopListening = brick.onInterrupt?.(() => turn.abort())
       try {
-        const { text } = await brick.ask(line, { threadId, abortSignal: signal })
-        brick.printLine(text)
+        const { text, steps } = await brick.ask(line, { threadId, abortSignal: signal })
+        brick.printLine(
+          text ||
+            `(No reply: the model stopped without an answer after ${steps} steps, possibly at its step limit. Ask it to continue, or raise maxSteps.)`,
+        )
       } catch (error) {
         if (opts.signal?.aborted) return
         if (turn.signal.aborted) brick.printError('Cancelled.')
