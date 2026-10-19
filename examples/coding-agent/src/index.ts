@@ -35,7 +35,8 @@ const brick: TerminalBrick = new TerminalBrick({
         brick.printLine(`\x1b[2m→ ${event.toolName}(${JSON.stringify(event.input)})\x1b[0m`)
       else if (event.type === 'tool-call-denied') brick.printLine('\x1b[2m✗ denied\x1b[0m')
     },
-    system: `You are a careful coding agent working in ${root}. Read before you edit.`,
+    system: `You are a careful coding agent working in ${root}. Read before you edit.
+Use only these tools, by exact name: read_file, list_dir, glob, grep, write_file, edit_file, shell (a command plus an args array; only node, pnpm and git are allowed), git_status, git_diff, git_commit, git_branch. The working directory is ${root}.`,
     tools: workspaceTools({ root, shell: { allow: ['node', 'pnpm', 'git'] } }),
     // Writes, shell and commits need approval; ask the human.
     onToolApproval: async (call): Promise<boolean> => {
