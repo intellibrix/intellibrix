@@ -343,7 +343,7 @@ export default class Brick {
       ...options,
       brick: this,
       brickName: options.brickName ?? this.name,
-      tools: [...this.toolset(), ...(options.tools ?? [])],
+      tools: [...this.ai.tools, ...this.toolset(), ...(options.tools ?? [])],
     })
     this.usage.add(result.usage, this.ai.model)
     return result

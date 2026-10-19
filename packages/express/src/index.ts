@@ -118,7 +118,7 @@ export function askStreamRoute(target: AskTarget): (req: Request, res: Response)
 
     try {
       const ai = intelligenceOf(target)
-      const tools = target instanceof Brick ? target.toolset() : undefined
+      const tools = target instanceof Brick ? [...ai.tools, ...target.toolset()] : undefined
       for await (const event of ai.stream(prompt, {
         abortSignal: controller.signal,
         threadId: promptOf(req.query.threadId),

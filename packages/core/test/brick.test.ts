@@ -263,6 +263,22 @@ describe('Brick.tools / Brick.use / Brick.ask', () => {
     expect(result.text).toEqual('done')
   })
 
+  it("should offer the Intelligence's own tools alongside the brick's", async () => {
+    const mixedBrick = new Brick()
+    const own = mockTool('own_tool', async () => 'own result')
+    const provider = new MockProvider([
+      { toolCalls: [{ toolName: 'own_tool', input: {} }] },
+      { text: 'done' },
+    ])
+
+    mixedBrick.ai = new Intelligence({ provider, model: 'mock', tools: [own] })
+    const result = await mixedBrick.ask('go')
+    const toolResult = result.messages
+      .flatMap((m) => m.content)
+      .find((p) => p.type === 'tool-result')
+    expect(toolResult).toMatchObject({ toolName: 'own_tool', output: 'own result' })
+  })
+
   it('should throw when ask() is called without an Intelligence configured', async () => {
     const bareBrick = new Brick()
     await expect(bareBrick.ask('hi')).rejects.toThrow('no Intelligence configured')
