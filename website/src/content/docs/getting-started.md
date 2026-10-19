@@ -74,4 +74,6 @@ console.log((await brick.ask('Hi')).text)
 - [Core concepts](/concepts/): bricks, programs, intelligence, structures.
 - [Tools and Programs](/guides/tools-and-programs/): give your agent abilities.
 - [Approvals and trust](/guides/approvals-and-trust/): keep humans in control.
+- [Coding agents](/guides/coding-agents/): files, shell and git, behind approvals.
+- [Storage and memory](/guides/storage-and-memory/) and [Observability](/guides/observability/): persist and watch your agents.
 - The [examples](https://github.com/intellibrix/intellibrix/tree/master/examples) directory has runnable agents, including a terminal coding agent.

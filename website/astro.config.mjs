@@ -25,6 +25,18 @@ export default defineConfig({
             'guides/mcp',
           ],
         },
+        {
+          label: 'Build with packages',
+          items: [
+            'guides/coding-agents',
+            'guides/sandboxed-code',
+            'guides/github',
+            'guides/storage-and-memory',
+            'guides/serving-over-http',
+            'guides/command-line',
+          ],
+        },
+        { label: 'Operate', items: ['guides/observability'] },
         { label: 'Cookbook', items: [{ autogenerate: { directory: 'cookbook' } }] },
         {
           label: 'Reference',
