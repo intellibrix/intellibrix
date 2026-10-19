@@ -9,6 +9,7 @@ import {
   agentTools,
   applyPatchTool,
   detectChecks,
+  evaluate,
   parseUnifiedDiff,
   runChecksTool,
   TodoStore,
@@ -318,10 +319,15 @@ describe('todo', () => {
 
 describe('agentTools', () => {
   it('bundles the tools and lets each be left out', () => {
-    expect(agentTools({ root }).map((t) => t.name)).toEqual(['apply_patch', 'run_checks', 'todo'])
-    expect(agentTools({ root, checks: false, todo: false }).map((t) => t.name)).toEqual([
+    expect(agentTools({ root }).map((t) => t.name)).toEqual([
       'apply_patch',
+      'run_checks',
+      'todo',
+      'calculator',
     ])
+    expect(
+      agentTools({ root, checks: false, todo: false, calculator: false }).map((t) => t.name),
+    ).toEqual(['apply_patch'])
   })
 
   it('drives an edit, check, plan loop through the agent loop', async () => {
@@ -417,5 +423,48 @@ describe('apply_patch concurrency', () => {
     })
     expect((await stat(path.join(root, 's.sh'))).mode & 0o777).toBe(0o755)
     expect(await readdir(root)).toEqual(['s.sh'])
+  })
+})
+
+describe('calculator', () => {
+  it('evaluates arithmetic with precedence, powers, functions and constants', () => {
+    expect(evaluate('1 + 2 * 3')).toBe(7)
+    expect(evaluate('(1 + 2) * 3')).toBe(9)
+    expect(evaluate('2 ^ 3 ^ 2')).toBe(512)
+    expect(evaluate('-2 ^ 2')).toBe(-4)
+    expect(evaluate('2 ** -1')).toBe(0.5)
+    expect(evaluate('10 % 4 + 1e3')).toBe(1002)
+    expect(evaluate('round(1234.5 * 1.0825, 2)')).toBe(1336.35)
+    expect(evaluate('round(2.5)')).toBe(3)
+    expect(evaluate('max(1, sqrt(16), abs(-3))')).toBe(4)
+    expect(evaluate('SIN(pi / 2)')).toBe(1)
+  })
+
+  it('rejects bad input instead of evaluating it', () => {
+    for (const bad of [
+      '',
+      '1 +',
+      '(1',
+      '1 / 0',
+      'foo',
+      'foo(1)',
+      'process.exit()',
+      '1 2',
+      '2 $ 3',
+    ]) {
+      expect(() => evaluate(bad), bad).toThrow()
+    }
+    expect(() => evaluate('9 ^ 9 ^ 9')).toThrow(/finite/)
+    expect(() => evaluate(`${'('.repeat(200)}1${')'.repeat(200)}`)).toThrow(/deeply/)
+    expect(() => evaluate('1'.repeat(501))).toThrow(/longer/)
+  })
+
+  it('is a tool that needs no approval', async () => {
+    const tool = agentTools({ root }).find((t) => t.name === 'calculator') as ToolDefinition
+    expect(tool.needsApproval).toBeFalsy()
+    expect(await tool.execute({ expression: '6 * 7' }, { runId: 'r' } as never)).toEqual({
+      expression: '6 * 7',
+      result: 42,
+    })
   })
 })

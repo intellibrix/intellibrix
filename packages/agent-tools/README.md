@@ -17,6 +17,7 @@ Exports `agentTools`, plus each tool on its own:
 - `applyPatchTool`: apply a unified diff across several files, all or nothing.
 - `runChecksTool`: run the project's test, typecheck and lint commands and get structured failures back.
 - `todoTool`: a task list the model keeps up to date.
+- `calculatorTool`: exact arithmetic (`+ - * / % ^`, parentheses, `sqrt`, `round`, `min`, `max`, …) from a parsed expression, never `eval`.
 - `webSearchTool`: search the web through Brave, Tavily, SearXNG or your own backend.
 - `fetchUrlTool`: read a web page as text, with protection against reaching internal addresses.
 - `askUserTool`: let the model ask the human a question.

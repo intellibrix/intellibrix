@@ -306,6 +306,7 @@ describe('agentTools extras', () => {
       'apply_patch',
       'run_checks',
       'todo',
+      'calculator',
       'fetch_url',
       'ask_user',
       'delegate',

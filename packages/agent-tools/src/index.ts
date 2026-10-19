@@ -6,6 +6,7 @@
 import type { FileTracker } from '@intellibrix/workspace'
 import type { ToolDefinition } from 'intellibrix'
 import { type AskUserToolOptions, askUserTool } from './ask-user.js'
+import { calculatorTool } from './calculator.js'
 import { type RunChecksOptions, runChecksTool } from './checks.js'
 import { type DelegateToolOptions, delegateTool } from './delegate.js'
 import { type FetchUrlToolOptions, fetchUrlTool } from './fetch.js'
@@ -14,6 +15,7 @@ import { type SearchProvider, type WebSearchToolOptions, webSearchTool } from '.
 import { type TodoToolOptions, todoTool } from './todo.js'
 
 export * from './ask-user.js'
+export * from './calculator.js'
 export * from './checks.js'
 export * from './delegate.js'
 export * from './fetch.js'
@@ -31,6 +33,8 @@ export type AgentToolsOptions = {
   checks?: Omit<RunChecksOptions, 'root'> | false
   /** Configure `todo`, or pass `false` to leave it out. */
   todo?: TodoToolOptions | false
+  /** Pass `false` to leave out `calculator` (exact arithmetic, no approval needed). */
+  calculator?: false
   /** Include `fetch_url`. Omitted by default: pass `true` or options to turn it on. */
   fetch?: FetchUrlToolOptions | true
   /** Include `web_search` over this backend. Omitted unless given. */
@@ -42,7 +46,7 @@ export type AgentToolsOptions = {
 }
 
 /**
- * `apply_patch`, `run_checks` and `todo` for a workspace rooted at `root`, plus `fetch_url`,
+ * `apply_patch`, `run_checks`, `todo` and `calculator` for a workspace rooted at `root`, plus `fetch_url`,
  * `ask_user` and `delegate` when you configure them.
  */
 export function agentTools(options: AgentToolsOptions): ToolDefinition[] {
@@ -56,6 +60,7 @@ export function agentTools(options: AgentToolsOptions): ToolDefinition[] {
     applyPatchTool(patch),
     ...(options.checks === false ? [] : [runChecksTool({ root, ...options.checks })]),
     ...(options.todo === false ? [] : [todoTool(options.todo)]),
+    ...(options.calculator === false ? [] : [calculatorTool()]),
     ...(options.fetch ? [fetchUrlTool(options.fetch === true ? {} : options.fetch)] : []),
     ...(options.search ? [webSearchTool(options.search.provider, options.search)] : []),
     ...(options.askUser ? [askUserTool(options.askUser)] : []),

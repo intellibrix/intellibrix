@@ -44,6 +44,7 @@ const tools = [...workspaceTools({ root }), ...agentTools({ root })]
 | `apply_patch` | Apply a unified diff across several files, all or nothing | **yes** |
 | `run_checks` | Run named checks (test, typecheck, lint, build) and return parsed failures | **yes** |
 | `todo` | Keep a task list for the run | no |
+| `calculator` | Exact arithmetic from a parsed expression (never `eval`); pass `calculator: false` to leave it out | no |
 | `web_search`, `fetch_url`, `ask_user`, `delegate` | Search and read the web, ask the human, hand off to a sub-agent (see below) | `fetch_url`: yes unless `allowHosts` |
 
 **`apply_patch`** takes a unified diff. Every hunk of every file is applied in memory first, and
