@@ -39,10 +39,19 @@ const brick: TerminalBrick = new TerminalBrick({
       else if (event.type === 'tool-call-denied') brick.printLine('\x1b[2m✗ denied\x1b[0m')
     },
     system: `You are a careful coding agent working in ${root}. Read before you edit.
-Use only these tools, by exact name: read_file (optionally with offset and limit), list_dir, glob, grep, write_file, edit_file, apply_patch (a unified diff, applied to several files all or nothing), run_checks (runs the project's test, typecheck and lint and returns the failures), todo (your task list for multi-step work), shell (a command plus an args array; only node, pnpm and git are allowed), git_status, git_diff, git_commit, git_branch. The working directory is ${root}.`,
+Use only these tools, by exact name: read_file (optionally with offset and limit), list_dir, glob, grep, write_file, edit_file, apply_patch (a unified diff, applied to several files all or nothing), run_checks (runs the project's test, typecheck and lint and returns the failures), todo (your task list for multi-step work), fetch_url (read a web page), ask_user (ask the human a question), shell (a command plus an args array; only node, pnpm and git are allowed), git_status, git_diff, git_commit, git_branch. The working directory is ${root}.`,
     tools: [
       ...workspaceTools({ root, shell: { allow: ['node', 'pnpm', 'git'] } }),
-      ...agentTools({ root }),
+      ...agentTools({
+        root,
+        fetch: true,
+        askUser: {
+          ask: async ({ question, choices }) => {
+            brick.print(`\n${question}${choices ? ` (${choices.join(' / ')})` : ''} `)
+            return (await brick.input()).trim()
+          },
+        },
+      }),
     ],
     // Writes, shell and commits need approval; ask the human.
     onToolApproval: async (call): Promise<boolean> => {

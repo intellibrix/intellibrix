@@ -44,6 +44,7 @@ const tools = [...workspaceTools({ root }), ...agentTools({ root })]
 | `apply_patch` | Apply a unified diff across several files, all or nothing | **yes** |
 | `run_checks` | Run named checks (test, typecheck, lint, build) and return parsed failures | **yes** |
 | `todo` | Keep a task list for the run | no |
+| `fetch_url`, `ask_user`, `delegate` | Read the web, ask the human, hand off to a sub-agent (see below) | `fetch_url`: yes unless `allowHosts` |
 
 **`apply_patch`** takes a unified diff. Every hunk of every file is applied in memory first, and
 nothing is written unless all of them apply, so a bad hunk never leaves half a change behind. Line
@@ -76,6 +77,42 @@ parsers read `tsc`, Vitest and the common `file:line:col: message` format; pass 
 **`todo`** gives the model a task list it replaces on each call (one task `in_progress` at a time),
 scoped to the run. Read it from your own code with `tool.store.get(runId)`, or pass `onChange` to
 render progress as it updates. Pass `checks: false` or `todo: false` to leave either out.
+
+## Reading the web, asking questions, delegating
+
+Three more tools are included only when you configure them:
+
+```ts
+agentTools({
+  root,
+  fetch: { allowHosts: ['developer.mozilla.org', '*.nodejs.org'] },
+  askUser: { ask: async ({ question, choices }) => askHuman(question, choices) },
+  delegate: { agents: { reviewer: { agent: reviewerIntelligence, description: 'reviews a diff' } } },
+})
+```
+
+**`fetch_url`** returns a page as readable text (or the source with `format: 'raw'`), tagged `untrusted`.
+A model that has read hostile text could try to use it to reach your internal network or to carry data
+out in a URL, so it is built to resist both:
+
+- only `http` and `https`, with no credentials in the URL;
+- the address is checked when the connection is made, so loopback, private, link-local (including the
+  cloud metadata address) and multicast ranges are refused, including IPv6 forms that wrap an IPv4
+  address, and a DNS answer cannot change between the check and the connection;
+- every redirect is followed by hand and checked again;
+- the body is size-limited, uncompressed and text only, with a time limit.
+
+It needs approval unless you pin `allowHosts` (exact names, or `*.example.com`), since a URL can carry
+data in its query string. `allowPrivateNetwork: true` turns the address check off for local testing.
+
+**`ask_user`** pauses the run so the model can ask a clarifying question instead of guessing. You
+decide how it is shown; in a terminal that is `brick.print` and `await brick.input()`.
+
+**`delegate`** hands a self-contained task to a named sub-agent (an `Intelligence` or a `Brick`) and
+returns its final answer. The sub-agent keeps its own tools and approval policy, so set `onToolApproval`
+on it: delegating never widens what a tool call may do. The answer is `untrusted` unless you set
+`trusted: true`, because a sub-agent that read a hostile file can pass its instructions along. Do not
+give the sub-agent the `delegate` tool.
 
 ## Wiring it up
 
