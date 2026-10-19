@@ -1,6 +1,6 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { resolveJailed } from '@intellibrix/workspace'
+import { type FileTracker, resolveJailed } from '@intellibrix/workspace'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
 
@@ -215,6 +215,11 @@ export type ApplyPatchOptions = {
   root: string
   /** Require approval before the patch is written. @default true */
   approveWrites?: boolean
+  /**
+   * Refuse to change or delete an existing file the model has not read, or that changed since it
+   * did. Share it with `workspaceTools` so reads there count.
+   */
+  tracker?: FileTracker
 }
 
 /**
@@ -224,7 +229,7 @@ export type ApplyPatchOptions = {
  * is located by its context. Pass `check: true` to validate without writing.
  */
 export function applyPatchTool(options: ApplyPatchOptions): ToolDefinition {
-  const { root, approveWrites = true } = options
+  const { root, approveWrites = true, tracker } = options
   return defineTool({
     name: 'apply_patch',
     description:
@@ -259,6 +264,7 @@ export function applyPatchTool(options: ApplyPatchOptions): ToolDefinition {
           const before = await readFile(file, 'utf8').catch(() => {
             throw new Error(`Cannot delete ${oldPath}: it does not exist`)
           })
+          tracker?.assertFresh(file, before, oldPath)
           const tf = toTextFile(before)
           applyHunks(tf, fp.hunks, oldPath)
           if (tf.lines.length > 0) {
@@ -286,6 +292,7 @@ export function applyPatchTool(options: ApplyPatchOptions): ToolDefinition {
           before = await readFile(src, 'utf8').catch(() => {
             throw new Error(`Cannot patch ${sourcePath}: it does not exist`)
           })
+          tracker?.assertFresh(src, before, sourcePath)
         } else if (
           await readFile(dest).then(
             () => true,
@@ -327,6 +334,10 @@ export function applyPatchTool(options: ApplyPatchOptions): ToolDefinition {
             await writeFile(await resolveJailed(root, plan.file), plan.after)
           }
           done.push(plan)
+        }
+        for (const plan of plans) {
+          if (plan.after === undefined) tracker?.recordDelete(plan.file)
+          else tracker?.recordWrite(plan.file, plan.after)
         }
       } catch (error) {
         // Roll back whatever was written so a failure never leaves a half-applied patch.

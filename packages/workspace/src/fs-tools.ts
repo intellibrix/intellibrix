@@ -5,6 +5,7 @@ import ignore from 'ignore'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
 import { resolveJailed } from './jail.js'
+import type { FileTracker } from './tracker.js'
 
 const MAX_READ_BYTES = 256 * 1024
 /** Largest file a ranged read will scan, since only a slice is returned. */
@@ -40,6 +41,11 @@ export type FsToolOptions = {
   root: string
   /** Require approval for `write_file`/`edit_file`. @default true */
   approveWrites?: boolean
+  /**
+   * Refuse `write_file`/`edit_file` on an existing file the model has not read, or that changed
+   * since it did. Share the tracker with `agentTools` so `apply_patch` follows the same rule.
+   */
+  tracker?: FileTracker
 }
 
 async function gitignoreFilter(root: string) {
@@ -51,7 +57,7 @@ async function gitignoreFilter(root: string) {
 }
 
 /** Jailed read tools (`read_file`, `list_dir`, `glob`, `grep`) and write tools (`write_file`, `edit_file`). */
-export function fsTools({ root, approveWrites = true }: FsToolOptions): ToolDefinition[] {
+export function fsTools({ root, approveWrites = true, tracker }: FsToolOptions): ToolDefinition[] {
   const read_file = defineTool({
     name: 'read_file',
     description:
@@ -68,7 +74,9 @@ export function fsTools({ root, approveWrites = true }: FsToolOptions): ToolDefi
       const info = await stat(file)
       const ranged = offset !== undefined || limit !== undefined
       if (!ranged && !lineNumbers && info.size <= MAX_READ_BYTES) {
-        return { path: p, content: await readFile(file, 'utf8') }
+        const content = await readFile(file, 'utf8')
+        tracker?.recordRead(file, content)
+        return { path: p, content }
       }
       if (info.size > MAX_RANGED_READ_BYTES || (!ranged && info.size > MAX_READ_BYTES)) {
         const limitBytes = ranged ? MAX_RANGED_READ_BYTES : MAX_READ_BYTES
@@ -76,7 +84,10 @@ export function fsTools({ root, approveWrites = true }: FsToolOptions): ToolDefi
           `File is ${info.size} bytes; the limit is ${limitBytes}${ranged ? '' : '. Pass offset and limit to read part of it'}`,
         )
       }
-      const lines = (await readFile(file, 'utf8')).split('\n')
+      const text = await readFile(file, 'utf8')
+      // A slice counts as a read: the model chose to look at the file, and a later change is caught.
+      tracker?.recordRead(file, text)
+      const lines = text.split('\n')
       if (lines.at(-1) === '') lines.pop()
       const start = (offset ?? 1) - 1
       let end = Math.min(lines.length, start + (limit ?? lines.length))
@@ -182,9 +193,15 @@ export function fsTools({ root, approveWrites = true }: FsToolOptions): ToolDefi
     needsApproval: approveWrites,
     execute: async ({ path: p, content }) => {
       const file = await resolveJailed(root, p)
+      if (tracker) {
+        const existing = await readFile(file, 'utf8').catch(() => undefined)
+        tracker.assertFresh(file, existing, p)
+      }
       await mkdir(path.dirname(file), { recursive: true })
       // Re-resolve after mkdir so a symlinked parent created in between cannot redirect the write.
-      await writeFile(await resolveJailed(root, p), content, 'utf8')
+      const target = await resolveJailed(root, p)
+      await writeFile(target, content, 'utf8')
+      tracker?.recordWrite(target, content)
       return { path: p, bytes: Buffer.byteLength(content) }
     },
   })
@@ -198,13 +215,12 @@ export function fsTools({ root, approveWrites = true }: FsToolOptions): ToolDefi
     execute: async ({ path: p, oldString, newString }) => {
       const file = await resolveJailed(root, p)
       const content = await readFile(file, 'utf8')
+      tracker?.assertFresh(file, content, p)
       const count = content.split(oldString).length - 1
       if (count !== 1) throw new Error(`oldString must match exactly once; found ${count} matches`)
-      await writeFile(
-        file,
-        content.replace(oldString, () => newString),
-        'utf8',
-      )
+      const updated = content.replace(oldString, () => newString)
+      await writeFile(file, updated, 'utf8')
+      tracker?.recordWrite(file, updated)
       return { path: p, replaced: 1 }
     },
   })

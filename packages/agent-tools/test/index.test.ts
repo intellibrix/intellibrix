@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { FileTracker, workspaceTools } from '@intellibrix/workspace'
 import { Intelligence, type ToolDefinition, validateToolInput } from 'intellibrix'
 import { MockProvider } from 'intellibrix/testing'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -344,5 +345,51 @@ describe('agentTools', () => {
     })
     await ai.ask('fix it')
     expect(await get('a.txt')).toBe('A\n')
+  })
+})
+
+describe('apply_patch with a shared FileTracker', () => {
+  const patchOf = (file: string) => `--- ${file}\n+++ ${file}\n@@ -1 +1 @@\n-a\n+A\n`
+
+  it('requires a prior read, accepts reads from workspace tools, and notices outside changes', async () => {
+    const tracker = new FileTracker()
+    const ws = workspaceTools({ root, git: false, tracker })
+    const patch = applyPatchTool({ root, tracker })
+    await put('a.txt', 'a\n')
+
+    await expect(run(patch, { patch: patchOf('a.txt') })).rejects.toThrow(/Read a\.txt before/)
+    expect(await get('a.txt')).toBe('a\n')
+
+    await run(ws.find((t) => t.name === 'read_file') as ToolDefinition, { path: 'a.txt' })
+    await run(patch, { patch: patchOf('a.txt') })
+    expect(await get('a.txt')).toBe('A\n')
+
+    // The patch's own write counts as seen, so a follow-up needs no re-read...
+    await run(patch, { patch: '--- a.txt\n+++ a.txt\n@@ -1 +1 @@\n-A\n+B\n' })
+    // ...but an outside change does.
+    await put('a.txt', 'changed\n')
+    await expect(
+      run(patch, { patch: '--- a.txt\n+++ a.txt\n@@ -1 +1 @@\n-changed\n+C\n' }),
+    ).rejects.toThrow(/changed since you last read it/)
+  })
+
+  it('does not require a read to create a file, and guards deletes', async () => {
+    const tracker = new FileTracker()
+    const patch = applyPatchTool({ root, tracker })
+    await run(patch, { patch: '--- /dev/null\n+++ n.txt\n@@ -0,0 +1 @@\n+x\n' })
+    await put('d.txt', 'y\n')
+    await expect(
+      run(patch, { patch: '--- d.txt\n+++ /dev/null\n@@ -1 +0,0 @@\n-y\n' }),
+    ).rejects.toThrow(/Read d\.txt before/)
+    expect(await get('d.txt')).toBe('y\n')
+  })
+
+  it('agentTools passes the tracker through', async () => {
+    const tracker = new FileTracker()
+    await put('a.txt', 'a\n')
+    const tool = agentTools({ root, tracker, approveWrites: false }).find(
+      (t) => t.name === 'apply_patch',
+    ) as ToolDefinition
+    await expect(run(tool, { patch: patchOf('a.txt') })).rejects.toThrow(/Read a\.txt before/)
   })
 })

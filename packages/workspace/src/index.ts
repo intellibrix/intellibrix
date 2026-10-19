@@ -12,6 +12,7 @@ export * from './fs-tools.js'
 export * from './git.js'
 export * from './jail.js'
 export * from './shell.js'
+export * from './tracker.js'
 
 export type WorkspaceToolsOptions = FsToolOptions & {
   /** Include the `shell` tool with this allowlist. Omit to leave shell out entirely. */

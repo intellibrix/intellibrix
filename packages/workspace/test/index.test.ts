@@ -5,7 +5,7 @@ import path from 'node:path'
 import { Intelligence, type ToolDefinition, validateToolInput } from 'intellibrix'
 import { MockProvider } from 'intellibrix/testing'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { JailEscapeError, resolveJailed, workspaceTools } from '../src/index.js'
+import { FileTracker, JailEscapeError, resolveJailed, workspaceTools } from '../src/index.js'
 
 let root: string
 let outside: string
@@ -295,5 +295,52 @@ describe('approval gates', () => {
     })
     await ai.ask('write it')
     expect(await readFile(path.join(root, 'x.txt'), 'utf8')).toBe('yes')
+  })
+})
+
+describe('read-before-write tracking', () => {
+  const setup = async () => {
+    const tracker = new FileTracker()
+    const tools = workspaceTools({ root, git: false, tracker })
+    await writeFile(path.join(root, 'f.txt'), 'one\ntwo\n')
+    return { tools, tracker }
+  }
+
+  it('refuses to edit or overwrite a file that was never read, but allows creating one', async () => {
+    const { tools } = await setup()
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'one', newString: '1' }),
+    ).rejects.toThrow(/Read f\.txt before modifying/)
+    await expect(run(byName(tools, 'write_file'), { path: 'f.txt', content: 'x' })).rejects.toThrow(
+      /Read f\.txt before modifying/,
+    )
+    await run(byName(tools, 'write_file'), { path: 'new.txt', content: 'x' })
+    expect(await readFile(path.join(root, 'f.txt'), 'utf8')).toBe('one\ntwo\n')
+  })
+
+  it('allows edits after a read, and keeps allowing them after its own writes', async () => {
+    const { tools } = await setup()
+    await run(byName(tools, 'read_file'), { path: 'f.txt' })
+    await run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'one', newString: '1' })
+    await run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'two', newString: '2' })
+    await run(byName(tools, 'write_file'), { path: 'f.txt', content: 'fresh' })
+    expect(await readFile(path.join(root, 'f.txt'), 'utf8')).toBe('fresh')
+  })
+
+  it('refuses when the file changed after the read, until it is read again', async () => {
+    const { tools } = await setup()
+    await run(byName(tools, 'read_file'), { path: 'f.txt', offset: 1, limit: 1 })
+    await writeFile(path.join(root, 'f.txt'), 'one\ntwo\nthree\n')
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'one', newString: '1' }),
+    ).rejects.toThrow(/changed since you last read it/)
+    await run(byName(tools, 'read_file'), { path: 'f.txt' })
+    await run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'one', newString: '1' })
+  })
+
+  it('is off unless a tracker is given', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(path.join(root, 'g.txt'), 'a')
+    await run(byName(tools, 'edit_file'), { path: 'g.txt', oldString: 'a', newString: 'b' })
   })
 })
