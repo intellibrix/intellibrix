@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.0",
+    "@intellibrix/agent-tools": "workspace:^",
     "@intellibrix/ai-sdk": "workspace:^",
     "@intellibrix/terminal": "workspace:^",
     "@intellibrix/workspace": "workspace:^",

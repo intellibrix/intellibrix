@@ -4,6 +4,7 @@
   "commit": false,
   "fixed": [
     [
+      "@intellibrix/agent-tools",
       "@intellibrix/ai-sdk",
       "@intellibrix/cli",
       "intellibrix",

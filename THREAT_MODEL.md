@@ -114,7 +114,7 @@ if you find a way to make one worse.
 - Leave `needsApproval` on; build an `onToolApproval` policy that inspects `trust` and the full input.
 - Run model-written code in `@intellibrix/sandbox`, not in-process.
 - Allowlist shell commands narrowly, and never an interpreter you do not need.
-- Run the agent as an unprivileged user, ideally in a container with only the workspace mounted.
+- Run the agent as an unprivileged user, ideally in a container with only the workspace mounted. For `run_code`, `containerProvider()` does this for generated code: no network, no capabilities, resource limits.
 - Keep secrets out of the workspace and out of the child-process environment.
 - Verify webhook secrets are set; do not expose `serveMcp` over a network without authentication in front.
 - Use `intellibrix/testing` (`MockProvider`, record/replay) to write regression tests for

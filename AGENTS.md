@@ -17,7 +17,8 @@ intellibrix is a model-agnostic, TypeScript-native, agent-native framework built
 | `packages/memory-sqlite` (`@intellibrix/memory-sqlite`) | node:sqlite conversation memory + vector store |
 | `packages/express`, `packages/terminal`, `packages/i18n` | Ported bundled bricks |
 | `packages/workspace` (`@intellibrix/workspace`) | Jailed fs tools, shell (allowlist), git tools |
-| `packages/sandbox` (`@intellibrix/sandbox`) | Vendor-neutral hosted code-execution tool |
+| `packages/agent-tools` (`@intellibrix/agent-tools`) | `apply_patch` (atomic unified diffs), `run_checks` (structured test/typecheck/lint results), `todo` |
+| `packages/sandbox` (`@intellibrix/sandbox`) | Vendor-neutral code-execution tool: local Podman/Docker containers or hosted sandboxes |
 | `packages/github` (`@intellibrix/github`) | octokit issue/PR/review tools + webhook bridge |
 | `packages/cli` (`@intellibrix/cli`) | `intellibrix init`, `intellibrix mcp serve <entry>` |
 | `examples/*` | Runnable tsx examples |
@@ -63,4 +64,5 @@ Each package's `test/*.test.ts`, run via Vitest.
 
 - Reintroducing a global `i18next.init()` singleton in `@intellibrix/i18n` — instances must use `i18next.createInstance()`.
 - Skipping the `fs.realpath` re-check in `@intellibrix/workspace`'s `resolveJailed` — a symlink can otherwise escape the jail.
-- Bypassing `needsApproval` for `shell`/`write_file`/`edit_file`/`git_commit`/`run_code` tools.
+- Bypassing `needsApproval` for `shell`/`write_file`/`edit_file`/`apply_patch`/`run_checks`/`git_commit`/`run_code` tools.
+- Passing model-supplied code or arguments to the container CLI on the command line in `@intellibrix/sandbox` — code goes over stdin only.

@@ -264,7 +264,8 @@ await chatRepl(brick)
 | `@intellibrix/memory-sqlite` | `node:sqlite` conversation memory and vector store |
 | `@intellibrix/sql` | SQL key-value store and pgvector `VectorStore` |
 | `@intellibrix/workspace` | Jailed filesystem tools, allowlisted shell, git tools |
-| `@intellibrix/sandbox` | Hosted code execution (E2B, Daytona, Cloudflare) |
+| `@intellibrix/agent-tools` | `apply_patch`, `run_checks` and `todo` for coding agents |
+| `@intellibrix/sandbox` | Code execution in a local Podman/Docker container or a hosted sandbox (E2B, Daytona, Cloudflare) |
 | `@intellibrix/github` | Issue, PR and review tools; HMAC-verified webhook bridge |
 | `@intellibrix/express` | Express brick with `/ask` and SSE streaming routes |
 | `@intellibrix/terminal` | TerminalKit brick and `chatRepl` |

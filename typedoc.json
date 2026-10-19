@@ -13,6 +13,7 @@
     "packages/terminal",
     "packages/i18n",
     "packages/workspace",
+    "packages/agent-tools",
     "packages/sandbox",
     "packages/github",
     "packages/cli"

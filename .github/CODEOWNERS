@@ -3,6 +3,7 @@
 /packages/core/                     @mathiscode
 /packages/workspace/                @mathiscode
 /packages/sandbox/                  @mathiscode
+/packages/agent-tools/              @mathiscode
 /SECURITY.md                        @mathiscode
 /THREAT_MODEL.md                    @mathiscode
 /.github/                           @mathiscode

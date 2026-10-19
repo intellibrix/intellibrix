@@ -9,6 +9,7 @@
 '@intellibrix/terminal': major
 '@intellibrix/i18n': major
 '@intellibrix/workspace': major
+'@intellibrix/agent-tools': major
 '@intellibrix/sandbox': major
 '@intellibrix/github': major
 '@intellibrix/cli': major

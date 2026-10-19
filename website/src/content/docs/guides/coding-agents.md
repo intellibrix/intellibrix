@@ -23,8 +23,59 @@ const tools = workspaceTools({
 | `git_commit` | Commit staged work | **yes** |
 | `shell` | Run an allowlisted command | **yes** |
 
+`read_file` also takes `offset`, `limit` and `lineNumbers`, so a model can read part of a file that is
+too large to read whole.
+
 Everything the read tools return is tagged `untrusted`, because file contents can contain
 instructions aimed at the model. See [Approvals and trust](/guides/approvals-and-trust/).
+
+## Patching, checking and planning
+
+`@intellibrix/agent-tools` adds the tools that make the edit, check, fix loop reliable:
+
+```ts
+import { agentTools } from '@intellibrix/agent-tools'
+
+const tools = [...workspaceTools({ root }), ...agentTools({ root })]
+```
+
+| Tool | Does | Approval |
+|---|---|---|
+| `apply_patch` | Apply a unified diff across several files, all or nothing | **yes** |
+| `run_checks` | Run named checks (test, typecheck, lint, build) and return parsed failures | **yes** |
+| `todo` | Keep a task list for the run | no |
+
+**`apply_patch`** takes a unified diff. Every hunk of every file is applied in memory first, and
+nothing is written unless all of them apply, so a bad hunk never leaves half a change behind. Line
+numbers in hunk headers are only hints (models often miscount), so each hunk is found by its
+context lines. It creates files (`--- /dev/null`), deletes them (`+++ /dev/null`), renames them,
+keeps CRLF line endings and a missing final newline, and stays inside the workspace root. Pass
+`check: true` to validate a patch without writing it.
+
+**`run_checks`** runs commands you define, never command lines the model writes. By default it reads
+`package.json` and uses the `test`, `typecheck` (or `type-check`), `lint` and `build` scripts with
+the package manager that owns your lockfile. To set your own:
+
+```ts
+agentTools({
+  root,
+  checks: {
+    checks: {
+      test: { command: 'pnpm', args: ['vitest', 'run'], parse: 'vitest' },
+      typecheck: { command: 'pnpm', args: ['tsc', '--noEmit'], parse: 'tsc' },
+    },
+  },
+})
+```
+
+Each result has `ok`, `exitCode`, `durationMs`, the tail of the output when it failed, and
+`failures`, a list of `{ file, line, column, message }` pulled from the output. The built-in
+parsers read `tsc`, Vitest and the common `file:line:col: message` format; pass a function as
+`parse` for anything else.
+
+**`todo`** gives the model a task list it replaces on each call (one task `in_progress` at a time),
+scoped to the run. Read it from your own code with `tool.store.get(runId)`, or pass `onChange` to
+render progress as it updates. Pass `checks: false` or `todo: false` to leave either out.
 
 ## Wiring it up
 
