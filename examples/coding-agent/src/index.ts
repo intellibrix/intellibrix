@@ -1,6 +1,7 @@
 // OPENROUTER_API_KEY=... pnpm --filter example-coding-agent start [dir]
 // Set OPENROUTER_MODEL to use a model other than the default (openrouter/free).
-import { agentTools, braveSearch } from '@intellibrix/agent-tools'
+// Optional web search: set BRAVE_API_KEY, TAVILY_API_KEY or SEARXNG_URL.
+import { agentTools, braveSearch, searxngSearch, tavilySearch } from '@intellibrix/agent-tools'
 import { compatibleProvider } from '@intellibrix/ai-sdk'
 import TerminalBrick, { chatRepl } from '@intellibrix/terminal'
 import { FileTracker, workspaceTools } from '@intellibrix/workspace'
@@ -11,6 +12,16 @@ const apiKey = process.env.OPENROUTER_API_KEY
 const model = process.env.OPENROUTER_MODEL ?? 'openrouter/free'
 // Refuse edits to files the model has not read, or that changed since it did.
 const tracker = new FileTracker()
+
+// Web search needs a backend; pick whichever one is configured.
+const env = process.env
+const searchProvider = env.BRAVE_API_KEY
+  ? braveSearch({ apiKey: env.BRAVE_API_KEY })
+  : env.TAVILY_API_KEY
+    ? tavilySearch({ apiKey: env.TAVILY_API_KEY })
+    : env.SEARXNG_URL
+      ? searxngSearch({ baseUrl: env.SEARXNG_URL })
+      : undefined
 
 if (!apiKey) {
   console.error('Set OPENROUTER_API_KEY to run this example (https://openrouter.ai/keys).')
@@ -41,17 +52,15 @@ const brick: TerminalBrick = new TerminalBrick({
       else if (event.type === 'tool-call-denied') brick.printLine('\x1b[2m✗ denied\x1b[0m')
     },
     system: `You are a careful coding agent working in ${root}. Read a file before you edit it; edits to unread or changed files are refused.
-Use only these tools, by exact name: read_file (optionally with offset and limit), list_dir, glob, grep, write_file, edit_file, apply_patch (a unified diff, applied to several files all or nothing), run_checks (runs the project's test, typecheck and lint and returns the failures), todo (your task list for multi-step work), fetch_url (read a web page), ask_user (ask the human a question), shell (a command plus an args array; only node, pnpm and git are allowed), git_status, git_diff, git_commit, git_branch. The working directory is ${root}.`,
+Use only these tools, by exact name: read_file (optionally with offset and limit), list_dir, glob, grep, write_file, edit_file, apply_patch (a unified diff, applied to several files all or nothing), run_checks (runs the project's test, typecheck and lint and returns the failures), todo (your task list for multi-step work), fetch_url (read one web page at a URL), ask_user (ask the human a question), shell (a command plus an args array; only node, pnpm and git are allowed), git_status, git_diff, git_commit, git_branch${searchProvider ? ', web_search (search the web for titles, URLs and snippets; then fetch_url to read a result)' : ''}. The working directory is ${root}.
+${searchProvider ? '' : 'You have NO web search tool. If asked to search the web, say so plainly and suggest setting BRAVE_API_KEY, TAVILY_API_KEY or SEARXNG_URL. Do not try search engine result pages with fetch_url; they are blocked. Only fetch a URL the user gave you, or one you are sure exists.'}`,
     tools: [
       ...workspaceTools({ root, tracker, shell: { allow: ['node', 'pnpm', 'git'] } }),
       ...agentTools({
         root,
         tracker,
         fetch: true,
-        // Set BRAVE_API_KEY to let the agent search the web.
-        ...(process.env.BRAVE_API_KEY
-          ? { search: { provider: braveSearch({ apiKey: process.env.BRAVE_API_KEY }) } }
-          : {}),
+        ...(searchProvider ? { search: { provider: searchProvider } } : {}),
         askUser: {
           ask: async ({ question, choices }) => {
             brick.print(`\n${question}${choices ? ` (${choices.join(' / ')})` : ''} `)
@@ -68,5 +77,9 @@ Use only these tools, by exact name: read_file (optionally with offset and limit
   }),
 })
 
+if (!searchProvider)
+  console.error(
+    'Note: web search is off. Set BRAVE_API_KEY, TAVILY_API_KEY or SEARXNG_URL to enable it.',
+  )
 await chatRepl(brick)
 process.exit(0)
