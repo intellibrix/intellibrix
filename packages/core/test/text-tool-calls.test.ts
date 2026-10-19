@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest'
 import Intelligence from '../src/intelligence.js'
 import { isToolCallPart, textMessage } from '../src/messages.js'
 import type { GenerateRequest, Provider, StepResult, StreamEvent } from '../src/provider.js'
-import { hermesToolCalls, pythonicToolCalls, textToolCalls } from '../src/text-tool-calls.js'
+import {
+  hermesToolCalls,
+  pythonicToolCalls,
+  textToolCalls,
+  xmlToolCalls,
+} from '../src/text-tool-calls.js'
 import { defineTool } from '../src/tool.js'
 
 const reply = (text: string): StepResult => ({
@@ -181,5 +186,32 @@ describe('textToolCalls', () => {
     expect(seen).toEqual([{ path: 'a.txt' }])
     expect(r.text).toBe('It says contents.')
     expect(r.steps).toBe(2)
+  })
+})
+
+describe('xmlToolCalls', () => {
+  it('parses function/parameter tags, with or without the tool_call wrapper', () => {
+    const wrapped = xmlToolCalls.parse(
+      'ok\n<tool_call>\n<function=shell>\n<parameter=command>\npwd\n</parameter>\n<parameter=args>\n["-L"]\n</parameter>\n</function>\n</tool_call>',
+    )
+    expect(wrapped.calls).toEqual([{ toolName: 'shell', input: { command: 'pwd', args: ['-L'] } }])
+    expect(wrapped.text.trim()).toBe('ok')
+    expect(xmlToolCalls.parse('<function=a></function>').calls).toEqual([
+      { toolName: 'a', input: {} },
+    ])
+  })
+
+  it('leaves stray content inside a block untouched', () => {
+    const text = '<function=a>oops<parameter=x>1</parameter></function>'
+    expect(xmlToolCalls.parse(text)).toEqual({ calls: [], text })
+  })
+
+  it('is recognized by default in generate()', async () => {
+    const r = await textToolCalls(
+      scripted([
+        '<tool_call><function=read_file><parameter=path>a.txt</parameter></function></tool_call>',
+      ]),
+    ).generate(req())
+    expect(calls(r)).toEqual([['read_file', { path: 'a.txt' }]])
   })
 })

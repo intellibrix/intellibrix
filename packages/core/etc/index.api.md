@@ -755,6 +755,9 @@ export interface VectorStore {
 // @public
 export function withSpan<T>(name: string, fn: (span: Span) => Promise<T>, tracer?: Tracer): Promise<T>;
 
+// @public
+export const xmlToolCalls: TextToolCallParser;
+
 // (No @packageDocumentation comment for this package)
 
 ```

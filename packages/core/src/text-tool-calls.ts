@@ -30,7 +30,7 @@ export interface TextToolCallParser {
 }
 
 export type TextToolCallsOptions = {
-  /** Formats to recognize. @default [pythonicToolCalls, hermesToolCalls] */
+  /** Formats to recognize. @default [pythonicToolCalls, hermesToolCalls, xmlToolCalls] */
   parsers?: TextToolCallParser[]
   /**
    * Only convert calls to tools offered in the request, leaving text that names
@@ -271,10 +271,58 @@ export const hermesToolCalls: TextToolCallParser = {
 }
 
 // ---------------------------------------------------------------------------
+// XML format (Qwen3-Coder and others): <tool_call><function=name><parameter=key>value</parameter></function></tool_call>
+// ---------------------------------------------------------------------------
+
+/** Values are text; only unambiguous JSON (objects, arrays, booleans, null) is decoded. */
+function xmlParameterValue(raw: string): unknown {
+  const value = raw.replace(/^\n/, '').replace(/\n$/, '')
+  const trimmed = value.trim()
+  if (/^(?:[[{]|true$|false$|null$)/.test(trimmed)) {
+    try {
+      return JSON.parse(trimmed)
+    } catch {
+      // not JSON after all; keep the text
+    }
+  }
+  return value
+}
+
+/**
+ * Function/parameter tags inside `<tool_call>`, as emitted by Qwen3-Coder and
+ * similar models:
+ * `<tool_call><function=read_file><parameter=path>a.txt</parameter></function></tool_call>`.
+ * Parameter values stay strings unless they are JSON objects, arrays, booleans or null.
+ */
+export const xmlToolCalls: TextToolCallParser = {
+  name: 'xml',
+  markers: ['<tool_call>', '<function='],
+  parse(text, accept) {
+    const calls: ParsedToolCall[] = []
+    const block =
+      /(?:<tool_call>\s*)?<function=([^>\s]+)>([\s\S]*?)<\/function>(?:\s*<\/tool_call>)?/g
+    const remaining = text.replace(block, (whole, toolName: string, body: string) => {
+      if (accept && !accept(toolName)) return whole
+      const input: Record<string, unknown> = {}
+      const param = /<parameter=([^>\s]+)>([\s\S]*?)<\/parameter>/g
+      let consumed = body
+      for (const m of body.matchAll(param)) {
+        input[m[1] as string] = xmlParameterValue(m[2] as string)
+        consumed = consumed.replace(m[0], '')
+      }
+      if (consumed.trim()) return whole
+      calls.push({ toolName, input })
+      return ''
+    })
+    return { calls, text: remaining }
+  },
+}
+
+// ---------------------------------------------------------------------------
 // Wrapper
 // ---------------------------------------------------------------------------
 
-const DEFAULT_PARSERS = [pythonicToolCalls, hermesToolCalls]
+const DEFAULT_PARSERS = [pythonicToolCalls, hermesToolCalls, xmlToolCalls]
 
 type Accept = ((toolName: string) => boolean) | undefined
 
