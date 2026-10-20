@@ -18,8 +18,12 @@ Exports `agentTools`, plus each tool on its own:
 - `runChecksTool`: run the project's test, typecheck and lint commands and get structured failures back.
 - `todoTool`: a task list the model keeps up to date.
 - `calculatorTool`: exact arithmetic (`+ - * / % ^`, parentheses, `sqrt`, `round`, `min`, `max`, …) from a parsed expression, never `eval`.
+- `datetimeTool`: the current time, time zone conversion, date arithmetic and differences.
+- `jsonQueryTool`: jq-style queries over JSON and JSON Lines files in the workspace.
+- `diffTool`: a unified diff between two files or texts (`createUnifiedDiff` for the function).
+- `memoryTool`: notes the model saves and searches across runs, in any `KeyValueStore`.
 - `webSearchTool`: search the web through Brave, Tavily, SearXNG or your own backend.
-- `fetchUrlTool`: read a web page as text, with protection against reaching internal addresses.
+- `fetchUrlTool`: read a web page as Markdown of its main content, with protection against reaching internal addresses and optional `robots.txt` support.
 - `askUserTool`: let the model ask the human a question.
 - `delegateTool`: hand a task to a named sub-agent.
 

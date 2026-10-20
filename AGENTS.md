@@ -17,7 +17,7 @@ intellibrix is a model-agnostic, TypeScript-native, agent-native framework built
 | `packages/memory-sqlite` (`@intellibrix/memory-sqlite`) | node:sqlite conversation memory + vector store |
 | `packages/express`, `packages/terminal`, `packages/i18n` | Ported bundled bricks |
 | `packages/workspace` (`@intellibrix/workspace`) | Jailed fs tools, shell (allowlist), git tools |
-| `packages/agent-tools` (`@intellibrix/agent-tools`) | `apply_patch` (atomic unified diffs), `run_checks` (structured test/typecheck/lint results), `todo`, `calculator`, SSRF-safe `fetch_url`, `web_search`, `ask_user`, `delegate` |
+| `packages/agent-tools` (`@intellibrix/agent-tools`) | `apply_patch` (atomic unified diffs), `run_checks` (structured test/typecheck/lint results), `todo`, `calculator`, `datetime`, `json_query`, `diff`, `memory`, SSRF-safe `fetch_url`, `web_search`, `ask_user`, `delegate` |
 | `packages/sandbox` (`@intellibrix/sandbox`) | Vendor-neutral code-execution tool: local Podman/Docker containers or hosted sandboxes |
 | `packages/github` (`@intellibrix/github`) | octokit issue/PR/review tools + webhook bridge |
 | `packages/cli` (`@intellibrix/cli`) | `intellibrix init`, `intellibrix mcp serve <entry>` |

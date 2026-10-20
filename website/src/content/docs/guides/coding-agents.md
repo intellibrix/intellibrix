@@ -45,6 +45,10 @@ const tools = [...workspaceTools({ root }), ...agentTools({ root })]
 | `run_checks` | Run named checks (test, typecheck, lint, build) and return parsed failures | **yes** |
 | `todo` | Keep a task list for the run | no |
 | `calculator` | Exact arithmetic from a parsed expression (never `eval`); pass `calculator: false` to leave it out | no |
+| `datetime` | The current time, time zone conversion, date arithmetic and date differences | no |
+| `json_query` | Run a jq-style query over a JSON or JSON Lines file, so only the matching values reach the model | no |
+| `diff` | A unified diff between two workspace files, or between a file and some text | no |
+| `memory` | Notes the model saves and searches across runs, in any `KeyValueStore` (opt-in: `memory: { store }`) | no, or `approveChanges` |
 | `web_search`, `fetch_url`, `ask_user`, `delegate` | Search and read the web, ask the human, hand off to a sub-agent (see below) | `fetch_url`: yes unless `allowHosts` |
 
 **`apply_patch`** takes a unified diff. Every hunk of every file is applied in memory first, and
@@ -130,7 +134,27 @@ agentTools({
 self-hosted instance. Or implement `SearchProvider` (an `id` and a `search(query, { limit, signal })`) for
 anything else. Pair it with `fetch_url` to read a result in full.
 
-**`fetch_url`** returns a page as readable text (or the source with `format: 'raw'`), tagged `untrusted`.
+**`datetime`** takes ISO 8601 dates and IANA time zone names (`America/New_York`). It converts between zones,
+adds years, months, weeks, days or clock time (calendar units follow the wall clock across DST changes), and
+reports the difference between two dates in total seconds and in calendar units. `datetime: { timeZone, now }`
+sets the default zone and the clock.
+
+**`json_query`** speaks a subset of jq: paths (`.a.b[0]`, `.[]`, `.[1:3]`), pipes, `select`, `map`, `sort_by`,
+`group_by`, `unique`, `keys`, `length`, `add`, `if`, object and array construction, and `//` defaults. It has
+no variables, regexes or file access of its own, and a runaway query is stopped by a step budget. It reads
+only inside the workspace.
+
+**`diff`** is for comparing things git does not track. For work in a repository, `git_diff` is the better tool.
+
+**`memory`** keeps short notes under a key, and finds them again by keyword, even in a later run, because they
+live in the `KeyValueStore` you pass (`memory: { store, namespace }`). Notes come back tagged `untrusted`,
+because the model may have written one after reading a hostile web page. Set `approveChanges: true` if a
+human should vet what is remembered.
+
+**`fetch_url`** returns a web page as Markdown of its main content, tagged `untrusted`: the `<article>` (or
+`<main>`) with headings, links, lists, code and tables kept, and navigation, ads and cookie banners dropped.
+Use `format: 'text'` for the whole page as plain text, or `'raw'` for the source. Set `respectRobotsTxt: true`
+to refuse paths a site's `robots.txt` disallows for your `userAgent`.
 A model that has read hostile text could try to use it to reach your internal network or to carry data
 out in a URL, so it is built to resist both:
 
