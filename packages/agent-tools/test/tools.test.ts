@@ -1,10 +1,13 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { MemoryKeyValueStore, type ToolDefinition } from 'intellibrix'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
+  applyPatchTool,
+  createUnifiedDiff,
   datetimeTool,
+  diffTool,
   htmlToMarkdown,
   jsonQueryTool,
   memoryTool,
@@ -411,5 +414,146 @@ describe('memory', () => {
     expect(needs({ action: 'delete' }, {})).toBe(true)
     expect(needs({ action: 'search' }, {})).toBe(false)
     expect(needs({ action: 'get' }, {})).toBe(false)
+  })
+})
+
+describe('diff', () => {
+  const lines = (...l: string[]) => (l.length ? `${l.join('\n')}\n` : '')
+
+  it('writes a unified diff with context and merged hunks', () => {
+    const before = lines('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j')
+    const after = lines('a', 'B', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k')
+    expect(
+      createUnifiedDiff(before, after, { beforeName: 'x', afterName: 'x', context: 1 }),
+    ).toMatchObject({
+      added: 2,
+      removed: 1,
+      identical: false,
+      approximate: false,
+      patch: '--- x\n+++ x\n@@ -1,3 +1,3 @@\n a\n-b\n+B\n c\n@@ -10 +10,2 @@\n j\n+k\n',
+    })
+    expect(createUnifiedDiff(before, before)).toMatchObject({ identical: true, patch: '' })
+    expect(createUnifiedDiff('', 'x\n').patch).toBe('--- a\n+++ b\n@@ -0,0 +1 @@\n+x\n')
+    expect(createUnifiedDiff('x\n', '').patch).toBe('--- a\n+++ b\n@@ -1 +0,0 @@\n-x\n')
+  })
+
+  it('notices a changed final newline', () => {
+    expect(createUnifiedDiff('a\nb', 'a\nb\n').patch).toBe(
+      '--- a\n+++ b\n@@ -1,2 +1,2 @@\n a\n-b\n\\ No newline at end of file\n+b\n',
+    )
+  })
+
+  it('finds a minimal diff', () => {
+    // Compare the edit count with the longest common subsequence from plain dynamic programming.
+    let seed = 7
+    const rand = (n: number) => {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff
+      return seed % n
+    }
+    for (let round = 0; round < 200; round++) {
+      const a = Array.from({ length: rand(14) }, () => 'xyz'[rand(3)] as string)
+      const b = Array.from({ length: rand(14) }, () => 'xyz'[rand(3)] as string)
+      const table = Array.from({ length: a.length + 1 }, () =>
+        new Array<number>(b.length + 1).fill(0),
+      )
+      for (let i = 1; i <= a.length; i++)
+        for (let j = 1; j <= b.length; j++)
+          (table[i] as number[])[j] =
+            a[i - 1] === b[j - 1]
+              ? ((table[i - 1] as number[])[j - 1] as number) + 1
+              : Math.max(
+                  (table[i - 1] as number[])[j] as number,
+                  (table[i] as number[])[j - 1] as number,
+                )
+      const lcs = (table[a.length] as number[])[b.length] as number
+      const d = createUnifiedDiff(lines(...a), lines(...b), { context: 0 })
+      expect(d.removed, `${a} -> ${b}`).toBe(a.length - lcs)
+      expect(d.added, `${a} -> ${b}`).toBe(b.length - lcs)
+    }
+  })
+
+  it('produces patches that apply back to the new text', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'diff-'))
+    try {
+      const apply = applyPatchTool({ root: dir, approveWrites: false })
+      const cases: [string, string][] = [
+        [lines('a', 'b', 'c'), lines('a', 'x', 'c', 'd')],
+        [
+          lines(...'abcdefghijklmnopqrstuvwxyz'.split('')),
+          lines(...'abcDefghijklmnopqrsTuvwxyZ'.split('')),
+        ],
+        ['one\ntwo', 'one\ntwo\nthree\n'],
+        ['one\ntwo\n', 'one\ntwo'],
+        [lines('same', 'same', 'same'), lines('same', 'same')],
+      ]
+      for (const [i, [before, after]] of cases.entries()) {
+        const file = `f${i}.txt`
+        await writeFile(path.join(dir, file), before)
+        const { patch } = createUnifiedDiff(before, after, {
+          beforeName: `a/${file}`,
+          afterName: `b/${file}`,
+        })
+        await run(apply, { patch })
+        expect(await readFile(path.join(dir, file), 'utf8'), file).toBe(after)
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('degrades to a whole-region replacement instead of hanging on very different files', () => {
+    const a = lines(...Array.from({ length: 4000 }, (_, i) => `a${i}`))
+    const b = lines(...Array.from({ length: 4000 }, (_, i) => `b${i}`))
+    const d = createUnifiedDiff(a, b)
+    expect(d).toMatchObject({ approximate: true, added: 4000, removed: 4000 })
+  })
+
+  describe('tool', () => {
+    let dir: string
+    beforeAll(async () => {
+      dir = await mkdtemp(path.join(tmpdir(), 'difftool-'))
+      await writeFile(path.join(dir, 'old.txt'), lines('1', '2', '3'))
+      await writeFile(path.join(dir, 'new.txt'), lines('1', 'two', '3'))
+      await writeFile(path.join(dir, 'bin.dat'), 'a\u0000b')
+    })
+    afterAll(() => rm(dir, { recursive: true, force: true }))
+
+    it('compares files with files, files with text, and text with text', async () => {
+      const tool = diffTool({ root: dir })
+      const files = await run(tool, { a: { path: 'old.txt' }, b: { path: 'new.txt' } })
+      expect(files).toMatchObject({ identical: false, added: 1, removed: 1, truncated: false })
+      expect(files.patch).toContain('--- a/old.txt\n+++ b/new.txt\n')
+      expect(files.patch).toContain('-2\n+two\n')
+      const mixed = await run(tool, { a: { path: 'new.txt' }, b: { text: lines('1', 'two', '3') } })
+      expect(mixed.identical).toBe(true)
+      expect(
+        (await run(tool, { a: { text: 'x\n' }, b: { text: 'y\n' }, context: 0 })).patch,
+      ).toContain('-x\n+y')
+    })
+
+    it('rejects bad sides, escapes, binary and oversized files, and truncates long patches', async () => {
+      const tool = diffTool({ root: dir, maxBytes: 1000 })
+      await expect(run(tool, { a: {}, b: { text: 'x' } })).rejects.toThrow(/exactly one/)
+      await expect(
+        run(tool, { a: { path: 'old.txt', text: 'x' }, b: { text: 'x' } }),
+      ).rejects.toThrow(/exactly one/)
+      await expect(run(tool, { a: { path: '../etc/passwd' }, b: { text: 'x' } })).rejects.toThrow()
+      await expect(run(tool, { a: { path: 'bin.dat' }, b: { text: 'x' } })).rejects.toThrow(
+        /binary/,
+      )
+      await expect(
+        run(tool, { a: { text: 'x'.repeat(2000) }, b: { path: 'old.txt' } }),
+      ).resolves.toBeDefined()
+      await expect(
+        run(diffTool({ root: dir, maxBytes: 4 }), { a: { path: 'old.txt' }, b: { text: '' } }),
+      ).rejects.toThrow(/limit/)
+      const big = await run(tool, {
+        a: { text: lines(...Array(300).fill('a')) },
+        b: { text: lines(...Array(300).fill('b')) },
+        maxChars: 100,
+      })
+      expect(big).toMatchObject({ truncated: true })
+      expect(big.patch).toHaveLength(100)
+    })
   })
 })

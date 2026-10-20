@@ -337,6 +337,7 @@ describe('agentTools extras', () => {
       'calculator',
       'datetime',
       'json_query',
+      'diff',
       'fetch_url',
       'ask_user',
       'delegate',
