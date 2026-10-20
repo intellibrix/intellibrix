@@ -1,6 +1,16 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 import type { ToolDefinition } from 'intellibrix'
-import { describe, expect, it } from 'vitest'
-import { datetimeTool, htmlToMarkdown, parseRobots, robotsAllows } from '../src/index.js'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import {
+  datetimeTool,
+  htmlToMarkdown,
+  jsonQueryTool,
+  parseRobots,
+  queryJson,
+  robotsAllows,
+} from '../src/index.js'
 
 const run = (tool: ToolDefinition, input: unknown) =>
   tool.execute(input as never, { runId: 'r' } as never) as Promise<any>
@@ -190,5 +200,124 @@ describe('robots.txt', () => {
     expect(robotsAllows(parseRobots(''), ua, '/anything')).toBe(true)
     expect(robotsAllows(parseRobots('User-agent: *\nDisallow:'), ua, '/anything')).toBe(true)
     expect(robotsAllows(parseRobots('User-agent: *\nDisallow: /'), ua, '/anything')).toBe(false)
+  })
+})
+
+describe('json_query', () => {
+  const data = {
+    name: 'shop',
+    items: [
+      { id: 1, name: 'pen', price: 2.5, tags: ['office', 'cheap'], type: 'a' },
+      { id: 2, name: 'desk', price: 150, tags: ['office'], type: 'b' },
+      { id: 3, name: 'lamp', price: 40, tags: [], type: 'b', note: null },
+    ],
+    meta: { page: 1, 'odd key': true },
+  }
+  const q = (query: string) => queryJson(data, query)
+
+  it('walks paths, indexes, slices and iterates', () => {
+    expect(q('.name')).toEqual(['shop'])
+    expect(q('.items[1].name')).toEqual(['desk'])
+    expect(q('.items[-1].id')).toEqual([3])
+    expect(q('.items[0:2] | length')).toEqual([2])
+    expect(q('.items[].id')).toEqual([1, 2, 3])
+    expect(q('.meta."odd key"')).toEqual([true])
+    expect(q('.missing.deeper')).toEqual([null])
+    expect(q('.items[0].tags[]')).toEqual(['office', 'cheap'])
+    expect(q('[..] | length > 10')).toEqual([true])
+  })
+
+  it('filters, maps, sorts and groups', () => {
+    expect(q('.items[] | select(.price > 10) | .name')).toEqual(['desk', 'lamp'])
+    expect(q('.items | map(.price) | add')).toEqual([192.5])
+    expect(q('.items | sort_by(.price) | reverse | map(.id)')).toEqual([[2, 3, 1]])
+    expect(q('.items | group_by(.type) | map({type: .[0].type, n: length})')).toEqual([
+      [
+        { type: 'a', n: 1 },
+        { type: 'b', n: 2 },
+      ],
+    ])
+    expect(q('.items | max_by(.price).name')).toEqual(['desk'])
+    expect(q('[.items[].tags[]] | unique')).toEqual([['cheap', 'office']])
+    expect(q('.items[] | select(.tags | contains(["cheap"])) | .id')).toEqual([1])
+    expect(q('.items[] | select(.name | startswith("l")) | .id')).toEqual([3])
+    expect(q('.items[] | select(.price < 10 or .id == 3) | .id')).toEqual([1, 3])
+    expect(q('.items[] | select(.price > 1 and .type == "b") | .id')).toEqual([2, 3])
+  })
+
+  it('builds objects and arrays, does arithmetic, defaults and conditionals', () => {
+    expect(q('.items[0] | {name, cost: (.price * 2)}')).toEqual([{ name: 'pen', cost: 5 }])
+    expect(q('{a: 1} + {b: 2}')).toEqual([{ a: 1, b: 2 }])
+    expect(q('.items[2].note // "none"')).toEqual(['none'])
+    expect(
+      q('.items[] | if .price > 100 then "big" elif .price > 10 then "mid" else "small" end'),
+    ).toEqual(['small', 'big', 'mid'])
+    expect(q('.meta | keys')).toEqual([['odd key', 'page']])
+    expect(q('(.items | length), (.items | map(.id) | join("-"))')).toEqual([3, '1-2-3'])
+    expect(q('[range(3)] | map(. * 2)')).toEqual([[0, 2, 4]])
+    expect(q('10 % 4 - -1')).toEqual([3])
+    expect(q('.items[] | .name | ascii_upcase | limit(1; .)')).toEqual(['PEN', 'DESK', 'LAMP'])
+  })
+
+  it('reports mistakes clearly and treats ? as try', () => {
+    expect(() => q('.name | .x')).toThrow(/Cannot index string/)
+    expect(q('.name | .x?')).toEqual([])
+    expect(() => q('.items[')).toThrow(/Expected|Unexpected/)
+    expect(() => q('nope(1)')).toThrow(/nope\/1 is not defined/)
+    expect(() => q('1 / 0')).toThrow(/zero/)
+    expect(() => q('.name + 1')).toThrow(/cannot be combined/)
+    expect(() => q('$x')).toThrow(/Unexpected/)
+  })
+
+  it('cannot be turned against the host: bounded work and no access to anything', () => {
+    expect(() => queryJson(data, '[range(5000)] | map(range(5000))')).toThrow(
+      /too (many|long|large)/,
+    )
+    expect(() => queryJson(data, `${'('.repeat(500)}1${')'.repeat(500)}`)).toThrow(/deeply/)
+    expect(() => queryJson(data, '__proto__')).toThrow(/not defined/)
+    expect(queryJson({ constructor: 1 }, '.constructor')).toEqual([1])
+    expect(queryJson({}, '.constructor')).toEqual([null])
+  })
+
+  describe('tool', () => {
+    let dir: string
+    beforeAll(async () => {
+      dir = await mkdtemp(path.join(tmpdir(), 'jq-'))
+      await writeFile(path.join(dir, 'd.json'), JSON.stringify(data))
+      await writeFile(path.join(dir, 'e.jsonl'), '{"a":1}\n\n{"a":2}\n')
+      await writeFile(path.join(dir, 'bad.json'), '{oops')
+    })
+    afterAll(() => rm(dir, { recursive: true, force: true }))
+
+    it('queries a file, JSON Lines and inline JSON', async () => {
+      const tool = jsonQueryTool({ root: dir })
+      expect(tool.resultTrust).toBe('untrusted')
+      expect(
+        await run(tool, { path: 'd.json', query: '.items | map(.name)', maxChars: 20000 }),
+      ).toEqual({
+        count: 1,
+        results: [['pen', 'desk', 'lamp']],
+        truncated: false,
+      })
+      expect((await run(tool, { path: 'e.jsonl', query: 'map(.a) | add' })).results).toEqual([3])
+      expect((await run(tool, { json: '[1,2]', query: '.[]' })).count).toBe(2)
+    })
+
+    it('truncates large results, and rejects bad files, queries and paths', async () => {
+      const tool = jsonQueryTool({ root: dir, maxBytes: 100_000 })
+      const r = await run(tool, { path: 'd.json', query: '.items[]', maxChars: 100 })
+      expect(r).toMatchObject({ count: 3, truncated: true })
+      expect(r.results.length).toBeLessThan(3)
+      await expect(run(tool, { path: 'bad.json', query: '.' })).rejects.toThrow(/not valid JSON/)
+      await expect(run(tool, { path: 'd.json', query: '.[' })).rejects.toThrow(/Query error/)
+      await expect(run(tool, { path: '../x.json', query: '.' })).rejects.toThrow()
+      await expect(run(tool, { query: '.' })).rejects.toThrow(/exactly one/)
+      await expect(run(tool, { path: 'd.json', json: '1', query: '.' })).rejects.toThrow(
+        /exactly one/,
+      )
+      await expect(
+        run(jsonQueryTool({ root: dir, maxBytes: 10 }), { path: 'd.json', query: '.' }),
+      ).rejects.toThrow(/limit/)
+    })
   })
 })

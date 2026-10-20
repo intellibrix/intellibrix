@@ -325,11 +325,17 @@ describe('agentTools', () => {
       'todo',
       'calculator',
       'datetime',
+      'json_query',
     ])
     expect(
-      agentTools({ root, checks: false, todo: false, calculator: false, datetime: false }).map(
-        (t) => t.name,
-      ),
+      agentTools({
+        root,
+        checks: false,
+        todo: false,
+        calculator: false,
+        datetime: false,
+        jsonQuery: false,
+      }).map((t) => t.name),
     ).toEqual(['apply_patch'])
   })
 
