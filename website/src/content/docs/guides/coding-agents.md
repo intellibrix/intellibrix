@@ -29,9 +29,10 @@ too large to read whole.
 Everything the read tools return is tagged `untrusted`, because file contents can contain
 instructions aimed at the model. See [Approvals and trust](/guides/approvals-and-trust/).
 
-## Patching, checking and planning
+## Patching, checking, planning and looking things up
 
-`@intellibrix/agent-tools` adds the tools that make the edit, check, fix loop reliable:
+`@intellibrix/agent-tools` adds the tools that make the edit, check, fix loop reliable, plus ones for arithmetic,
+dates, JSON, diffs, notes and the web:
 
 ```ts
 import { agentTools } from '@intellibrix/agent-tools'
@@ -187,6 +188,7 @@ Every tool that writes, runs code or reaches the network asks for approval by de
 | `shell` | `shell: { allow: [...], alwaysApprove: true }`; the allowlist still applies |
 | `run_checks` | `checks: { alwaysApprove: true }` |
 | `fetch_url` | `fetch: { allowHosts: ['apnews.com', '*.wikipedia.org'] }`, which also limits fetching to those hosts, or `fetch: { needsApproval: false }` for any public host |
+| `memory` | Saves and deletes need no approval by default; `memory: { store, approveChanges: true }` asks first |
 
 For anything else, or for rules that depend on the call, use the `onToolApproval` hook on `Intelligence`. It receives each call that needs approval:
 

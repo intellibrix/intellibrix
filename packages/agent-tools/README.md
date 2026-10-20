@@ -1,6 +1,6 @@
 # @intellibrix/agent-tools
 
-Patch, verify and planning tools for intellibrix coding agents.
+Patch, verify, plan, compute, query and look things up: tools for intellibrix coding agents.
 
 Part of [intellibrix](https://github.com/intellibrix/intellibrix), a model-agnostic TypeScript framework for building agents and AI-powered software components. Requires Node 22+.
 

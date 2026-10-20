@@ -280,7 +280,8 @@ const TEXTUAL =
  * - every redirect is followed by hand and re-checked, including against `allowHosts`;
  * - bounded in size and time, uncompressed, text content types only.
  *
- * Pages are returned as readable text (`format: 'raw'` for the source) and tagged `untrusted`.
+ * Pages are returned as Markdown of their main content (`format: 'text'` for plain text of the whole
+ * page, `'raw'` for the source) and tagged `untrusted`.
  * Fetches need approval unless you pin `allowHosts`, because a URL can carry data out in its query
  * string.
  */

@@ -1,7 +1,7 @@
 {
   "name": "@intellibrix/agent-tools",
   "version": "0.0.0",
-  "description": "Patch, verify and planning tools for intellibrix coding agents",
+  "description": "Patch, verify, plan, compute, query and look things up: tools for intellibrix coding agents",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
   "repository": {

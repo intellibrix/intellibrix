@@ -1,7 +1,9 @@
 /**
  * @module AgentTools
  *
- * Patch, verify and planning tools for coding agents: `apply_patch`, `run_checks` and `todo`.
+ * Tools for coding agents: patch, verify and plan (`apply_patch`, `run_checks`, `todo`), compute and
+ * query (`calculator`, `datetime`, `json_query`, `diff`), remember (`memory`), and reach the web
+ * (`fetch_url`, `web_search`, `ask_user`, `delegate`).
  */
 import type { FileTracker } from '@intellibrix/workspace'
 import type { ToolDefinition } from 'intellibrix'
@@ -64,8 +66,9 @@ export type AgentToolsOptions = {
 }
 
 /**
- * `apply_patch`, `run_checks`, `todo` and `calculator` for a workspace rooted at `root`, plus `fetch_url`,
- * `ask_user` and `delegate` when you configure them.
+ * `apply_patch`, `run_checks`, `todo`, `calculator`, `datetime`, `json_query` and `diff` for a
+ * workspace rooted at `root`, plus `fetch_url`, `web_search`, `memory`, `ask_user` and `delegate`
+ * when you configure them.
  */
 export function agentTools(options: AgentToolsOptions): ToolDefinition[] {
   const { root } = options
