@@ -30,6 +30,16 @@ beforeAll(async () => {
           'text/html; charset=utf-8',
           '<html><head><title>Hi &amp; bye</title><style>p{}</style></head><body><script>evil()</script><h1>Head</h1><p>One&nbsp;two &#33;</p><p>Three</p></body></html>',
         )
+      case '/article':
+        return send(
+          'text/html',
+          '<html><head><title>Story</title></head><body><nav><a href="/home">Home</a></nav><div class="ad">BUY</div><article><h1>Big news</h1><p>First <a href="/more">link</a>.</p></article><footer>copyright</footer></body></html>',
+        )
+      case '/robots.txt':
+        return send('text/plain', 'User-agent: *\nDisallow: /private\nAllow: /private/ok\n')
+      case '/private/secret':
+      case '/private/ok':
+        return send('text/plain', 'hidden')
       case '/blocked':
         return send('text/html', '<title>Just a moment...</title>', 403)
       case '/json':
@@ -131,7 +141,7 @@ describe('fetch_url', () => {
   it('returns pages as readable text, or raw on request, tagged untrusted', async () => {
     const tool = local()
     expect(tool.resultTrust).toBe('untrusted')
-    const r = await run(tool, { url: `${base}/page` })
+    const r = await run(tool, { url: `${base}/page`, format: 'text' })
     expect(r).toMatchObject({
       status: 200,
       contentType: 'text/html',
@@ -143,6 +153,24 @@ describe('fetch_url', () => {
     const raw = await run(tool, { url: `${base}/page`, format: 'raw' })
     expect(raw.content).toContain('<script>')
     expect((await run(tool, { url: `${base}/json` })).content).toBe('{"a":1}')
+  })
+
+  it('returns the main article as Markdown by default, without navigation or ads', async () => {
+    const r = await run(local(), { url: `${base}/article` })
+    expect(r.title).toBe('Story')
+    expect(r.content).toBe(`# Big news\n\nFirst [link](${base}/more).`)
+    const page = await run(local(), { url: `${base}/page` })
+    expect(page.content).toBe('# Head\n\nOne two !\n\nThree')
+  })
+
+  it('obeys robots.txt only when asked to', async () => {
+    const polite = local({ respectRobotsTxt: true })
+    await expect(run(polite, { url: `${base}/private/secret` })).rejects.toThrow(
+      /robots\.txt disallows/,
+    )
+    expect((await run(polite, { url: `${base}/private/ok` })).content).toBe('hidden')
+    expect((await run(polite, { url: `${base}/json` })).status).toBe(200)
+    expect((await run(local(), { url: `${base}/private/secret` })).content).toBe('hidden')
   })
 
   it('truncates by characters and by bytes', async () => {

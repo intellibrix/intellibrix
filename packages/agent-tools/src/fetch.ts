@@ -4,6 +4,8 @@ import https from 'node:https'
 import { BlockList, isIP } from 'node:net'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
+import { htmlToMarkdown, pageTitle } from './html.js'
+import { parseRobots, type Robots, robotsAllows } from './robots.js'
 
 const MAX_REDIRECTS = 5
 
@@ -80,6 +82,8 @@ export type FetchUrlToolOptions = {
   timeoutMs?: number
   /** Sent as `User-Agent`. @default 'intellibrix-agent-tools' */
   userAgent?: string
+  /** Obey each site's `robots.txt`: refuse paths it disallows for `userAgent`. @default false */
+  respectRobotsTxt?: boolean
 }
 
 function hostAllowed(host: string, allow: string[]): boolean {
@@ -232,6 +236,37 @@ export function htmlToText(html: string): { title?: string; text: string } {
   return { title: title ? htmlToText(title).text || undefined : undefined, text }
 }
 
+type RequestOptions = Parameters<typeof request>[1]
+
+const ROBOTS_TTL_MS = 10 * 60_000
+
+/** Whether the site's robots.txt lets `userAgent` fetch `url`; fetched through the same guarded request. */
+async function robotsPermits(
+  url: URL,
+  cache: Map<string, { robots: Robots | 'deny'; expires: number }>,
+  options: RequestOptions,
+): Promise<boolean> {
+  let entry = cache.get(url.origin)
+  if (!entry || entry.expires < Date.now()) {
+    let robots: Robots | 'deny' = []
+    try {
+      const res = await request(new URL('/robots.txt', url), {
+        ...options,
+        maxBytes: Math.min(options.maxBytes, 512 * 1024),
+      })
+      // RFC 9309: a missing file allows everything, a server error disallows everything.
+      if (res.status >= 500) robots = 'deny'
+      else if (res.status < 300) robots = parseRobots(res.body.toString('utf8'))
+    } catch (error) {
+      if (error instanceof FetchBlockedError) throw error
+    }
+    entry = { robots, expires: Date.now() + ROBOTS_TTL_MS }
+    cache.set(url.origin, entry)
+  }
+  if (entry.robots === 'deny') return false
+  return robotsAllows(entry.robots, options.userAgent, url.pathname + url.search)
+}
+
 const TEXTUAL =
   /^(text\/|application\/(json|xml|xhtml\+xml|javascript|x-yaml|yaml|rss\+xml|atom\+xml)|.*[+/](json|xml)$)/i
 
@@ -253,13 +288,15 @@ export function fetchUrlTool(options: FetchUrlToolOptions = {}): ToolDefinition 
   const maxBytes = options.maxBytes ?? 1024 * 1024
   const timeoutMs = options.timeoutMs ?? 15_000
   const needsApproval = options.needsApproval ?? !options.allowHosts
+  const userAgent = options.userAgent ?? 'intellibrix-agent-tools'
+  const robotsCache = new Map<string, { robots: Robots | 'deny'; expires: number }>()
   return defineTool({
     name: 'fetch_url',
     description:
-      'Fetch a public http(s) URL and return its content as text (web pages are converted to readable text; pass format "raw" for the source). Cannot reach private or internal addresses.',
+      'Fetch a public http(s) URL and return its content. Web pages come back as Markdown of the main article with links kept and navigation and ads removed (format "markdown"); "text" is plain text of the whole page and "raw" is the source. Cannot reach private or internal addresses.',
     input: z.object({
       url: z.string().min(1),
-      format: z.enum(['text', 'raw']).default('text'),
+      format: z.enum(['markdown', 'text', 'raw']).default('markdown'),
       maxChars: z.number().int().min(100).max(200_000).default(20_000),
     }),
     needsApproval,
@@ -287,13 +324,24 @@ export function fetchUrlTool(options: FetchUrlToolOptions = {}): ToolDefinition 
           throw new FetchBlockedError(`Refusing to fetch a private or internal address: ${literal}`)
         }
 
-        const res = await request(url, {
+        const requestOptions = {
           maxBytes,
           timeoutMs,
           allowPrivateNetwork: options.allowPrivateNetwork ?? false,
-          userAgent: options.userAgent ?? 'intellibrix-agent-tools',
+          userAgent,
           signal: ctx.signal,
-        })
+        }
+
+        if (options.respectRobotsTxt) {
+          const allowed = await robotsPermits(url, robotsCache, requestOptions)
+          if (!allowed) {
+            throw new FetchBlockedError(
+              `${url.origin}/robots.txt disallows fetching ${url.pathname}. Use a different source.`,
+            )
+          }
+        }
+
+        const res = await request(url, requestOptions)
 
         const location = res.headers.location
         if (res.status >= 300 && res.status < 400 && location) {
@@ -311,7 +359,12 @@ export function fetchUrlTool(options: FetchUrlToolOptions = {}): ToolDefinition 
         }
         const body = res.body.toString('utf8')
         const isHtml = /html/i.test(contentType) || /^\s*<(!doctype html|html)\b/i.test(body)
-        const page = format !== 'raw' && isHtml ? htmlToText(body) : { text: body }
+        const page =
+          format === 'raw' || !isHtml
+            ? { text: body }
+            : format === 'text'
+              ? htmlToText(body)
+              : { title: pageTitle(body), text: htmlToMarkdown(body, { baseUrl: url.toString() }) }
         const content = page.text.slice(0, maxChars ?? 20_000)
         return {
           url: url.toString(),

@@ -1,6 +1,6 @@
 import type { ToolDefinition } from 'intellibrix'
 import { describe, expect, it } from 'vitest'
-import { datetimeTool } from '../src/index.js'
+import { datetimeTool, htmlToMarkdown, parseRobots, robotsAllows } from '../src/index.js'
 
 const run = (tool: ToolDefinition, input: unknown) =>
   tool.execute(input as never, { runId: 'r' } as never) as Promise<any>
@@ -80,5 +80,115 @@ describe('datetime', () => {
     await expect(run(tool, { action: 'now', timeZone: 'Mars/Base' })).rejects.toThrow(/time zone/)
     await expect(run(tool, { action: 'add', date: '2026-01-01' })).rejects.toThrow(/duration/)
     await expect(run(tool, { action: 'diff', date: '2026-01-01' })).rejects.toThrow(/other/)
+  })
+})
+
+describe('htmlToMarkdown', () => {
+  const md = (html: string, wholePage = false) =>
+    htmlToMarkdown(html, { baseUrl: 'https://x.test/a/b', wholePage })
+
+  it('keeps structure: headings, emphasis, lists, code, quotes and tables', () => {
+    const out = md(`<body><main>
+      <h2>Title</h2><p>Some <strong>bold</strong>, <em>soft</em> and <code>code()</code>.</p>
+      <ul><li>one<ul><li>nested</li></ul></li><li>two</li></ul>
+      <ol><li>first<li>second</ol>
+      <pre><code class="language-ts">const a = 1;\n  if (a) {}</code></pre>
+      <blockquote><p>quoted</p></blockquote>
+      <table><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>x|y</td></tr></table>
+      <hr><img src="p.png" alt="a chart"><img src="q.png">
+    </main></body>`)
+    expect(out).toBe(
+      [
+        '## Title',
+        'Some **bold**, *soft* and `code()`.',
+        '- one\n  - nested\n- two',
+        '1. first\n2. second',
+        '```ts\nconst a = 1;\n  if (a) {}\n```',
+        '> quoted',
+        '| A | B |\n| --- | --- |\n| 1 | x\\|y |',
+        '---',
+        '[image: a chart]',
+      ].join('\n\n'),
+    )
+  })
+
+  it('resolves links and drops unsafe or empty ones', () => {
+    const out = md(
+      '<p><a href="../c?q=1">rel</a> <a href="https://o.test/">https://o.test/</a> <a href="javascript:alert(1)">js</a> <a href="#top">top</a> <a href="/e"></a></p>',
+    )
+    expect(out).toBe('[rel](https://x.test/c?q=1) https://o.test/ js top')
+  })
+
+  it('drops page furniture but keeps a header inside the article', () => {
+    const html = `<body><header>SITE</header><nav>menu</nav><div class="sidebar">side</div>
+      <div id="cookie-banner">cookies</div><div style="display:none">hidden</div>
+      <script>x()</script><style>.a{}</style><aside>aside</aside>
+      <article><header><h1>Post</h1></header><p>${'Body text. '.repeat(30)}</p><footer>tags</footer></article>
+      <footer>fine print</footer></body>`
+    const out = md(html)
+    expect(out).toContain('# Post')
+    expect(out).toContain('Body text.')
+    for (const gone of [
+      'SITE',
+      'menu',
+      'side',
+      'cookies',
+      'hidden',
+      'x()',
+      'aside',
+      'tags',
+      'fine print',
+    ])
+      expect(out, gone).not.toContain(gone)
+  })
+
+  it('falls back to the whole body when the main element is a stub, or when asked', () => {
+    const html =
+      '<body><main><p>tiny</p></main><div><p>' +
+      'The real content. '.repeat(40) +
+      '</p></div></body>'
+    expect(md(html)).toContain('The real content.')
+    expect(md('<body><nav>menu</nav><article><p>short</p></article></body>', true)).toBe('short')
+  })
+
+  it('survives broken and hostile markup', () => {
+    expect(() => md('<div><p>unclosed <b>bold <a href="x">link</div></a></b><<>>')).not.toThrow()
+    expect(md('<p>a</p></div></div><p>b')).toBe('a\n\nb')
+    expect(md('text &amp; &lt;b&gt; &#65;')).toBe('text & <b> A')
+  })
+})
+
+describe('robots.txt', () => {
+  const robots = parseRobots(`
+    User-agent: *
+    Disallow: /private
+    Allow: /private/public
+    Disallow: /*.json$
+    Crawl-delay: 5
+
+    User-agent: intellibrix-agent-tools
+    User-agent: otherbot
+    Disallow: /bot-only/
+  `)
+  const ua = 'intellibrix-agent-tools'
+
+  it('prefers the most specific user-agent group', () => {
+    expect(robotsAllows(robots, ua, '/bot-only/x')).toBe(false)
+    // Our own group has no rule for /private, and groups are not merged.
+    expect(robotsAllows(robots, ua, '/private/x')).toBe(true)
+    expect(robotsAllows(robots, 'Mozilla/5.0', '/private/x')).toBe(false)
+  })
+
+  it('uses the longest matching rule, with wildcards and end anchors', () => {
+    expect(robotsAllows(robots, 'curl/8', '/private/public/page')).toBe(true)
+    expect(robotsAllows(robots, 'curl/8', '/data/a.json')).toBe(false)
+    expect(robotsAllows(robots, 'curl/8', '/data/a.json?x=1')).toBe(true)
+    expect(robotsAllows(robots, 'curl/8', '/open')).toBe(true)
+  })
+
+  it('treats an empty file or an empty Disallow as allow-all', () => {
+    expect(robotsAllows(parseRobots(''), ua, '/anything')).toBe(true)
+    expect(robotsAllows(parseRobots('User-agent: *\nDisallow:'), ua, '/anything')).toBe(true)
+    expect(robotsAllows(parseRobots('User-agent: *\nDisallow: /'), ua, '/anything')).toBe(false)
   })
 })
