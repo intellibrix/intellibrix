@@ -12,6 +12,7 @@ import { type DatetimeToolOptions, datetimeTool } from './datetime.js'
 import { type DelegateToolOptions, delegateTool } from './delegate.js'
 import { type FetchUrlToolOptions, fetchUrlTool } from './fetch.js'
 import { jsonQueryTool } from './json-query.js'
+import { type MemoryToolOptions, memoryTool } from './memory.js'
 import { type ApplyPatchOptions, applyPatchTool } from './patch.js'
 import { type SearchProvider, type WebSearchToolOptions, webSearchTool } from './search.js'
 import { type TodoToolOptions, todoTool } from './todo.js'
@@ -24,6 +25,7 @@ export * from './delegate.js'
 export * from './fetch.js'
 export { htmlToMarkdown } from './html.js'
 export * from './json-query.js'
+export * from './memory.js'
 export * from './patch.js'
 export * from './robots.js'
 export * from './search.js'
@@ -49,6 +51,8 @@ export type AgentToolsOptions = {
   fetch?: FetchUrlToolOptions | true
   /** Include `web_search` over this backend. Omitted unless given. */
   search?: { provider: SearchProvider } & WebSearchToolOptions
+  /** Include `memory`, notes kept in this store across runs. Omitted unless given. */
+  memory?: MemoryToolOptions
   /** Include `ask_user`, answered by `ask`. Omitted unless given. */
   askUser?: AskUserToolOptions
   /** Include `delegate` over these sub-agents. Omitted unless given. */
@@ -75,6 +79,7 @@ export function agentTools(options: AgentToolsOptions): ToolDefinition[] {
     ...(options.jsonQuery === false ? [] : [jsonQueryTool({ root })]),
     ...(options.fetch ? [fetchUrlTool(options.fetch === true ? {} : options.fetch)] : []),
     ...(options.search ? [webSearchTool(options.search.provider, options.search)] : []),
+    ...(options.memory ? [memoryTool(options.memory)] : []),
     ...(options.askUser ? [askUserTool(options.askUser)] : []),
     ...(options.delegate ? [delegateTool(options.delegate)] : []),
   ]

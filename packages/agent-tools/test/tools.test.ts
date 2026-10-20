@@ -1,12 +1,13 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import type { ToolDefinition } from 'intellibrix'
+import { MemoryKeyValueStore, type ToolDefinition } from 'intellibrix'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   datetimeTool,
   htmlToMarkdown,
   jsonQueryTool,
+  memoryTool,
   parseRobots,
   queryJson,
   robotsAllows,
@@ -319,5 +320,96 @@ describe('json_query', () => {
         run(jsonQueryTool({ root: dir, maxBytes: 10 }), { path: 'd.json', query: '.' }),
       ).rejects.toThrow(/limit/)
     })
+  })
+})
+
+describe('memory', () => {
+  it('saves, reads, replaces and forgets notes, and outlives the tool', async () => {
+    const store = new MemoryKeyValueStore()
+    const first = memoryTool({ store })
+    expect(await run(first, { action: 'save', key: 'build', value: 'use pnpm, not npm' })).toEqual({
+      saved: 'build',
+      replaced: false,
+    })
+    expect(
+      (await run(first, { action: 'save', key: 'build', value: 'pnpm run build' })).replaced,
+    ).toBe(true)
+
+    // A later run gets a new tool over the same store.
+    const later = memoryTool({ store })
+    expect(await run(later, { action: 'get', key: 'build' })).toMatchObject({
+      key: 'build',
+      value: 'pnpm run build',
+    })
+    expect(await run(later, { action: 'get', key: 'nope' })).toEqual({ key: 'nope', found: false })
+    expect(await run(later, { action: 'delete', key: 'build' })).toEqual({
+      key: 'build',
+      deleted: true,
+    })
+    expect(await run(later, { action: 'get', key: 'build' })).toMatchObject({ found: false })
+  })
+
+  it('searches by keyword, best match first, and lists newest first', async () => {
+    const store = new MemoryKeyValueStore()
+    const tool = memoryTool({ store })
+    await run(tool, { action: 'save', key: 'db', value: 'Postgres 16 runs on port 5433' })
+    await run(tool, { action: 'save', key: 'style', value: 'two-space indent, single quotes' })
+    await run(tool, {
+      action: 'save',
+      key: 'ports',
+      value: 'dev server on 10100; postgres on 5433',
+    })
+
+    const hits = await run(tool, { action: 'search', query: 'postgres PORT' })
+    expect(hits.total).toBe(2)
+    expect(hits.notes.map((n: { key: string }) => n.key).sort()).toEqual(['db', 'ports'])
+    expect((await run(tool, { action: 'search', query: 'indent' })).notes[0].key).toBe('style')
+    expect((await run(tool, { action: 'search', query: 'zzz' })).total).toBe(0)
+    expect((await run(tool, { action: 'list' })).total).toBe(3)
+    await expect(run(tool, { action: 'search', query: '  ' })).rejects.toThrow(/query/)
+  })
+
+  it('keeps namespaces apart and leaves other keys in the store alone', async () => {
+    const store = new MemoryKeyValueStore()
+    await store.set('unrelated', { value: 'x', savedAt: '' })
+    const a = memoryTool({ store, namespace: 'a' })
+    const b = memoryTool({ store, namespace: 'b' })
+    await run(a, { action: 'save', key: 'k', value: 'from a' })
+    expect(await run(b, { action: 'get', key: 'k' })).toMatchObject({ found: false })
+    expect((await run(b, { action: 'list' })).total).toBe(0)
+    expect(await store.get('unrelated')).toBeDefined()
+  })
+
+  it('enforces limits and key rules', async () => {
+    const tool = memoryTool({ store: new MemoryKeyValueStore(), maxEntries: 2, maxValueChars: 10 })
+    await run(tool, { action: 'save', key: 'a', value: 'one' })
+    await run(tool, { action: 'save', key: 'b', value: 'two' })
+    await expect(run(tool, { action: 'save', key: 'c', value: 'three' })).rejects.toThrow(/full/)
+    // Replacing an existing note is still allowed when full.
+    await run(tool, { action: 'save', key: 'a', value: 'uno' })
+    await expect(run(tool, { action: 'save', key: 'a', value: 'x'.repeat(11) })).rejects.toThrow(
+      /limit is 10/,
+    )
+    await expect(run(tool, { action: 'save', key: '', value: 'v' })).rejects.toThrow(
+      /key is required/,
+    )
+    await expect(run(tool, { action: 'save', key: 'a\nb', value: 'v' })).rejects.toThrow(
+      /key is required/,
+    )
+    await expect(run(tool, { action: 'save', key: 'a' })).rejects.toThrow(/value/)
+  })
+
+  it('marks notes untrusted and asks for approval on changes only when configured', async () => {
+    const store = new MemoryKeyValueStore()
+    const open = memoryTool({ store })
+    expect(open.resultTrust).toBe('untrusted')
+    expect(open.needsApproval).toBe(false)
+
+    const guarded = memoryTool({ store, approveChanges: true })
+    const needs = guarded.needsApproval as (i: unknown, c: unknown) => boolean
+    expect(needs({ action: 'save' }, {})).toBe(true)
+    expect(needs({ action: 'delete' }, {})).toBe(true)
+    expect(needs({ action: 'search' }, {})).toBe(false)
+    expect(needs({ action: 'get' }, {})).toBe(false)
   })
 })
