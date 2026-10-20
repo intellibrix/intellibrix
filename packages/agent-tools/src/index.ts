@@ -8,6 +8,7 @@ import type { ToolDefinition } from 'intellibrix'
 import { type AskUserToolOptions, askUserTool } from './ask-user.js'
 import { calculatorTool } from './calculator.js'
 import { type RunChecksOptions, runChecksTool } from './checks.js'
+import { type DatetimeToolOptions, datetimeTool } from './datetime.js'
 import { type DelegateToolOptions, delegateTool } from './delegate.js'
 import { type FetchUrlToolOptions, fetchUrlTool } from './fetch.js'
 import { type ApplyPatchOptions, applyPatchTool } from './patch.js'
@@ -17,6 +18,7 @@ import { type TodoToolOptions, todoTool } from './todo.js'
 export * from './ask-user.js'
 export * from './calculator.js'
 export * from './checks.js'
+export * from './datetime.js'
 export * from './delegate.js'
 export * from './fetch.js'
 export * from './patch.js'
@@ -35,6 +37,8 @@ export type AgentToolsOptions = {
   todo?: TodoToolOptions | false
   /** Pass `false` to leave out `calculator` (exact arithmetic, no approval needed). */
   calculator?: false
+  /** Configure `datetime`, or pass `false` to leave it out. */
+  datetime?: DatetimeToolOptions | false
   /** Include `fetch_url`. Omitted by default: pass `true` or options to turn it on. */
   fetch?: FetchUrlToolOptions | true
   /** Include `web_search` over this backend. Omitted unless given. */
@@ -61,6 +65,7 @@ export function agentTools(options: AgentToolsOptions): ToolDefinition[] {
     ...(options.checks === false ? [] : [runChecksTool({ root, ...options.checks })]),
     ...(options.todo === false ? [] : [todoTool(options.todo)]),
     ...(options.calculator === false ? [] : [calculatorTool()]),
+    ...(options.datetime === false ? [] : [datetimeTool(options.datetime)]),
     ...(options.fetch ? [fetchUrlTool(options.fetch === true ? {} : options.fetch)] : []),
     ...(options.search ? [webSearchTool(options.search.provider, options.search)] : []),
     ...(options.askUser ? [askUserTool(options.askUser)] : []),

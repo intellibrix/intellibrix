@@ -324,9 +324,12 @@ describe('agentTools', () => {
       'run_checks',
       'todo',
       'calculator',
+      'datetime',
     ])
     expect(
-      agentTools({ root, checks: false, todo: false, calculator: false }).map((t) => t.name),
+      agentTools({ root, checks: false, todo: false, calculator: false, datetime: false }).map(
+        (t) => t.name,
+      ),
     ).toEqual(['apply_patch'])
   })
 
