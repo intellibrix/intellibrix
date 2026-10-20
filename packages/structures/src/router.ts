@@ -31,7 +31,7 @@ export type RouterOptions = {
  * `Intelligence.object()` structured-output call (one model step, no loop),
  * then dispatches to the matched brick's `ask()`. Falls back to `fallback`
  * (if provided) when the classifier picks an unknown route; throws
- * otherwise. No depth limit at this layer — a routed-to brick that is itself
+ * otherwise. No depth limit at this layer; a routed-to brick that is itself
  * a `supervisor()` enforces its own limit.
  */
 export function router(opts: RouterOptions) {

@@ -11,7 +11,7 @@ export type RecordedStep = {
 
 /**
  * `GenerateRequest` minus non-serializable fields (`abortSignal`, and tool
- * `execute`/`needsApproval` functions — tools are reduced to their
+ * `execute`/`needsApproval` functions; tools are reduced to their
  * name/description/schema).
  */
 export type SerializableGenerateRequest = Omit<GenerateRequest, 'abortSignal' | 'tools'> & {
@@ -30,7 +30,7 @@ function toSerializableRequest(req: GenerateRequest): SerializableGenerateReques
 /**
  * Wraps a real {@link Provider}, intercepting every `generate`/`stream` call
  * and reporting the (serialized) request/result pair to `onRecord`.
- * Persistence is the caller's job — this stays filesystem-free.
+ * Persistence is the caller's job, so this stays filesystem-free.
  */
 export function recordProvider(
   inner: Provider,

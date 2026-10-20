@@ -27,7 +27,7 @@ export type SupervisorResult = {
  * Wires the parent `supervisor` Intelligence's tool list to the given
  * `bricks`, each wrapped (by default) as a single opaque tool via
  * {@link asTool}, so nested delegation happens through the existing
- * agent-loop tool-dispatch machinery — no new execution engine. Depth is
+ * agent-loop tool-dispatch machinery, with no new execution engine. Depth is
  * threaded explicitly through the closure, incremented per hop and checked
  * against `maxDepth` (default 3).
  */

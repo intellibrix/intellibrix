@@ -62,10 +62,10 @@ ${name} is built with [intellibrix](https://intellibrix.dev): Bricks hold Progra
 
 ## Commands
 
-- \`pnpm install\` — install dependencies
-- \`pnpm start\` — run \`src/index.ts\` (needs \`ANTHROPIC_API_KEY\`)
-- \`pnpm typecheck\` — type-check
-- \`pnpm serve\` — expose the default-exported Brick as an MCP server over stdio
+- \`pnpm install\`: install dependencies
+- \`pnpm start\`: run \`src/index.ts\` (needs \`ANTHROPIC_API_KEY\`)
+- \`pnpm typecheck\`: type-check
+- \`pnpm serve\`: expose the default-exported Brick as an MCP server over stdio
 
 ## Conventions
 

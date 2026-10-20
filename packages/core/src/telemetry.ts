@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 /**
  * A structural span, shaped closely enough to `@opentelemetry/api`'s `Span`
  * to be a drop-in for anyone bridging into a real OTel setup, but never
- * re-exported from that package — `tsc` never needs `@opentelemetry/api`
+ * re-exported from that package, so `tsc` never needs `@opentelemetry/api`
  * installed to typecheck core.
  */
 export type Span = {

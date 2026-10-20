@@ -469,8 +469,8 @@ function extract(
  *
  * Only a step that returns no native tool calls is inspected; recognized calls
  * are lifted out of the text into real `tool-call` parts and the step's
- * `finishReason` becomes `'tool-calls'`. Everything else — approvals, schema
- * validation, `Unknown tool` errors — then happens in `loop.ts` exactly as for
+ * `finishReason` becomes `'tool-calls'`. Everything else (approvals, schema
+ * validation, `Unknown tool` errors) then happens in `loop.ts` exactly as for
  * a native call. Still one model step per call.
  *
  * @example

@@ -31,8 +31,8 @@ export type AiSdkProviderOptions = {
 /**
  * Wraps an AI SDK `LanguageModel` as an intellibrix {@link Provider}.
  * `generate`/`stream` each perform exactly one model step (`stepCountIs(1)`)
- * — tools are declared schema-only via {@link toAiSdkTools}, with no
- * `execute` attached, so AI SDK always returns control to `loop.ts` on a
+ * (tools are declared schema-only via {@link toAiSdkTools}, with no
+ * `execute` attached), so AI SDK always returns control to `loop.ts` on a
  * tool-call finish reason instead of looping internally.
  */
 export function aiSdkProvider(model: LanguageModel, opts?: AiSdkProviderOptions): Provider {

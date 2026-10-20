@@ -3,7 +3,7 @@ import type { ApprovalDecision } from './tool.js'
 
 /**
  * Structural observability events, layered onto {@link LoopEvent} (additive,
- * not a replacement — nothing already consuming `LoopEvent`s breaks). Emitted
+ * not a replacement, so nothing already consuming `LoopEvent`s breaks). Emitted
  * at the same call sites `loop.ts` already defines: around each
  * `Provider.generate`/`stream` call, around the existing parallel tool
  * dispatch, around the existing `onToolApproval` hook, and once per

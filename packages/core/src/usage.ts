@@ -7,7 +7,7 @@ export type PriceTable = Record<string, { inputPerMillion: number; outputPerMill
 
 /**
  * A conservative, non-exhaustive starting price table. Applications are
- * expected to maintain their own — this is a convenience default, not a
+ * expected to maintain their own; this is a convenience default, not a
  * pricing source of truth, and goes stale as vendors change prices.
  */
 export const defaultPriceTable: PriceTable = {

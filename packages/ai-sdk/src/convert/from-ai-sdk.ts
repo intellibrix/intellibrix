@@ -49,7 +49,7 @@ export function fromAiSdkContent(content: ContentPart<ToolSet>[]): Message {
     }
 
     // reasoning, source, file, tool-result, tool-error, and approval parts
-    // are not represented in intellibrix's Part union (yet) — dropped rather
+    // are not represented in intellibrix's Part union (yet), so they are dropped rather
     // than thrown, since a step may legitimately contain them alongside text
     // and tool calls we do care about.
   }

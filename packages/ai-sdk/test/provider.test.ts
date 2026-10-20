@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { aiSdkProvider } from '../src/provider.js'
 
 /**
- * A hand-written fake `LanguageModelV2` — no network calls. Scripted with a
+ * A hand-written fake `LanguageModelV2` that makes no network calls. Scripted with a
  * single canned response so tests are deterministic.
  */
 function fakeLanguageModel(

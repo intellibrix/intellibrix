@@ -1,7 +1,7 @@
 /**
  * Trust level of a {@link Part}. Defaults to `'trusted'` when omitted, so
  * hand-written messages need no change. Content fetched or read from outside
- * the process — workspace reads, GitHub data, MCP tool results, HTTP fetches —
+ * the process (workspace reads, GitHub data, MCP tool results, HTTP fetches)
  * should be tagged `'untrusted'` at the point of creation. This is the concrete
  * surface for indirect prompt-injection defense: `loop.ts`'s tool dispatch and
  * `tool.ts`'s `needsApproval` predicate both receive this status alongside a

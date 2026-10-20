@@ -11,7 +11,7 @@ export type AsToolOptions = {
 /**
  * Wraps a whole `Brick` as one opaque {@link ToolDefinition}: `execute` calls
  * `brick.ask(input.prompt)`. Additive to `brick.tools()`, which exposes
- * individual programs — this is for delegating an entire sub-brick as a
+ * individual programs. This is for delegating an entire sub-brick as a
  * single "ask it something" tool, the default granularity `supervisor()`
  * uses for each sub-brick.
  */

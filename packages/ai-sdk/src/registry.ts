@@ -26,7 +26,7 @@ let cachedRegistryProviders: Record<string, AiSdkVendorProvider> | undefined
  * Lazily resolves whichever vendor adapters (`@ai-sdk/anthropic`,
  * `@ai-sdk/openai`, `@ai-sdk/google`) are actually installed, so that
  * `@intellibrix/ai-sdk` builds and typechecks with only `ai` present and no
- * vendor SDKs. Missing packages are silently skipped — only requesting a
+ * vendor SDKs. Missing packages are silently skipped; only requesting a
  * model from a vendor whose package isn't installed throws.
  */
 function resolveRegistryProviders(): Record<string, AiSdkVendorProvider> {
@@ -39,7 +39,7 @@ function resolveRegistryProviders(): Record<string, AiSdkVendorProvider> {
       const factory = mod[VENDOR_FACTORIES[vendor]]
       if (factory) providers[vendor] = factory
     } catch {
-      // Optional peer not installed — skip. A subsequent `provider('<vendor>:...')`
+      // Optional peer not installed, so skip it. A subsequent `provider('<vendor>:...')`
       // call throws an actionable error rather than a generic module-not-found.
     }
   }

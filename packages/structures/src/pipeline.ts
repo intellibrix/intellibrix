@@ -2,7 +2,7 @@ import type { Brick, Program } from 'intellibrix'
 
 /**
  * A pipeline step: either a `Brick` (invoked via `ask()`, receiving/producing
- * a string) or a `Program` (invoked via its owning brick's `run()` — passed
+ * a string) or a `Program` (invoked via its owning brick's `run()`, passed
  * as a `[brick, program]` tuple so `pipeline.ts` doesn't need its own
  * dispatch mechanism).
  */

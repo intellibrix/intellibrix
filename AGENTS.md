@@ -26,17 +26,17 @@ intellibrix is a model-agnostic, TypeScript-native, agent-native framework built
 
 ## Build/test/lint commands
 
-- `pnpm install` — install all workspace packages
-- `pnpm -r typecheck` — typecheck every package
-- `pnpm biome ci .` — lint/format check
-- `pnpm -r build` — build every package (tsdown: ESM + CJS + dts)
-- `pnpm -r test` — run every package's Vitest suite
-- `pnpm --filter <pkg> test` — run one package's tests only
-- `pnpm check:packages` — publint + attw against each packed package (needs a build)
-- `pnpm check:api` — fail if the public API of `intellibrix` drifted from `packages/core/etc/*.api.md`; after an intentional change run `pnpm --filter intellibrix api:update` and commit the report (and update `MIGRATION.md` for breaking changes)
-- `pnpm smoke:examples` — run every example offline and check its output (needs a build)
-- `pnpm docs:site` — build the whole docs site (needs `pnpm -r build` first); `pnpm --filter intellibrix-website dev` serves it on port 10100
-- `pnpm docs` — generate the multi-package typedoc site + llms.txt
+- `pnpm install`: install all workspace packages
+- `pnpm -r typecheck`: typecheck every package
+- `pnpm biome ci .`: lint/format check
+- `pnpm -r build`: build every package (tsdown: ESM + CJS + dts)
+- `pnpm -r test`: run every package's Vitest suite
+- `pnpm --filter <pkg> test`: run one package's tests only
+- `pnpm check:packages`: publint + attw against each packed package (needs a build)
+- `pnpm check:api`: fail if the public API of `intellibrix` drifted from `packages/core/etc/*.api.md`; after an intentional change run `pnpm --filter intellibrix api:update` and commit the report (and update `MIGRATION.md` for breaking changes)
+- `pnpm smoke:examples`: run every example offline and check its output (needs a build)
+- `pnpm docs:site`: build the whole docs site (needs `pnpm -r build` first); `pnpm --filter intellibrix-website dev` serves it on port 10100
+- `pnpm docs`: generate the multi-package typedoc site + llms.txt
 
 ## Core API surface is fixed
 
@@ -46,7 +46,7 @@ intellibrix is a model-agnostic, TypeScript-native, agent-native framework built
 
 - Tool inputs are Zod 4 schemas (or raw JSON Schema via the `fromJSONSchema` adapter for MCP-sourced tools), always behind `StandardSchemaV1`.
 - Define tools with `defineTool({name, description, input, execute, needsApproval?})`.
-- A `Provider` does exactly one model step per call — `packages/core/src/loop.ts` owns iteration.
+- A `Provider` does exactly one model step per call; `packages/core/src/loop.ts` owns iteration.
 - `needsApproval` gates destructive/high-blast-radius tools by default (shell, file writes, git commits, sandboxed code execution).
 - Every `Part` carries an optional `trust: 'trusted' | 'untrusted'` field; content fetched from outside the process (workspace reads, GitHub data, MCP tool results) is tagged `'untrusted'`.
 
@@ -62,9 +62,9 @@ Each package's `test/*.test.ts`, run via Vitest.
 
 ## Things that will break silently
 
-- Reintroducing a global `i18next.init()` singleton in `@intellibrix/i18n` — instances must use `i18next.createInstance()`.
-- Skipping the `fs.realpath` re-check in `@intellibrix/workspace`'s `resolveJailed` — a symlink can otherwise escape the jail.
+- Reintroducing a global `i18next.init()` singleton in `@intellibrix/i18n`: instances must use `i18next.createInstance()`.
+- Skipping the `fs.realpath` re-check in `@intellibrix/workspace`'s `resolveJailed`: a symlink can otherwise escape the jail.
 - Bypassing `needsApproval` for `shell`/`write_file`/`edit_file`/`apply_patch`/`run_checks`/`git_commit`/`run_code` tools.
 - Writing files in `@intellibrix/workspace` or `agent-tools` with a bare `writeFile`: use `writeFileAtomic` under `withFileLock(s)`, or parallel tool calls lose updates and a crash can leave a half-written file.
 - Weakening the connect-time address check in `fetch_url` (`packages/agent-tools/src/fetch.ts`): validating DNS before connecting, or following redirects without re-checking, reopens SSRF and DNS rebinding.
-- Passing model-supplied code or arguments to the container CLI on the command line in `@intellibrix/sandbox` — code goes over stdin only.
+- Passing model-supplied code or arguments to the container CLI on the command line in `@intellibrix/sandbox`: code goes over stdin only.

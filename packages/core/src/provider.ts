@@ -64,7 +64,7 @@ export type ImageOptions = {
 
 /**
  * A model provider. Implementations perform exactly **one** model step per
- * `generate`/`stream` call — {@link runAgentLoop} in `loop.ts` owns iteration.
+ * `generate`/`stream` call; {@link runAgentLoop} in `loop.ts` owns iteration.
  * This is the seam `@intellibrix/ai-sdk`'s adapters implement.
  */
 export interface Provider {

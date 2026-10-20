@@ -53,7 +53,7 @@ function memberLines(r) {
     .filter((c) => !c.flags.isPrivate && !c.flags.isProtected)
     .map(
       (c) =>
-        `- \`${signatureOf(c)}\`${text(c.comment ?? c.signatures?.[0]?.comment) ? ` — ${firstSentence(text(c.comment ?? c.signatures?.[0]?.comment))}` : ''}`,
+        `- \`${signatureOf(c)}\`${text(c.comment ?? c.signatures?.[0]?.comment) ? `: ${firstSentence(text(c.comment ?? c.signatures?.[0]?.comment))}` : ''}`,
     )
 }
 
@@ -82,7 +82,7 @@ const link = (r) => {
   return url ? `${API}/${url}` : API
 }
 let index = `# intellibrix\n\n> Model-agnostic, TypeScript-native, agent-native framework: Structure → Brick → Program, typed tools, an agent loop, MCP, multi-agent structures. Full reference: ${SITE}/llms-full.txt\n`
-let full = `# intellibrix — full API reference\n\nGenerated from TSDoc. Index: ${SITE}/llms.txt\n`
+let full = `# intellibrix: full API reference\n\nGenerated from TSDoc. Index: ${SITE}/llms.txt\n`
 
 for (const [pkg, syms] of [...byPackage].sort(([a], [b]) => a.localeCompare(b))) {
   syms.sort((a, b) => a.name.localeCompare(b.name))

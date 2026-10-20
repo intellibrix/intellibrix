@@ -16,7 +16,7 @@ export type ShellToolOptions = {
 }
 
 /**
- * A `shell` tool that runs allowlisted binaries via `execFile` — never through
+ * A `shell` tool that runs allowlisted binaries via `execFile`, never through
  * a shell, so there is no metacharacter interpolation. `command` must be a
  * bare name that is on the allowlist; anything containing a path separator is
  * rejected, so an allowlisted name cannot be satisfied by an arbitrary binary

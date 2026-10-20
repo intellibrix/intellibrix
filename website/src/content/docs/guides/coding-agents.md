@@ -99,7 +99,9 @@ const tools = [...workspaceTools({ root, tracker }), ...agentTools({ root, track
 It covers `write_file`, `edit_file` and `apply_patch`. Creating a new file needs no read, a model's own
 writes count as seen so it can keep editing, and reading part of a file with `offset`/`limit` counts as
 a read. So does `grep`, for each file it returned matches from, because the model saw those lines.
-`glob` does not: it returns names, not content, and one `**/*` would otherwise unlock every file. The model gets a plain error ("changed since you last read it; read it again") and recovers by
+`glob` does not: it returns names, not content, and one `**/*` would otherwise unlock every file.
+
+The model gets a plain error ("changed since you last read it; read it again") and recovers by
 reading. Tracking is off unless you pass a tracker.
 
 ## Atomic writes
@@ -156,6 +158,7 @@ human should vet what is remembered.
 `<main>`) with headings, links, lists, code and tables kept, and navigation, ads and cookie banners dropped.
 Use `format: 'text'` for the whole page as plain text, or `'raw'` for the source. Set `respectRobotsTxt: true`
 to refuse paths a site's `robots.txt` disallows for your `userAgent`.
+
 A model that has read hostile text could try to use it to reach your internal network or to carry data
 out in a URL, so it is built to resist both:
 
