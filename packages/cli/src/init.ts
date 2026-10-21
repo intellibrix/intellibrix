@@ -1,8 +1,8 @@
 import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-/** Release the scaffolded project depends on. */
-export const SCAFFOLD_VERSION = '1.0.0-next.0'
+/** Version range the scaffolded project depends on. */
+export const SCAFFOLD_VERSION = '^1.0.0'
 
 export type InitOptions = {
   /** Overwrite a non-empty target directory. */
