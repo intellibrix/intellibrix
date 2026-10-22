@@ -13,7 +13,7 @@
     "@intellibrix/ai-sdk": "workspace:^",
     "ai": "^7.0.0",
     "intellibrix": "workspace:^",
-    "zod": "^4.6.2"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
