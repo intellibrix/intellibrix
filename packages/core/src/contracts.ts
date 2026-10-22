@@ -9,7 +9,7 @@ import { type Message, textMessage } from './messages.js'
  */
 export type ContractCase = { name: string; run: () => Promise<void> }
 
-type Factory<T> = () => T | Promise<T>
+export type Factory<T> = () => T | Promise<T>
 
 /**
  * Behavior every {@link KeyValueStore} implementation must share. Runner-agnostic
