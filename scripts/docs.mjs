@@ -1,6 +1,6 @@
 // Generates the multi-package typedoc site into docs/ and, from the same
 // typedoc project model, llms.txt (index) and llms-full.txt (signatures + docs).
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { Application, Comment, PageEvent, ReflectionKind } from 'typedoc'
 
 const SITE = 'https://intellibrix.dev'
@@ -15,7 +15,12 @@ const SYMBOL_KINDS =
   ReflectionKind.Variable |
   ReflectionKind.Enum
 
+// The root package.json is private and unversioned (0.0.0); document the released version instead.
+const { version } = JSON.parse(await readFile('packages/core/package.json', 'utf8'))
 const app = await Application.bootstrapWithPlugins()
+// includeVersion would read the root package.json, so put the version in the name instead.
+app.options.setValue('includeVersion', false)
+app.options.setValue('name', `intellibrix v${version}`)
 const project = await app.convert()
 if (!project) throw new Error('typedoc conversion failed')
 // Each page's model -> URL, captured as it renders.
