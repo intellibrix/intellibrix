@@ -1,0 +1,493 @@
+import { execFileSync } from 'node:child_process'
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  realpath,
+  rm,
+  stat,
+  symlink,
+  writeFile,
+} from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+import { Intelligence, type ToolDefinition, validateToolInput } from 'intellibrix'
+import { MockProvider } from 'intellibrix/testing'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import {
+  FileTracker,
+  JailEscapeError,
+  resolveJailed,
+  withFileLock,
+  withFileLocks,
+  workspaceTools,
+  writeFileAtomic,
+} from '../src/index.js'
+
+let root: string
+let outside: string
+
+beforeEach(async () => {
+  root = await realpath(await mkdtemp(path.join(tmpdir(), 'ws-root-')))
+  outside = await realpath(await mkdtemp(path.join(tmpdir(), 'ws-out-')))
+  await writeFile(path.join(outside, 'secret.txt'), 'top secret')
+})
+
+afterEach(async () => {
+  await rm(root, { recursive: true, force: true })
+  await rm(outside, { recursive: true, force: true })
+})
+
+const byName = (tools: ToolDefinition[], name: string) => {
+  const tool = tools.find((t) => t.name === name)
+  if (!tool) throw new Error(`no tool ${name}`)
+  return tool
+}
+const run = async (tool: ToolDefinition, input: unknown) =>
+  tool.execute(await validateToolInput(tool, input), { runId: 'test' })
+
+describe('resolveJailed', () => {
+  it('resolves paths inside the root, including not-yet-existing ones', async () => {
+    expect(await resolveJailed(root, 'a/b.txt')).toBe(path.join(root, 'a/b.txt'))
+    expect(await resolveJailed(root, '.')).toBe(root)
+  })
+
+  it('rejects .. traversal and absolute paths outside the root', async () => {
+    await expect(resolveJailed(root, '../x')).rejects.toBeInstanceOf(JailEscapeError)
+    await expect(resolveJailed(root, 'a/../../x')).rejects.toBeInstanceOf(JailEscapeError)
+    await expect(resolveJailed(root, path.join(outside, 'secret.txt'))).rejects.toBeInstanceOf(
+      JailEscapeError,
+    )
+  })
+
+  it('rejects a symlinked file pointing outside', async () => {
+    await symlink(path.join(outside, 'secret.txt'), path.join(root, 'link.txt'))
+    await expect(resolveJailed(root, 'link.txt')).rejects.toBeInstanceOf(JailEscapeError)
+  })
+
+  it('rejects a symlinked directory, even for files that do not exist yet', async () => {
+    await symlink(outside, path.join(root, 'linkdir'))
+    await expect(resolveJailed(root, 'linkdir/secret.txt')).rejects.toBeInstanceOf(JailEscapeError)
+    await expect(resolveJailed(root, 'linkdir/new.txt')).rejects.toBeInstanceOf(JailEscapeError)
+  })
+
+  it('allows a symlink that stays inside the root', async () => {
+    await mkdir(path.join(root, 'real'))
+    await symlink(path.join(root, 'real'), path.join(root, 'alias'))
+    expect(await resolveJailed(root, 'alias')).toBe(path.join(root, 'real'))
+  })
+})
+
+describe('fs tools', () => {
+  it('reads, lists, globs and greps; results are untrusted', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(path.join(root, 'a.ts'), 'const x = 1\nconst y = 2\n')
+    await writeFile(path.join(root, '.gitignore'), 'ignored.ts\n')
+    await writeFile(path.join(root, 'ignored.ts'), 'const x = 9\n')
+
+    expect(await run(byName(tools, 'read_file'), { path: 'a.ts' })).toEqual({
+      path: 'a.ts',
+      content: 'const x = 1\nconst y = 2\n',
+    })
+    expect(byName(tools, 'read_file').resultTrust).toBe('untrusted')
+    expect(await run(byName(tools, 'glob'), { pattern: '**/*.ts' })).toEqual(['a.ts'])
+    expect(await run(byName(tools, 'grep'), { pattern: 'const y' })).toEqual([
+      { file: 'a.ts', line: 2, text: 'const y = 2' },
+    ])
+    expect(await run(byName(tools, 'list_dir'), { path: '.' })).toContainEqual({
+      name: 'a.ts',
+      type: 'file',
+    })
+  })
+
+  it('reads line ranges, with optional line numbers', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(path.join(root, 'r.txt'), 'a\nb\nc\nd\ne\n')
+    expect(await run(byName(tools, 'read_file'), { path: 'r.txt', offset: 2, limit: 2 })).toEqual({
+      path: 'r.txt',
+      content: 'b\nc\n',
+      startLine: 2,
+      endLine: 3,
+      totalLines: 5,
+      truncated: true,
+    })
+    expect(
+      await run(byName(tools, 'read_file'), { path: 'r.txt', offset: 4, lineNumbers: true }),
+    ).toMatchObject({ content: '4\td\n5\te\n', endLine: 5, truncated: false })
+    expect(await run(byName(tools, 'read_file'), { path: 'r.txt', offset: 99 })).toMatchObject({
+      content: '',
+      totalLines: 5,
+    })
+  })
+
+  it('reads a slice of a file too big to read whole', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(path.join(root, 'big.txt'), `${'x'.repeat(300 * 1024)}\nlast\n`)
+    await expect(run(byName(tools, 'read_file'), { path: 'big.txt' })).rejects.toThrow(
+      /Pass offset and limit/,
+    )
+    expect(await run(byName(tools, 'read_file'), { path: 'big.txt', offset: 2 })).toMatchObject({
+      content: 'last\n',
+    })
+  })
+
+  it('refuses to read through an escaping symlink', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await symlink(path.join(outside, 'secret.txt'), path.join(root, 'link.txt'))
+    await expect(run(byName(tools, 'read_file'), { path: 'link.txt' })).rejects.toBeInstanceOf(
+      JailEscapeError,
+    )
+  })
+
+  it('grep skips escaping symlinks instead of leaking them', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await symlink(path.join(outside, 'secret.txt'), path.join(root, 'link.txt'))
+    expect(await run(byName(tools, 'grep'), { pattern: 'secret' })).toEqual([])
+  })
+
+  it('write_file creates parents; edit_file requires exactly one match', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await run(byName(tools, 'write_file'), { path: 'd/e.txt', content: 'one two one' })
+    expect(await readFile(path.join(root, 'd/e.txt'), 'utf8')).toBe('one two one')
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'd/e.txt', oldString: 'one', newString: 'x' }),
+    ).rejects.toThrow(/exactly once; found 2/)
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'd/e.txt', oldString: 'zzz', newString: 'x' }),
+    ).rejects.toThrow(/found 0/)
+    await run(byName(tools, 'edit_file'), { path: 'd/e.txt', oldString: 'two', newString: '$&' })
+    expect(await readFile(path.join(root, 'd/e.txt'), 'utf8')).toBe('one $& one')
+  })
+
+  it('cannot write through a symlinked directory', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await symlink(outside, path.join(root, 'linkdir'))
+    await expect(
+      run(byName(tools, 'write_file'), { path: 'linkdir/pwn.txt', content: 'x' }),
+    ).rejects.toBeInstanceOf(JailEscapeError)
+  })
+})
+
+describe('glob pattern validation', () => {
+  const tools = () => workspaceTools({ root, git: false })
+
+  it('rejects patterns that leave the workspace or could exhaust the glob engine', async () => {
+    const bad = [
+      '../*',
+      '../../**',
+      'a/../../*',
+      '{..,x}/*',
+      '!../x',
+      '/etc/*',
+      '~/*',
+      'C:/Windows/*',
+      `${'{'.repeat(6)}a${'}'.repeat(6)}`,
+      'a'.repeat(2000),
+    ]
+    for (const pattern of bad) {
+      await expect(run(byName(tools(), 'glob'), { pattern })).rejects.toThrow(/Glob pattern/)
+      await expect(run(byName(tools(), 'grep'), { pattern: 'x', glob: pattern })).rejects.toThrow(
+        /Glob pattern/,
+      )
+    }
+  })
+
+  it('still accepts ordinary patterns, including dotted names and braces', async () => {
+    for (const pattern of ['**/*.ts', 'src/{a,b}/*.{ts,js}', '**/..hidden', 'a..b/*']) {
+      await expect(run(byName(tools(), 'glob'), { pattern })).resolves.toBeDefined()
+    }
+  })
+})
+
+describe('shell tool', () => {
+  const tools = () => workspaceTools({ root, git: false, shell: { allow: ['node', 'sleep'] } })
+
+  it('runs allowlisted binaries and captures output', async () => {
+    const r = await run(byName(tools(), 'shell'), {
+      command: 'node',
+      args: ['-e', 'console.log("hi")'],
+    })
+    expect(r).toMatchObject({ stdout: 'hi\n', exitCode: 0, timedOut: false })
+  })
+
+  it('rejects non-allowlisted binaries, including by path', async () => {
+    await expect(run(byName(tools(), 'shell'), { command: 'ls' })).rejects.toThrow(/not allowed/)
+    await expect(run(byName(tools(), 'shell'), { command: '/bin/ls' })).rejects.toThrow(
+      /not allowed/,
+    )
+  })
+
+  it('does not let a path satisfy an allowlisted name', async () => {
+    for (const command of [process.execPath, '/tmp/node', './node', '../node', 'bin\\node']) {
+      await expect(run(byName(tools(), 'shell'), { command })).rejects.toThrow(/not allowed/)
+    }
+  })
+
+  it('does not interpret shell metacharacters', async () => {
+    const r = await run(byName(tools(), 'shell'), {
+      command: 'node',
+      args: ['-e', 'console.log(process.argv[1])', '; echo pwned'],
+    })
+    expect(r.stdout).toBe('; echo pwned\n')
+  })
+
+  it('honors timeouts', async () => {
+    const r = await run(byName(tools(), 'shell'), { command: 'sleep', args: ['5'], timeoutMs: 100 })
+    expect(r.timedOut).toBe(true)
+  })
+
+  it('rejects cwd outside the root', async () => {
+    await expect(
+      run(byName(tools(), 'shell'), { command: 'node', args: ['-v'], cwd: '..' }),
+    ).rejects.toBeInstanceOf(JailEscapeError)
+  })
+})
+
+describe('git tools', () => {
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' })
+  beforeEach(() => {
+    git('init', '-q', '-b', 'main')
+    git('config', 'user.email', 't@example.com')
+    git('config', 'user.name', 'Test')
+    git('config', 'commit.gpgsign', 'false')
+  })
+
+  it('reports status, diff, commits and branches', async () => {
+    const tools = workspaceTools({ root })
+    await writeFile(path.join(root, 'f.txt'), 'hello\n')
+    expect((await run(byName(tools, 'git_status'), {})).untracked).toEqual(['f.txt'])
+
+    await run(byName(tools, 'git_commit'), { message: 'feat: add f' })
+    expect(git('log', '--format=%s').trim()).toBe('feat: add f')
+
+    await writeFile(path.join(root, 'f.txt'), 'hello\nworld\n')
+    expect((await run(byName(tools, 'git_diff'), {})).diff).toContain('+world')
+
+    const b = await run(byName(tools, 'git_branch'), { create: 'topic' })
+    expect(b.current).toBe('topic')
+  })
+})
+
+describe('approval gates', () => {
+  it('flags every mutating tool as needing approval by default', () => {
+    const tools = workspaceTools({ root, shell: { allow: ['node'] } })
+    for (const name of ['write_file', 'edit_file', 'shell', 'git_commit']) {
+      expect(byName(tools, name).needsApproval, name).toBe(true)
+    }
+    for (const name of ['read_file', 'list_dir', 'glob', 'grep', 'git_status', 'git_diff']) {
+      expect(byName(tools, name).needsApproval, name).toBeFalsy()
+    }
+    expect(
+      workspaceTools({ root, shell: { allow: ['node'], alwaysApprove: true } }).find(
+        (t) => t.name === 'shell',
+      )?.needsApproval,
+    ).toBe(false)
+  })
+
+  it('denies a write when the approval hook says no, and leaves the file untouched', async () => {
+    const provider = new MockProvider([
+      { toolCalls: [{ toolName: 'write_file', input: { path: 'x.txt', content: 'nope' } }] },
+      { text: 'ok' },
+    ])
+    const ai = new Intelligence({
+      provider,
+      model: 'mock',
+      tools: workspaceTools({ root, git: false }),
+      onToolApproval: () => false,
+    })
+    await ai.ask('write it')
+    await expect(readFile(path.join(root, 'x.txt'))).rejects.toThrow(/ENOENT/)
+  })
+
+  it('performs the write when approved', async () => {
+    const provider = new MockProvider([
+      { toolCalls: [{ toolName: 'write_file', input: { path: 'x.txt', content: 'yes' } }] },
+      { text: 'ok' },
+    ])
+    const ai = new Intelligence({
+      provider,
+      model: 'mock',
+      tools: workspaceTools({ root, git: false }),
+      onToolApproval: () => true,
+    })
+    await ai.ask('write it')
+    expect(await readFile(path.join(root, 'x.txt'), 'utf8')).toBe('yes')
+  })
+})
+
+describe('read-before-write tracking', () => {
+  const setup = async () => {
+    const tracker = new FileTracker()
+    const tools = workspaceTools({ root, git: false, tracker })
+    await writeFile(path.join(root, 'f.txt'), 'one\ntwo\n')
+    return { tools, tracker }
+  }
+
+  it('refuses to edit or overwrite a file that was never read, but allows creating one', async () => {
+    const { tools } = await setup()
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'one', newString: '1' }),
+    ).rejects.toThrow(/Read f\.txt before modifying/)
+    await expect(run(byName(tools, 'write_file'), { path: 'f.txt', content: 'x' })).rejects.toThrow(
+      /Read f\.txt before modifying/,
+    )
+    await run(byName(tools, 'write_file'), { path: 'new.txt', content: 'x' })
+    expect(await readFile(path.join(root, 'f.txt'), 'utf8')).toBe('one\ntwo\n')
+  })
+
+  it('allows edits after a read, and keeps allowing them after its own writes', async () => {
+    const { tools } = await setup()
+    await run(byName(tools, 'read_file'), { path: 'f.txt' })
+    await run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'one', newString: '1' })
+    await run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'two', newString: '2' })
+    await run(byName(tools, 'write_file'), { path: 'f.txt', content: 'fresh' })
+    expect(await readFile(path.join(root, 'f.txt'), 'utf8')).toBe('fresh')
+  })
+
+  it('refuses when the file changed after the read, until it is read again', async () => {
+    const { tools } = await setup()
+    await run(byName(tools, 'read_file'), { path: 'f.txt', offset: 1, limit: 1 })
+    await writeFile(path.join(root, 'f.txt'), 'one\ntwo\nthree\n')
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'one', newString: '1' }),
+    ).rejects.toThrow(/changed since you last read it/)
+    await run(byName(tools, 'read_file'), { path: 'f.txt' })
+    await run(byName(tools, 'edit_file'), { path: 'f.txt', oldString: 'one', newString: '1' })
+  })
+
+  it('is off unless a tracker is given', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(path.join(root, 'g.txt'), 'a')
+    await run(byName(tools, 'edit_file'), { path: 'g.txt', oldString: 'a', newString: 'b' })
+  })
+})
+
+describe('grep counts as a read', () => {
+  it('lets the model edit files whose matching lines it saw, but not the rest', async () => {
+    const tracker = new FileTracker()
+    const tools = workspaceTools({ root, git: false, tracker })
+    await writeFile(path.join(root, 'hit.txt'), 'needle here\nother\n')
+    await writeFile(path.join(root, 'miss.txt'), 'nothing\n')
+    await run(byName(tools, 'grep'), { pattern: 'needle' })
+    await run(byName(tools, 'edit_file'), {
+      path: 'hit.txt',
+      oldString: 'needle',
+      newString: 'pin',
+    })
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'miss.txt', oldString: 'nothing', newString: 'x' }),
+    ).rejects.toThrow(/Read miss\.txt before/)
+  })
+
+  it('still notices a change after the grep, and glob alone is not a read', async () => {
+    const tracker = new FileTracker()
+    const tools = workspaceTools({ root, git: false, tracker })
+    await writeFile(path.join(root, 'a.txt'), 'needle\n')
+    await run(byName(tools, 'grep'), { pattern: 'needle' })
+    await writeFile(path.join(root, 'a.txt'), 'needle changed\n')
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'a.txt', oldString: 'needle', newString: 'x' }),
+    ).rejects.toThrow(/changed since you last read it/)
+    await run(byName(tools, 'glob'), { pattern: '**/*' })
+    await expect(
+      run(byName(tools, 'edit_file'), { path: 'a.txt', oldString: 'needle', newString: 'x' }),
+    ).rejects.toThrow(/changed since/)
+  })
+})
+
+describe('atomic writes', () => {
+  it('serializes parallel edits to one file instead of losing updates', async () => {
+    const tools = workspaceTools({ root, git: false })
+    await writeFile(
+      path.join(root, 'p.txt'),
+      Array.from({ length: 20 }, (_, i) => `<line${i}>`).join('\n'),
+    )
+    await Promise.all(
+      Array.from({ length: 20 }, (_, i) =>
+        run(byName(tools, 'edit_file'), {
+          path: 'p.txt',
+          oldString: `<line${i}>`,
+          newString: `<LINE${i}>`,
+        }),
+      ),
+    )
+    const text = await readFile(path.join(root, 'p.txt'), 'utf8')
+    expect(text.split('\n')).toEqual(Array.from({ length: 20 }, (_, i) => `<LINE${i}>`))
+  })
+
+  it('leaves no temporary files and keeps file permissions', async () => {
+    const tools = workspaceTools({ root, git: false })
+    const file = path.join(root, 'run.sh')
+    await writeFile(file, '#!/bin/sh\n')
+    await chmod(file, 0o755)
+    await run(byName(tools, 'edit_file'), { path: 'run.sh', oldString: 'sh', newString: 'bash' })
+    await run(byName(tools, 'write_file'), { path: 'run.sh', content: '#!/bin/bash\necho hi\n' })
+    expect((await stat(file)).mode & 0o777).toBe(0o755)
+    expect(await readdir(root)).toEqual(['run.sh'])
+  })
+
+  it('writeFileAtomic refuses when the file is no longer what the caller saw, and cleans up', async () => {
+    const file = path.join(root, 'x.txt')
+    await writeFile(file, 'seen')
+    await writeFile(file, 'someone else')
+    await expect(writeFileAtomic(file, 'mine', { expected: 'seen' })).rejects.toThrow(
+      /changed while/,
+    )
+    expect(await readFile(file, 'utf8')).toBe('someone else')
+    await expect(writeFileAtomic(file, 'mine', { expected: null })).rejects.toThrow(
+      /created by someone/,
+    )
+    expect(await readFile(file, 'utf8')).toBe('someone else')
+    expect(await readdir(root)).toEqual(['x.txt'])
+
+    await writeFileAtomic(path.join(root, 'new.txt'), 'fresh', { expected: null })
+    expect(await readFile(path.join(root, 'new.txt'), 'utf8')).toBe('fresh')
+    await writeFileAtomic(file, 'plain') // no check
+    expect(await readFile(file, 'utf8')).toBe('plain')
+  })
+
+  it('a failed write leaves the original in place', async () => {
+    const file = path.join(root, 'keep.txt')
+    await writeFile(file, 'original')
+    await expect(writeFileAtomic(path.join(root, 'no-dir', 'f.txt'), 'x')).rejects.toThrow()
+    await expect(writeFileAtomic(file, 'x', { expected: 'stale' })).rejects.toThrow()
+    expect(await readFile(file, 'utf8')).toBe('original')
+    expect(await readdir(root)).toEqual(['keep.txt'])
+  })
+})
+
+describe('withFileLock', () => {
+  it('runs holders of the same key one at a time, in order, and survives a throwing holder', async () => {
+    const order: string[] = []
+    const hold = (name: string, ms: number, fail = false) =>
+      withFileLock('/k', async () => {
+        order.push(`start ${name}`)
+        await new Promise((r) => setTimeout(r, ms))
+        order.push(`end ${name}`)
+        if (fail) throw new Error('boom')
+      })
+    await Promise.allSettled([hold('a', 30, true), hold('b', 5), hold('c', 1)])
+    expect(order).toEqual(['start a', 'end a', 'start b', 'end b', 'start c', 'end c'])
+  })
+
+  it('lets different keys run together, and multi-lock does not deadlock on opposite orders', async () => {
+    let running = 0
+    let peak = 0
+    const task = (key: string) =>
+      withFileLock(key, async () => {
+        peak = Math.max(peak, ++running)
+        await new Promise((r) => setTimeout(r, 10))
+        running--
+      })
+    await Promise.all([task('/x'), task('/y')])
+    expect(peak).toBe(2)
+    const done: string[] = []
+    await Promise.all([
+      withFileLocks(['/a', '/b'], async () => void done.push('1')),
+      withFileLocks(['/b', '/a'], async () => void done.push('2')),
+    ])
+    expect(done.sort()).toEqual(['1', '2'])
+  })
+})

@@ -1,0 +1,20 @@
+{
+  "name": "example-supervisor",
+  "private": true,
+  "version": "0.0.0",
+  "description": "A supervisor delegating to specialist bricks",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@intellibrix/structures": "workspace:^",
+    "intellibrix": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

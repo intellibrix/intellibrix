@@ -1,0 +1,126 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """
+[](fg:bg_blue)\
+$os\
+$username\
+[](fg:bg_blue bg:bg_teal)\
+$directory\
+[](fg:bg_teal bg:bg_green)\
+$git_branch\
+$git_status\
+[](fg:bg_green bg:bg_gray)\
+$nodejs\
+$python\
+$rust\
+$golang\
+$docker_context\
+[](fg:bg_gray)\
+$fill\
+$cmd_duration\
+$time\
+$line_break\
+$character"""
+
+palette = 'factory'
+
+[palettes.factory]
+bg_blue   = '#2B4DBC'
+bg_teal   = '#1F8A70'
+bg_green  = '#3C8C3C'
+bg_gray   = '#3B3F4A'
+fg        = '#E6E6E6'
+muted     = '#8A8F98'
+danger    = '#E5484D'
+success   = '#3FB950'
+
+[os]
+disabled = false
+style = "bg:bg_blue fg:fg"
+format = '[ $symbol ]($style)'
+
+[os.symbols]
+Linux = "∞"
+Ubuntu = "∞"
+Debian = "∞"
+
+[username]
+show_always = true
+style_user = "bg:bg_blue fg:fg"
+style_root = "bg:bg_blue fg:danger"
+format = '[intellibrix]($style)[ ]($style)'
+disabled = false
+
+[directory]
+style = "bg:bg_teal fg:fg"
+format = "[ 󰉋 $path ]($style)"
+truncation_length = 4
+truncation_symbol = "…/"
+truncate_to_repo = true
+
+[directory.substitutions]
+"workspace" = "󰲋 workspace"
+
+[git_branch]
+symbol = ""
+style = "bg:bg_green fg:fg"
+format = '[ $symbol $branch ]($style)'
+
+[git_status]
+style = "bg:bg_green fg:fg"
+format = '[($all_status$ahead_behind )]($style)'
+conflicted = "🏳"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?${count}"
+stashed = "*${count}"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+[nodejs]
+symbol = ""
+style = "bg:bg_gray fg:fg"
+format = '[ $symbol ($version) ]($style)'
+
+[python]
+symbol = ""
+style = "bg:bg_gray fg:fg"
+format = '[ $symbol ($version) ]($style)'
+
+[rust]
+symbol = ""
+style = "bg:bg_gray fg:fg"
+format = '[ $symbol ($version) ]($style)'
+
+[golang]
+symbol = ""
+style = "bg:bg_gray fg:fg"
+format = '[ $symbol ($version) ]($style)'
+
+[docker_context]
+symbol = ""
+style = "bg:bg_gray fg:fg"
+format = '[ $symbol $context ]($style)'
+only_with_files = true
+
+[fill]
+symbol = " "
+
+[cmd_duration]
+min_time = 500
+style = "fg:muted"
+format = "[  $duration ]($style)"
+
+[time]
+disabled = false
+time_format = "%R"
+style = "fg:muted"
+format = '[  $time ]($style)'
+
+[character]
+success_symbol = "[❯](bold success)"
+error_symbol = "[❯](bold danger)"
+vimcmd_symbol = "[❮](bold green)"

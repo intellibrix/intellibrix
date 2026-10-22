@@ -1,0 +1,20 @@
+{
+  "name": "example-mcp-server",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Expose a Brick over MCP",
+  "type": "module",
+  "scripts": {
+    "start": "intellibrix mcp serve src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@intellibrix/cli": "workspace:^",
+    "intellibrix": "workspace:^",
+    "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

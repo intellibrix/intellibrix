@@ -1,0 +1,23 @@
+{
+  "name": "example-qa",
+  "private": true,
+  "version": "0.0.0",
+  "description": "QA brick example for intellibrix",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.0",
+    "@intellibrix/ai-sdk": "workspace:^",
+    "ai": "^7.0.0",
+    "intellibrix": "workspace:^",
+    "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

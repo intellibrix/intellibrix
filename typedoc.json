@@ -1,14 +1,26 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "name": "Intellibrix",
-  "entryPoints": ["./src", "./src/bricks"],
+  "name": "intellibrix",
+  "entryPointStrategy": "packages",
+  "entryPoints": [
+    "packages/core",
+    "packages/ai-sdk",
+    "packages/mcp",
+    "packages/structures",
+    "packages/sql",
+    "packages/memory-sqlite",
+    "packages/express",
+    "packages/terminal",
+    "packages/i18n",
+    "packages/workspace",
+    "packages/agent-tools",
+    "packages/sandbox",
+    "packages/github",
+    "packages/cli"
+  ],
   "out": "docs",
-  "commentStyle": "all",
-  "cleanOutputDir": true,
-  "hideGenerator": true,
-  "searchInComments": true,
-  "cname": "intellibrix.dev",
-  "navigationLinks": {
-    "Github": "https://github.com/intellibrix/intellibrix"
-  }
+  "cleanOutputDir": false,
+  "readme": "README.md",
+  "includeVersion": true,
+  "skipErrorChecking": true
 }

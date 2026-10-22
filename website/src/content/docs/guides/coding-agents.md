@@ -1,0 +1,270 @@
+---
+title: Coding agents
+description: Give an agent a jailed filesystem, an allowlisted shell and git, with a human approving every change.
+---
+
+`@intellibrix/workspace` is the toolset for agents that work on code. One call builds it:
+
+```ts
+import { workspaceTools } from '@intellibrix/workspace'
+
+const tools = workspaceTools({
+  root: '/path/to/project',
+  shell: { allow: ['node', 'pnpm', 'git'] },
+})
+```
+
+| Tool | Does | Approval |
+|---|---|---|
+| `read_file`, `list_dir` | Read files and directories | no |
+| `glob`, `grep` | Find files and search contents; both respect `.gitignore` | no |
+| `write_file`, `edit_file` | Create or change files | **yes** |
+| `git_status`, `git_diff`, `git_branch` | Inspect the repository | no |
+| `git_commit` | Commit staged work | **yes** |
+| `shell` | Run an allowlisted command | **yes** |
+
+`read_file` also takes `offset`, `limit` and `lineNumbers`, so a model can read part of a file that is
+too large to read whole.
+
+Everything the read tools return is tagged `untrusted`, because file contents can contain
+instructions aimed at the model. See [Approvals and trust](/guides/approvals-and-trust/).
+
+## Patching, checking, planning and looking things up
+
+`@intellibrix/agent-tools` adds the tools that make the edit, check, fix loop reliable, plus ones for arithmetic,
+dates, JSON, diffs, notes and the web:
+
+```ts
+import { agentTools } from '@intellibrix/agent-tools'
+
+const tools = [...workspaceTools({ root }), ...agentTools({ root })]
+```
+
+| Tool | Does | Approval |
+|---|---|---|
+| `apply_patch` | Apply a unified diff across several files, all or nothing | **yes** |
+| `run_checks` | Run named checks (test, typecheck, lint, build) and return parsed failures | **yes** |
+| `todo` | Keep a task list for the run | no |
+| `calculator` | Exact arithmetic from a parsed expression (never `eval`); pass `calculator: false` to leave it out | no |
+| `datetime` | The current time, time zone conversion, date arithmetic and date differences | no |
+| `json_query` | Run a jq-style query over a JSON or JSON Lines file, so only the matching values reach the model | no |
+| `diff` | A unified diff between two workspace files, or between a file and some text | no |
+| `memory` | Notes the model saves and searches across runs, in any `KeyValueStore` (opt-in: `memory: { store }`) | no, or `approveChanges` |
+| `web_search`, `fetch_url`, `ask_user`, `delegate` | Search and read the web, ask the human, hand off to a sub-agent (see below) | `fetch_url`: yes unless `allowHosts` |
+
+**`apply_patch`** takes a unified diff. Every hunk of every file is applied in memory first, and
+nothing is written unless all of them apply, so a bad hunk never leaves half a change behind. Line
+numbers in hunk headers are only hints (models often miscount), so each hunk is found by its
+context lines. It creates files (`--- /dev/null`), deletes them (`+++ /dev/null`), renames them,
+keeps CRLF line endings and a missing final newline, and stays inside the workspace root. Pass
+`check: true` to validate a patch without writing it.
+
+**`run_checks`** runs commands you define, never command lines the model writes. By default it reads
+`package.json` and uses the `test`, `typecheck` (or `type-check`), `lint` and `build` scripts with
+the package manager that owns your lockfile. To set your own:
+
+```ts
+agentTools({
+  root,
+  checks: {
+    checks: {
+      test: { command: 'pnpm', args: ['vitest', 'run'], parse: 'vitest' },
+      typecheck: { command: 'pnpm', args: ['tsc', '--noEmit'], parse: 'tsc' },
+    },
+  },
+})
+```
+
+Each result has `ok`, `exitCode`, `durationMs`, the tail of the output when it failed, and
+`failures`, a list of `{ file, line, column, message }` pulled from the output. The built-in
+parsers read `tsc`, Vitest and the common `file:line:col: message` format; pass a function as
+`parse` for anything else.
+
+**`todo`** gives the model a task list it replaces on each call (one task `in_progress` at a time),
+scoped to the run. Read it from your own code with `tool.store.get(runId)`, or pass `onChange` to
+render progress as it updates. Pass `checks: false` or `todo: false` to leave either out.
+
+## Refusing stale edits
+
+Give `workspaceTools` and `agentTools` one `FileTracker` and a write is refused when the model never read
+the file, or when the file changed after it did (another process, a formatter, you):
+
+```ts
+import { FileTracker, workspaceTools } from '@intellibrix/workspace'
+
+const tracker = new FileTracker() // one per session
+const tools = [...workspaceTools({ root, tracker }), ...agentTools({ root, tracker })]
+```
+
+It covers `write_file`, `edit_file` and `apply_patch`. Creating a new file needs no read, a model's own
+writes count as seen so it can keep editing, and reading part of a file with `offset`/`limit` counts as
+a read. So does `grep`, for each file it returned matches from, because the model saw those lines.
+`glob` does not: it returns names, not content, and one `**/*` would otherwise unlock every file.
+
+The model gets a plain error ("changed since you last read it; read it again") and recovers by
+reading. Tracking is off unless you pass a tracker.
+
+## Atomic writes
+
+`write_file`, `edit_file` and `apply_patch` each replace a file in one step: the new content goes to a
+temporary file beside it, which then takes its place with a single rename. A reader sees the old file or
+the new one, never half of it, a failure leaves the original untouched, and the file keeps its
+permissions (a script stays executable).
+
+The agent loop runs one step's tool calls in parallel, so two edits to the same file could
+overwrite each other. Writes to a file take turns (`apply_patch` holds the lock for every file it
+touches, in a fixed order, so it cannot deadlock). Just before the swap the file is read again, and the
+write is abandoned if another writer changed it in the meantime. That serialization is exact inside one
+process. Against a different process the check narrows the race to the instant before the rename but
+cannot close it, since the filesystem offers no compare-and-swap for that. `withFileLock`, `withFileLocks`
+and `writeFileAtomic` are exported if your own tools write to the same workspace.
+
+## Reading the web, asking questions, delegating
+
+Three more tools are included only when you configure them:
+
+```ts
+agentTools({
+  root,
+  fetch: { allowHosts: ['developer.mozilla.org', '*.nodejs.org'] },
+  askUser: { ask: async ({ question, choices }) => askHuman(question, choices) },
+  delegate: { agents: { reviewer: { agent: reviewerIntelligence, description: 'reviews a diff' } } },
+})
+```
+
+**`web_search`** (`search: { provider }`) returns titles, URLs and snippets from a backend you choose, tagged
+`untrusted`: `braveSearch({ apiKey })`, `tavilySearch({ apiKey })` or `searxngSearch({ baseUrl })` for a
+self-hosted instance. Or implement `SearchProvider` (an `id` and a `search(query, { limit, signal })`) for
+anything else. Pair it with `fetch_url` to read a result in full.
+
+**`datetime`** takes ISO 8601 dates and IANA time zone names (`America/New_York`). It converts between zones,
+adds years, months, weeks, days or clock time (calendar units follow the wall clock across DST changes), and
+reports the difference between two dates in total seconds and in calendar units. `datetime: { timeZone, now }`
+sets the default zone and the clock.
+
+**`json_query`** speaks a subset of jq: paths (`.a.b[0]`, `.[]`, `.[1:3]`), pipes, `select`, `map`, `sort_by`,
+`group_by`, `unique`, `keys`, `length`, `add`, `if`, object and array construction, and `//` defaults. It has
+no variables, regexes or file access of its own, and a runaway query is stopped by a step budget. It reads
+only inside the workspace.
+
+**`diff`** is for comparing things git does not track. For work in a repository, `git_diff` is the better tool.
+
+**`memory`** keeps short notes under a key, and finds them again by keyword, even in a later run, because they
+live in the `KeyValueStore` you pass (`memory: { store, namespace }`). Notes come back tagged `untrusted`,
+because the model may have written one after reading a hostile web page. Set `approveChanges: true` if a
+human should vet what is remembered.
+
+**`fetch_url`** returns a web page as Markdown of its main content, tagged `untrusted`: the `<article>` (or
+`<main>`) with headings, links, lists, code and tables kept, and navigation, ads and cookie banners dropped.
+Use `format: 'text'` for the whole page as plain text, or `'raw'` for the source. Set `respectRobotsTxt: true`
+to refuse paths a site's `robots.txt` disallows for your `userAgent`.
+
+A model that has read hostile text could try to use it to reach your internal network or to carry data
+out in a URL, so it is built to resist both:
+
+- only `http` and `https`, with no credentials in the URL;
+- the address is checked when the connection is made, so loopback, private, link-local (including the
+  cloud metadata address) and multicast ranges are refused, including IPv6 forms that wrap an IPv4
+  address, and a DNS answer cannot change between the check and the connection;
+- every redirect is followed by hand and checked again;
+- the body is size-limited, uncompressed and text only, with a time limit.
+
+It needs approval unless you pin `allowHosts` (exact names, or `*.example.com`), since a URL can carry
+data in its query string. `allowPrivateNetwork: true` turns the address check off for local testing.
+
+**`ask_user`** pauses the run so the model can ask a clarifying question instead of guessing. You
+decide how it is shown; in a terminal that is `brick.print` and `await brick.input()`.
+
+**`delegate`** hands a self-contained task to a named sub-agent (an `Intelligence` or a `Brick`) and
+returns its final answer. The sub-agent keeps its own tools and approval policy, so set `onToolApproval`
+on it: delegating never widens what a tool call may do. The answer is `untrusted` unless you set
+`trusted: true`, because a sub-agent that read a hostile file can pass its instructions along. Do not
+give the sub-agent the `delegate` tool.
+
+## Choosing what needs approval
+
+Every tool that writes, runs code or reaches the network asks for approval by default. Relax them one at a time:
+
+| Tool | How to skip the prompt |
+|---|---|
+| `write_file`, `edit_file`, `apply_patch` | `approveWrites: false` in `workspaceTools` and `agentTools` |
+| `shell` | `shell: { allow: [...], alwaysApprove: true }`; the allowlist still applies |
+| `run_checks` | `checks: { alwaysApprove: true }` |
+| `fetch_url` | `fetch: { allowHosts: ['apnews.com', '*.wikipedia.org'] }`, which also limits fetching to those hosts, or `fetch: { needsApproval: false }` for any public host |
+| `memory` | Saves and deletes need no approval by default; `memory: { store, approveChanges: true }` asks first |
+
+For anything else, or for rules that depend on the call, use the `onToolApproval` hook on `Intelligence`. It receives each call that needs approval:
+
+```ts
+onToolApproval: async (call) => {
+  if (call.toolName === 'fetch_url' || call.toolName === 'run_checks') return true
+  return askTheHuman(call)
+}
+```
+
+Keep approval on `shell`, `git_commit` and the write tools. Relax `fetch_url` only with `allowHosts`, because a URL can carry data out in its query string.
+
+## Wiring it up
+
+```ts
+import { Intelligence } from 'intellibrix'
+
+const intelligence = new Intelligence({
+  provider,
+  model,
+  system: 'You are a careful coding agent. Read before you edit.',
+  tools,
+  onToolApproval: async ({ toolName, input }) => askHuman(`${toolName} ${JSON.stringify(input)}`),
+})
+
+await intelligence.ask('Rename getUser to fetchUser everywhere and run the tests')
+```
+
+The [`coding-agent` example](https://github.com/intellibrix/intellibrix/tree/master/examples/coding-agent)
+puts this in an interactive terminal session with `chatRepl`.
+
+With no `onToolApproval`, every write, commit and shell call is denied and the model sees an
+error. Read-only exploration still works, which is a useful mode for a "review this repo" agent.
+
+## What the jail guarantees
+
+All paths are resolved against `root` by `resolveJailed`:
+
+- `..` traversal and absolute paths outside the root throw `JailEscapeError`.
+- Symlinks are resolved with `fs.realpath` and re-checked, so a link pointing outside the
+  workspace is refused. This holds for reads, for writes to files that do not exist yet, and for
+  `grep`, which silently skips such links.
+- `glob` and `grep` patterns that leave the workspace (`../*`, `/etc/*`, `~/*`) or that are
+  built to exhaust the glob engine (very long, deeply nested braces) are rejected.
+
+## The shell tool
+
+`shell` runs a command through `execFile`, never through a shell, so `; rm -rf /` in an
+argument is just a string.
+
+```ts
+workspaceTools({ root, shell: { allow: ['node', 'pnpm'], timeoutMs: 60_000 } })
+```
+
+- `command` must be a **bare name on the allowlist**. `node` works; `/tmp/evil/node` and
+  `./node` are rejected. The name is resolved through `PATH`, so keep `PATH` trustworthy.
+- `cwd` is jailed like any other path.
+- Output is capped and a timeout kills the process.
+- Leave `shell` out entirely and the model has no way to run commands.
+
+Think hard before allowlisting an interpreter or a build tool. `node -e` and `pnpm run` execute
+arbitrary code by design. That is fine behind approval, but it means the allowlist is a
+convenience, not a sandbox. When you need real isolation, use
+[sandboxed code execution](/guides/sandboxed-code/).
+
+## Options
+
+| Option | Default | Effect |
+|---|---|---|
+| `git` | `true` | Include the git tools |
+| `shell` | omitted | Include `shell` with this allowlist |
+| `shell.alwaysApprove` | `false` | Run without asking (CI only) |
+| `approveWrites` | `true` | Ask before `write_file` and `edit_file` |
+
+For unattended runs, prefer relaxing approval one tool at a time over turning everything off,
+and read the [threat model](https://github.com/intellibrix/intellibrix/blob/master/THREAT_MODEL.md) first.

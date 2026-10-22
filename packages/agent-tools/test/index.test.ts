@@ -1,0 +1,481 @@
+import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+import { FileTracker, workspaceTools } from '@intellibrix/workspace'
+import { Intelligence, type ToolDefinition, validateToolInput } from 'intellibrix'
+import { MockProvider } from 'intellibrix/testing'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import {
+  agentTools,
+  applyPatchTool,
+  detectChecks,
+  evaluate,
+  parseUnifiedDiff,
+  runChecksTool,
+  TodoStore,
+  todoTool,
+} from '../src/index.js'
+
+let root: string
+let outside: string
+
+beforeEach(async () => {
+  root = await realpath(await mkdtemp(path.join(tmpdir(), 'at-root-')))
+  outside = await realpath(await mkdtemp(path.join(tmpdir(), 'at-out-')))
+})
+
+afterEach(async () => {
+  await rm(root, { recursive: true, force: true })
+  await rm(outside, { recursive: true, force: true })
+})
+
+const run = async (tool: ToolDefinition, input: unknown, runId = 'test') =>
+  tool.execute(await validateToolInput(tool, input), { runId })
+const put = (file: string, text: string) => writeFile(path.join(root, file), text)
+const get = (file: string) => readFile(path.join(root, file), 'utf8')
+const missing = (file: string) =>
+  get(file).then(
+    () => false,
+    () => true,
+  )
+
+describe('apply_patch', () => {
+  const tool = () => applyPatchTool({ root })
+
+  it('modifies a file, locating hunks by context even with wrong line numbers', async () => {
+    await put('a.txt', 'one\ntwo\nthree\nfour\nfive\n')
+    const r = await run(tool(), {
+      patch: '--- a/a.txt\n+++ b/a.txt\n@@ -40,3 +40,3 @@\n three\n-four\n+FOUR\n five\n',
+    })
+    expect(await get('a.txt')).toBe('one\ntwo\nthree\nFOUR\nfive\n')
+    expect(r).toEqual({
+      applied: true,
+      files: [{ path: 'a.txt', action: 'modify', hunks: 1, added: 1, removed: 1 }],
+    })
+  })
+
+  it('applies several hunks and several files', async () => {
+    await put('a.txt', 'a1\na2\na3\na4\na5\na6\na7\na8\n')
+    await put('b.txt', 'b1\nb2\n')
+    await run(tool(), {
+      patch: [
+        'diff --git a/a.txt b/a.txt',
+        '--- a/a.txt',
+        '+++ b/a.txt',
+        '@@ -1,2 +1,3 @@',
+        ' a1',
+        '+inserted',
+        ' a2',
+        '@@ -7,2 +8,1 @@',
+        ' a7',
+        '-a8',
+        '--- a/b.txt',
+        '+++ b/b.txt',
+        '@@ -1,2 +1,2 @@',
+        '-b1',
+        '+B1',
+        ' b2',
+        '',
+      ].join('\n'),
+    })
+    expect(await get('a.txt')).toBe('a1\ninserted\na2\na3\na4\na5\na6\na7\n')
+    expect(await get('b.txt')).toBe('B1\nb2\n')
+  })
+
+  it('creates and deletes files', async () => {
+    await put('gone.txt', 'x\ny\n')
+    const r = await run(tool(), {
+      patch:
+        '--- /dev/null\n+++ b/new/dir/f.txt\n@@ -0,0 +1,2 @@\n+hello\n+world\n--- a/gone.txt\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-x\n-y\n',
+    })
+    expect(await get('new/dir/f.txt')).toBe('hello\nworld\n')
+    expect(await missing('gone.txt')).toBe(true)
+    expect((r.files as { action: string }[]).map((f) => f.action)).toEqual(['create', 'delete'])
+  })
+
+  it('renames a file while editing it', async () => {
+    await put('old.txt', 'a\nb\n')
+    await run(tool(), { patch: '--- old.txt\n+++ new.txt\n@@ -1,2 +1,2 @@\n a\n-b\n+B\n' })
+    expect(await get('new.txt')).toBe('a\nB\n')
+    expect(await missing('old.txt')).toBe(true)
+  })
+
+  it('is all or nothing: one bad hunk leaves every file untouched', async () => {
+    await put('a.txt', 'a\n')
+    await put('b.txt', 'b\n')
+    await expect(
+      run(tool(), {
+        patch:
+          '--- a.txt\n+++ a.txt\n@@ -1 +1 @@\n-a\n+A\n--- b.txt\n+++ b.txt\n@@ -1 +1 @@\n-nope\n+B\n',
+      }),
+    ).rejects.toThrow(/Hunk 1 of b\.txt does not apply/)
+    expect(await get('a.txt')).toBe('a\n')
+    expect(await get('b.txt')).toBe('b\n')
+  })
+
+  it('check mode validates without writing', async () => {
+    await put('a.txt', 'a\n')
+    const r = await run(tool(), {
+      patch: '--- a.txt\n+++ a.txt\n@@ -1 +1 @@\n-a\n+A\n',
+      check: true,
+    })
+    expect(r).toMatchObject({ applied: false, checked: true })
+    expect(await get('a.txt')).toBe('a\n')
+  })
+
+  it('preserves CRLF line endings and a missing final newline', async () => {
+    await put('w.txt', 'a\r\nb\r\n')
+    await run(tool(), { patch: '--- w.txt\n+++ w.txt\n@@ -1,2 +1,2 @@\n a\n-b\n+B\n' })
+    expect(await get('w.txt')).toBe('a\r\nB\r\n')
+
+    await put('n.txt', 'a\nb')
+    await run(tool(), {
+      patch:
+        '--- n.txt\n+++ n.txt\n@@ -1,2 +1,2 @@\n a\n-b\n\\ No newline at end of file\n+B\n\\ No newline at end of file\n',
+    })
+    expect(await get('n.txt')).toBe('a\nB')
+  })
+
+  it('accepts blank context lines whose leading space was stripped', async () => {
+    await put('s.txt', 'a\n\nb\n')
+    await run(tool(), { patch: '--- s.txt\n+++ s.txt\n@@ -1,3 +1,3 @@\n a\n\n-b\n+B\n' })
+    expect(await get('s.txt')).toBe('a\n\nB\n')
+  })
+
+  it('refuses to create an existing file or patch a missing one', async () => {
+    await put('a.txt', 'a\n')
+    await expect(
+      run(tool(), { patch: '--- /dev/null\n+++ a.txt\n@@ -0,0 +1 @@\n+x\n' }),
+    ).rejects.toThrow(/already exists/)
+    await expect(
+      run(tool(), { patch: '--- nope.txt\n+++ nope.txt\n@@ -1 +1 @@\n-a\n+b\n' }),
+    ).rejects.toThrow(/does not exist/)
+  })
+
+  it('stays inside the workspace, including through symlinks', async () => {
+    await expect(
+      run(tool(), { patch: '--- /dev/null\n+++ ../escape.txt\n@@ -0,0 +1 @@\n+x\n' }),
+    ).rejects.toThrow(/escapes the workspace/)
+    await symlink(outside, path.join(root, 'link'))
+    await expect(
+      run(tool(), { patch: '--- /dev/null\n+++ link/pwn.txt\n@@ -0,0 +1 @@\n+x\n' }),
+    ).rejects.toThrow(/escapes the workspace/)
+    expect(await readFile(path.join(outside, 'pwn.txt')).catch(() => null)).toBeNull()
+  })
+
+  it('requires approval by default, and rejects empty patches', async () => {
+    expect(tool().needsApproval).toBe(true)
+    expect(applyPatchTool({ root, approveWrites: false }).needsApproval).toBe(false)
+    await expect(run(tool(), { patch: 'just words' })).rejects.toThrow(/No file changes/)
+  })
+
+  it('parses headers with timestamps and git prefixes', () => {
+    const [f] = parseUnifiedDiff(
+      '--- a/x.ts\t2024-01-01\n+++ b/x.ts\t2024-01-02\n@@ -1 +1 @@\n-a\n+b\n',
+    )
+    expect(f).toMatchObject({ oldPath: 'a/x.ts', newPath: 'b/x.ts' })
+  })
+})
+
+describe('run_checks', () => {
+  const node = (script: string) => ({ command: process.execPath, args: ['-e', script] })
+
+  it('reports passing checks tersely', async () => {
+    const r = await run(runChecksTool({ root, checks: { test: node('console.log("fine")') } }), {})
+    expect(r).toMatchObject({
+      ok: true,
+      results: [{ name: 'test', ok: true, exitCode: 0, failures: [], output: '' }],
+    })
+  })
+
+  it('parses tsc, generic and vitest-style failures, and strips colors', async () => {
+    const script = `console.error(
+      "\\u001b[31msrc/a.ts(3,5): error TS2322: Type 'x' is not assignable.\\u001b[0m\\n" +
+      "src/b.ts:10:2 - error TS1005: ';' expected.\\n" +
+      "lib/c.js:7:1: no-unused-vars 'y' is unused\\n" +
+      " FAIL  test/d.test.ts > suite > does a thing\\n"); process.exit(2)`
+    const r = await run(runChecksTool({ root, checks: { typecheck: node(script) } }), {})
+    expect(r.ok).toBe(false)
+    const [res] = r.results
+    expect(res.exitCode).toBe(2)
+    expect(res.failures).toEqual([
+      { file: 'src/a.ts', line: 3, column: 5, message: "TS2322: Type 'x' is not assignable." },
+      { file: 'src/b.ts', line: 10, column: 2, message: "TS1005: ';' expected." },
+      { file: 'lib/c.js', line: 7, column: 1, message: "no-unused-vars 'y' is unused" },
+      { file: 'test/d.test.ts', message: 'test failed: suite > does a thing' },
+    ])
+    expect(res.output).not.toContain('\u001b')
+  })
+
+  it('supports custom parsers, selecting checks, and unknown names', async () => {
+    const tool = runChecksTool({
+      root,
+      checks: {
+        a: {
+          ...node('console.log("boom"); process.exit(1)'),
+          parse: (o) => [{ message: o.trim() }],
+        },
+        b: node(''),
+      },
+    })
+    const r = await run(tool, { checks: ['a'] })
+    expect(r.results).toHaveLength(1)
+    expect(r.results[0].failures).toEqual([{ message: 'boom' }])
+    await expect(run(tool, { checks: ['zzz'] })).rejects.toThrow(
+      /Unknown check: zzz\. Available: a, b/,
+    )
+  })
+
+  it('times out and reports spawn failures', async () => {
+    const r = await run(
+      runChecksTool({
+        root,
+        checks: {
+          slow: { ...node('setTimeout(()=>{}, 5000)'), timeoutMs: 100 },
+          missing: { command: 'definitely-not-a-binary' },
+        },
+      }),
+      {},
+    )
+    expect(r.results[0]).toMatchObject({ name: 'slow', ok: false, timedOut: true })
+    expect(r.results[1]).toMatchObject({ name: 'missing', ok: false, exitCode: -1 })
+  })
+
+  it('detects checks from package.json and the lockfile', async () => {
+    expect(await detectChecks(root)).toEqual({})
+    await put(
+      'package.json',
+      JSON.stringify({
+        scripts: { test: 'vitest run', 'type-check': 'tsc', lint: 'biome ci', dev: 'x' },
+      }),
+    )
+    await put('pnpm-lock.yaml', '')
+    expect(await detectChecks(root)).toEqual({
+      test: { command: 'pnpm', args: ['run', 'test'], parse: undefined },
+      typecheck: { command: 'pnpm', args: ['run', 'type-check'], parse: 'tsc' },
+      lint: { command: 'pnpm', args: ['run', 'lint'], parse: undefined },
+    })
+    await expect(run(runChecksTool({ root: outside }), {})).rejects.toThrow(/No checks/)
+  })
+
+  it('requires approval by default, and keeps cwd inside the root', async () => {
+    expect(runChecksTool({ root }).needsApproval).toBe(true)
+    expect(runChecksTool({ root, alwaysApprove: true }).needsApproval).toBe(false)
+    await mkdir(path.join(root, 'sub'))
+    const r = await run(
+      runChecksTool({
+        root,
+        checks: { here: { ...node('console.log(process.cwd())'), cwd: 'sub' } },
+      }),
+      {},
+    )
+    expect(r.ok).toBe(true)
+    await expect(
+      run(runChecksTool({ root, checks: { bad: { command: 'node', cwd: '..' } } }), {}),
+    ).rejects.toThrow(/escapes the workspace/)
+  })
+})
+
+describe('todo', () => {
+  it('replaces the list, reads it back, and scopes it to the run', async () => {
+    const seen: string[] = []
+    const tool = todoTool({ onChange: (runId) => seen.push(runId) })
+    const r = await run(
+      tool,
+      {
+        todos: [
+          { content: 'plan', status: 'completed' },
+          { content: 'build', status: 'in_progress' },
+          { content: 'ship', status: 'pending' },
+        ],
+      },
+      'r1',
+    )
+    expect(r).toMatchObject({ pending: 1, inProgress: 1, completed: 1 })
+    expect(r.todos.map((t: { id: string }) => t.id)).toEqual(['1', '2', '3'])
+    expect(await run(tool, {}, 'r1')).toEqual(r)
+    expect(await run(tool, {}, 'r2')).toMatchObject({ todos: [] })
+    expect(tool.store.get('r1')).toHaveLength(3)
+    expect(seen).toEqual(['r1'])
+  })
+
+  it('allows only one task in progress', async () => {
+    await expect(
+      run(todoTool(), {
+        todos: [
+          { content: 'a', status: 'in_progress' },
+          { content: 'b', status: 'in_progress' },
+        ],
+      }),
+    ).rejects.toThrow(/Only one task/)
+  })
+
+  it('uses a supplied store', async () => {
+    const store = new TodoStore()
+    await run(todoTool({ store }), { todos: [{ content: 'a', status: 'pending' }] }, 'x')
+    expect(store.get('x')).toEqual([{ id: '1', content: 'a', status: 'pending' }])
+  })
+})
+
+describe('agentTools', () => {
+  it('bundles the tools and lets each be left out', () => {
+    expect(agentTools({ root }).map((t) => t.name)).toEqual([
+      'apply_patch',
+      'run_checks',
+      'todo',
+      'calculator',
+      'datetime',
+      'json_query',
+      'diff',
+    ])
+    expect(
+      agentTools({
+        root,
+        checks: false,
+        todo: false,
+        calculator: false,
+        datetime: false,
+        jsonQuery: false,
+        diff: false,
+      }).map((t) => t.name),
+    ).toEqual(['apply_patch'])
+  })
+
+  it('drives an edit, check, plan loop through the agent loop', async () => {
+    await put('a.txt', 'a\n')
+    const provider = new MockProvider([
+      {
+        toolCalls: [
+          { toolName: 'todo', input: { todos: [{ content: 'fix a', status: 'in_progress' }] } },
+          {
+            toolName: 'apply_patch',
+            input: { patch: '--- a.txt\n+++ a.txt\n@@ -1 +1 @@\n-a\n+A\n' },
+          },
+        ],
+      },
+      { text: 'done' },
+    ])
+    const ai = new Intelligence({
+      provider,
+      model: 'mock',
+      tools: agentTools({ root, approveWrites: false }),
+    })
+    await ai.ask('fix it')
+    expect(await get('a.txt')).toBe('A\n')
+  })
+})
+
+describe('apply_patch with a shared FileTracker', () => {
+  const patchOf = (file: string) => `--- ${file}\n+++ ${file}\n@@ -1 +1 @@\n-a\n+A\n`
+
+  it('requires a prior read, accepts reads from workspace tools, and notices outside changes', async () => {
+    const tracker = new FileTracker()
+    const ws = workspaceTools({ root, git: false, tracker })
+    const patch = applyPatchTool({ root, tracker })
+    await put('a.txt', 'a\n')
+
+    await expect(run(patch, { patch: patchOf('a.txt') })).rejects.toThrow(/Read a\.txt before/)
+    expect(await get('a.txt')).toBe('a\n')
+
+    await run(ws.find((t) => t.name === 'read_file') as ToolDefinition, { path: 'a.txt' })
+    await run(patch, { patch: patchOf('a.txt') })
+    expect(await get('a.txt')).toBe('A\n')
+
+    // The patch's own write counts as seen, so a follow-up needs no re-read...
+    await run(patch, { patch: '--- a.txt\n+++ a.txt\n@@ -1 +1 @@\n-A\n+B\n' })
+    // ...but an outside change does.
+    await put('a.txt', 'changed\n')
+    await expect(
+      run(patch, { patch: '--- a.txt\n+++ a.txt\n@@ -1 +1 @@\n-changed\n+C\n' }),
+    ).rejects.toThrow(/changed since you last read it/)
+  })
+
+  it('does not require a read to create a file, and guards deletes', async () => {
+    const tracker = new FileTracker()
+    const patch = applyPatchTool({ root, tracker })
+    await run(patch, { patch: '--- /dev/null\n+++ n.txt\n@@ -0,0 +1 @@\n+x\n' })
+    await put('d.txt', 'y\n')
+    await expect(
+      run(patch, { patch: '--- d.txt\n+++ /dev/null\n@@ -1 +0,0 @@\n-y\n' }),
+    ).rejects.toThrow(/Read d\.txt before/)
+    expect(await get('d.txt')).toBe('y\n')
+  })
+
+  it('agentTools passes the tracker through', async () => {
+    const tracker = new FileTracker()
+    await put('a.txt', 'a\n')
+    const tool = agentTools({ root, tracker, approveWrites: false }).find(
+      (t) => t.name === 'apply_patch',
+    ) as ToolDefinition
+    await expect(run(tool, { patch: patchOf('a.txt') })).rejects.toThrow(/Read a\.txt before/)
+  })
+})
+
+describe('apply_patch concurrency', () => {
+  it('serializes parallel patches to one file instead of losing updates', async () => {
+    const tool = applyPatchTool({ root })
+    await put('c.txt', `${Array.from({ length: 10 }, (_, i) => `<n${i}>`).join('\n')}\n`)
+    await Promise.all(
+      Array.from({ length: 10 }, (_, i) =>
+        run(tool, { patch: `--- c.txt\n+++ c.txt\n@@ -1 +1 @@\n-<n${i}>\n+<N${i}>\n` }),
+      ),
+    )
+    expect(await get('c.txt')).toBe(
+      `${Array.from({ length: 10 }, (_, i) => `<N${i}>`).join('\n')}\n`,
+    )
+  })
+
+  it('writes atomically: no temp files, and executable bits survive', async () => {
+    const { chmod, readdir, stat } = await import('node:fs/promises')
+    await put('s.sh', 'echo a\n')
+    await chmod(path.join(root, 's.sh'), 0o755)
+    await run(applyPatchTool({ root }), {
+      patch: '--- s.sh\n+++ s.sh\n@@ -1 +1 @@\n-echo a\n+echo b\n',
+    })
+    expect((await stat(path.join(root, 's.sh'))).mode & 0o777).toBe(0o755)
+    expect(await readdir(root)).toEqual(['s.sh'])
+  })
+})
+
+describe('calculator', () => {
+  it('evaluates arithmetic with precedence, powers, functions and constants', () => {
+    expect(evaluate('1 + 2 * 3')).toBe(7)
+    expect(evaluate('(1 + 2) * 3')).toBe(9)
+    expect(evaluate('2 ^ 3 ^ 2')).toBe(512)
+    expect(evaluate('-2 ^ 2')).toBe(-4)
+    expect(evaluate('2 ** -1')).toBe(0.5)
+    expect(evaluate('10 % 4 + 1e3')).toBe(1002)
+    expect(evaluate('round(1234.5 * 1.0825, 2)')).toBe(1336.35)
+    expect(evaluate('round(2.5)')).toBe(3)
+    expect(evaluate('max(1, sqrt(16), abs(-3))')).toBe(4)
+    expect(evaluate('SIN(pi / 2)')).toBe(1)
+  })
+
+  it('rejects bad input instead of evaluating it', () => {
+    for (const bad of [
+      '',
+      '1 +',
+      '(1',
+      '1 / 0',
+      'foo',
+      'foo(1)',
+      'process.exit()',
+      '1 2',
+      '2 $ 3',
+    ]) {
+      expect(() => evaluate(bad), bad).toThrow()
+    }
+    expect(() => evaluate('9 ^ 9 ^ 9')).toThrow(/finite/)
+    expect(() => evaluate(`${'('.repeat(200)}1${')'.repeat(200)}`)).toThrow(/deeply/)
+    expect(() => evaluate('1'.repeat(501))).toThrow(/longer/)
+  })
+
+  it('is a tool that needs no approval', async () => {
+    const tool = agentTools({ root }).find((t) => t.name === 'calculator') as ToolDefinition
+    expect(tool.needsApproval).toBeFalsy()
+    expect(await tool.execute({ expression: '6 * 7' }, { runId: 'r' } as never)).toEqual({
+      expression: '6 * 7',
+      result: 42,
+    })
+  })
+})

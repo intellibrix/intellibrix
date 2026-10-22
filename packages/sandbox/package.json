@@ -1,0 +1,79 @@
+{
+  "name": "@intellibrix/sandbox",
+  "version": "0.0.0",
+  "description": "Vendor-neutral hosted code-execution tool for intellibrix",
+  "author": "Jay Mathis <code@mathis.network>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/intellibrix/intellibrix.git",
+    "directory": "packages/sandbox"
+  },
+  "homepage": "https://github.com/intellibrix/intellibrix#readme",
+  "bugs": {
+    "url": "https://github.com/intellibrix/intellibrix/issues"
+  },
+  "keywords": [
+    "intellibrix",
+    "sandbox",
+    "code-execution",
+    "e2b",
+    "daytona"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "intellibrix": "workspace:^",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsdown": "^0.23.0",
+    "typescript": "^5.6.0",
+    "vitest": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@e2b/code-interpreter": ">=1.0.0",
+    "@daytonaio/sdk": ">=0.20.0"
+  },
+  "peerDependenciesMeta": {
+    "@e2b/code-interpreter": {
+      "optional": true
+    },
+    "@daytonaio/sdk": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

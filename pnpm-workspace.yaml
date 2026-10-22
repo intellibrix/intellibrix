@@ -1,0 +1,12 @@
+packages:
+  - 'packages/*'
+  - 'examples/*'
+  - 'website'
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  sqlite3: true
+  protobufjs: false
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm

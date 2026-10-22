@@ -1,0 +1,57 @@
+name: Bug report
+description: Something isn't working as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! For security issues, please use the private reporting link instead.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - intellibrix (core)
+        - "@intellibrix/ai-sdk"
+        - "@intellibrix/structures"
+        - "@intellibrix/mcp"
+        - "@intellibrix/memory-sqlite"
+        - "@intellibrix/sql"
+        - "@intellibrix/workspace"
+        - "@intellibrix/agent-tools"
+        - "@intellibrix/sandbox"
+        - "@intellibrix/github"
+        - "@intellibrix/express"
+        - "@intellibrix/terminal"
+        - "@intellibrix/i18n"
+        - "@intellibrix/cli"
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: A short script is ideal. Using `MockProvider` from `intellibrix/testing` avoids needing an API key.
+      render: typescript
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Node version, OS, and model/provider if relevant.
+      placeholder: Node 22.12, Ubuntu 24.04, anthropic:claude-sonnet-5

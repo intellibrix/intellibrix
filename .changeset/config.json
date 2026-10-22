@@ -1,0 +1,28 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@intellibrix/agent-tools",
+      "@intellibrix/ai-sdk",
+      "@intellibrix/cli",
+      "intellibrix",
+      "@intellibrix/express",
+      "@intellibrix/github",
+      "@intellibrix/i18n",
+      "@intellibrix/mcp",
+      "@intellibrix/memory-sqlite",
+      "@intellibrix/sandbox",
+      "@intellibrix/sql",
+      "@intellibrix/structures",
+      "@intellibrix/terminal",
+      "@intellibrix/workspace"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "master",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}
