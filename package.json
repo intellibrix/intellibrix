@@ -17,6 +17,7 @@
     "check:packages": "bash scripts/check-packages.sh",
     "check:api": "pnpm --filter intellibrix api:check",
     "smoke:examples": "node scripts/smoke-examples.mjs",
+    "scaffold:local": "bash scripts/scaffold-local.sh",
     "docs:site": "node scripts/docs.mjs && pnpm --filter intellibrix-website build:site && node scripts/assemble-site.mjs"
   },
   "engines": {

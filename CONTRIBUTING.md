@@ -41,6 +41,9 @@ Run these before pushing; they are the same ones CI runs.
 | `pnpm smoke:examples` | Runs each example offline |
 | `pnpm -r test` | Vitest suites (`pnpm --filter <pkg> test` for one package) |
 
+To try the project `intellibrix init` generates before the packages are on npm, run
+`pnpm scaffold:local <dir>`. It packs every package, scaffolds into `<dir>` and installs from the tarballs.
+
 The git hooks (via [lefthook](https://lefthook.dev)) run Biome on staged files before each
 commit, check your commit message, and typecheck before push. `LEFTHOOK=0 git commit ...`
 skips them in a pinch; CI will still check.
