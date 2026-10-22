@@ -59,9 +59,7 @@ export function recordProvider(
 
 /**
  * Plays back a fixed array of {@link RecordedStep}s in call order. Throws
- * loudly (`replayProvider: fixtures exhausted`) on drift between recorded
- * fixtures and an updated test scenario, rather than silently reusing stale
- * data.
+ * (`replayProvider: fixtures exhausted`) when the run asks for more steps than were recorded.
  */
 export function replayProvider(fixtures: RecordedStep[]): Provider {
   let index = 0

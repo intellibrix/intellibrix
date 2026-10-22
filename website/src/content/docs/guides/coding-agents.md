@@ -111,8 +111,8 @@ temporary file beside it, which then takes its place with a single rename. A rea
 the new one, never half of it, a failure leaves the original untouched, and the file keeps its
 permissions (a script stays executable).
 
-The agent loop runs one step's tool calls in parallel, so two edits to the same file used to be able to
-overwrite each other. Writes to a file now take turns (`apply_patch` holds the lock for every file it
+The agent loop runs one step's tool calls in parallel, so two edits to the same file could
+overwrite each other. Writes to a file take turns (`apply_patch` holds the lock for every file it
 touches, in a fixed order, so it cannot deadlock). Just before the swap the file is read again, and the
 write is abandoned if another writer changed it in the meantime. That serialization is exact inside one
 process. Against a different process the check narrows the race to the instant before the rename but

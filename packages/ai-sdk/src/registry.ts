@@ -72,8 +72,7 @@ export function provider(modelString: string, opts?: AiSdkProviderOptions): Inte
 /**
  * Resolves an intellibrix {@link IntellibrixProvider} against an
  * OpenAI-compatible HTTP endpoint (Ollama, OpenRouter, vLLM, etc.) via
- * `@ai-sdk/openai-compatible`, rather than string-hacking a non-registry URL
- * through {@link provider}.
+ * `@ai-sdk/openai-compatible`.
  */
 export function compatibleProvider(
   model: string,

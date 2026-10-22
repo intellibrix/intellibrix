@@ -26,9 +26,8 @@ export type SQLDatabaseOptions = {
 /**
  * Represents a SQL-backed Database that may be used by Bricks to manage data.
  *
- * This is a mechanical extraction of the old `service: 'sql'` branch from
- * intellibrix's core `Database` class. See `SQLKeyValueStore` for the `KeyValueStore`-conformant
- * store, and `PgVectorStore` for pgvector-backed similarity search.
+ * See `SQLKeyValueStore` for the `KeyValueStore`-conformant store, and `PgVectorStore` for
+ * pgvector-backed similarity search.
  */
 export default class SQLDatabase {
   // The URI for the database

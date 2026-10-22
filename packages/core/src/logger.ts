@@ -4,9 +4,7 @@ let sharedLogger: pino.Logger | undefined
 
 /**
  * Returns a process-wide shared pino logger, created lazily on first use and
- * shared across every {@link Brick}/{@link Structure} instance. Fixes the
- * pre-1.0 behavior of constructing a new pino-pretty transport (and worker
- * thread) per instance.
+ * shared across every {@link Brick}/{@link Structure} instance.
  */
 export function getSharedLogger(options?: {
   logJSON?: boolean
