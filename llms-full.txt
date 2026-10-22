@@ -2026,6 +2026,12 @@ EmbedOptions:
 
 Options for an embedding request.
 
+### Type Alias Factory
+
+```ts
+Factory: () => T | Promise<T>
+```
+
 ### Type Alias FilePart
 
 ```ts

@@ -231,6 +231,7 @@
 - [defaultToolCallParsers](https://intellibrix.dev/api/variables/intellibrix.Core.defaultToolCallParsers.html): The parsers `textToolCalls` uses unless `parsers` is given.
 - [defineTool](https://intellibrix.dev/api/functions/intellibrix.Core.defineTool.html): Defines a `ToolDefinition`.
 - [EmbedOptions](https://intellibrix.dev/api/types/intellibrix.Core.EmbedOptions.html): Options for an embedding request.
+- [Factory](https://intellibrix.dev/api/types/intellibrix.testing.Factory.html)
 - [FilePart](https://intellibrix.dev/api/types/intellibrix.Core.FilePart.html): An arbitrary file attachment, referenced by URL or inlined as base64 data.
 - [FinishReason](https://intellibrix.dev/api/types/intellibrix.Core.FinishReason.html): The reason a model step finished.
 - [fromJSONSchema](https://intellibrix.dev/api/functions/intellibrix.Core.fromJSONSchema.html): Wraps a raw JSON Schema as a Standard Schema, validated at runtime with Ajv.
