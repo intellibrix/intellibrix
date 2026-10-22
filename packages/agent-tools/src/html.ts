@@ -146,16 +146,16 @@ export function parseHtml(html: string): El {
   return root
 }
 
-/** Removes `<!-- … -->` comments; an unterminated one is left as it is. */
+/** Removes `<!-- … -->` comments; an unterminated one swallows the rest of the page, as in a browser. */
 export function stripComments(html: string): string {
   let out = ''
   let pos = 0
   for (;;) {
     const start = html.indexOf('<!--', pos)
     if (start < 0) break
-    const end = html.indexOf('-->', start + 4)
-    if (end < 0) break
     out += html.slice(pos, start)
+    const end = html.indexOf('-->', start + 4)
+    if (end < 0) return out
     pos = end + 3
   }
   return out + html.slice(pos)
@@ -166,9 +166,27 @@ export function stripTags(html: string): string {
   let text = html
   for (let prev = ''; prev !== text; ) {
     prev = text
-    text = text.replace(/<[^>]+>/g, '')
+    text = removeTagsOnce(text)
   }
   return text
+}
+
+function removeTagsOnce(html: string): string {
+  let out = ''
+  let pos = 0
+  for (;;) {
+    const lt = html.indexOf('<', pos)
+    if (lt < 0) break
+    const gt = html.indexOf('>', lt + 1)
+    if (gt < 0) break
+    if (gt === lt + 1) {
+      out += html.slice(pos, gt + 1)
+    } else {
+      out += html.slice(pos, lt)
+    }
+    pos = gt + 1
+  }
+  return out + html.slice(pos)
 }
 
 /**
