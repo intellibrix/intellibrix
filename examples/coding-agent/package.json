@@ -9,12 +9,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^3.0.0",
+    "@ai-sdk/openai-compatible": "^3.0.73",
     "@intellibrix/agent-tools": "workspace:^",
     "@intellibrix/ai-sdk": "workspace:^",
     "@intellibrix/terminal": "workspace:^",
     "@intellibrix/workspace": "workspace:^",
-    "ai": "^7.0.0",
+    "ai": "^7.0.145",
     "intellibrix": "workspace:^",
     "terminal-kit": "^3.0.0",
     "zod": "^4.6.2"

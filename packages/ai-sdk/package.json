@@ -55,9 +55,9 @@
     "intellibrix": "workspace:^"
   },
   "peerDependencies": {
-    "ai": "^7.0.0",
-    "@ai-sdk/anthropic": "^4.0.0",
-    "@ai-sdk/openai": "^4.0.0",
+    "ai": "^7.0.145",
+    "@ai-sdk/anthropic": "^4.0.83",
+    "@ai-sdk/openai": "^4.0.97",
     "@ai-sdk/google": "^4.0.0",
     "@ai-sdk/openai-compatible": "^3.0.0"
   },
@@ -76,11 +76,11 @@
     }
   },
   "devDependencies": {
-    "@ai-sdk/anthropic": "^4.0.0",
-    "@ai-sdk/openai": "^4.0.0",
-    "@ai-sdk/provider": "^4.0.0",
+    "@ai-sdk/anthropic": "^4.0.83",
+    "@ai-sdk/openai": "^4.0.97",
+    "@ai-sdk/provider": "^4.0.30",
     "@types/node": "^22.0.0",
-    "ai": "^7.0.0",
+    "ai": "^7.0.145",
     "tsdown": "^0.23.0",
     "typescript": "^5.6.0",
     "vitest": "^5.0.0",
