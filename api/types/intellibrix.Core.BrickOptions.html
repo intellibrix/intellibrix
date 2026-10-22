@@ -1,5 +1,5 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>BrickOptions | intellibrix - v0.0.0</title><meta name="description" content="Documentation for intellibrix"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
-<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">intellibrix - v0.0.0</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>BrickOptions | intellibrix v1.0.0</title><meta name="description" content="Documentation for intellibrix v1.0.0"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">intellibrix v1.0.0</a>
 <div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
 <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
@@ -17,7 +17,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">BrickOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#database">database</a><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/intellibrix.Core.KeyValueStore.html" class="tsd-signature-type tsd-kind-interface">KeyValueStore</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#id">id</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#intelligence">intelligence</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/intellibrix.Core.Intelligence.html" class="tsd-signature-type tsd-kind-class">Intelligence</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#logjson">logJSON</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#loglevel">logLevel</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">pino.Level</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#name">name</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#pinooptions">pinoOptions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">pino.LoggerOptions</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#structure">structure</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/intellibrix.Core.Structure.html" class="tsd-signature-type tsd-kind-class">Structure</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L86">brick.ts:86</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L86">brick.ts:86</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -43,56 +43,56 @@
 <div class="tsd-comment tsd-typography"><p>The key-value store of the Brick instance. Defaults to an in-memory store.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L125">brick.ts:125</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L125">brick.ts:125</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="id"><code class="tsd-tag">Optional</code><span>id</span><a href="#id" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The unique identifier of the Brick instance. If not provided, a random UUID will be generated.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L90">brick.ts:90</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L90">brick.ts:90</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="intelligence"><code class="tsd-tag">Optional</code><span>intelligence</span><a href="#intelligence" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">intelligence</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/intellibrix.Core.Intelligence.html" class="tsd-signature-type tsd-kind-class">Intelligence</a></div>
 <div class="tsd-comment tsd-typography"><p>The Intelligence of the Brick instance. This is used to manage the AI capabilities of the Brick.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L120">brick.ts:120</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L120">brick.ts:120</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="logjson"><code class="tsd-tag">Optional</code><span>log<wbr/>JSON</span><a href="#logjson" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">logJSON</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p>A boolean indicating whether the logs should be in JSON format.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L105">brick.ts:105</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L105">brick.ts:105</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="loglevel"><code class="tsd-tag">Optional</code><span>log<wbr/>Level</span><a href="#loglevel" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">logLevel</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">pino.Level</span></div>
 <div class="tsd-comment tsd-typography"><p>The log level of the Brick instance. This determines the level of detail of the logs.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L100">brick.ts:100</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L100">brick.ts:100</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="name"><code class="tsd-tag">Optional</code><span>name</span><a href="#name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The name of the Brick instance. If not provided, the id will be used as the name.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L95">brick.ts:95</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L95">brick.ts:95</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="pinooptions"><code class="tsd-tag">Optional</code><span>pino<wbr/>Options</span><a href="#pinooptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">pinoOptions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">pino.LoggerOptions</span></div>
 <div class="tsd-comment tsd-typography"><p>The options for the pino logger used by the Brick instance.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L110">brick.ts:110</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L110">brick.ts:110</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="structure"><code class="tsd-tag">Optional</code><span>structure</span><a href="#structure" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">structure</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/intellibrix.Core.Structure.html" class="tsd-signature-type tsd-kind-class">Structure</a></div>
 <div class="tsd-comment tsd-typography"><p>The parent Structure of the Brick, if any.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/1c28617bb32ec15e628385b6806abaabecaca2e4/packages/core/src/brick.ts#L115">brick.ts:115</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/d1fc1e845d7893a39252a3a04e1d03ec63040f33/packages/core/src/brick.ts#L115">brick.ts:115</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -111,7 +111,7 @@
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
 <div><a href="#database"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>database</span></a><a href="#id"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>id</span></a><a href="#intelligence"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>intelligence</span></a><a href="#logjson"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>log<wbr/>JSON</span></a><a href="#loglevel"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>log<wbr/>Level</span></a><a href="#name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>name</span></a><a href="#pinooptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>pino<wbr/>Options</span></a><a href="#structure"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>structure</span></a></div></details></div></details></div>
 <div class="site-menu">
-<nav class="tsd-navigation"><a href="../modules.html">intellibrix - v0.0.0</a>
+<nav class="tsd-navigation"><a href="../modules.html">intellibrix v1.0.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
 <li>Loading...</li></ul></nav></div></div></div><footer>
 <p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
