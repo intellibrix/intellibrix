@@ -1,6 +1,6 @@
 {
   "name": "@intellibrix/terminal",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Terminal brick for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
