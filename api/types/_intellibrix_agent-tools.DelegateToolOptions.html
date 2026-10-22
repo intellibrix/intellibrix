@@ -13,7 +13,7 @@
 <h1>Type Alias DelegateToolOptions</h1></div>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">DelegateToolOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#agents">agents</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">agent</span><span class="tsd-signature-symbol">:</span> <a href="_intellibrix_agent-tools.Delegate.html" class="tsd-signature-type tsd-kind-type-alias">Delegate</a><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">description</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxsteps">maxSteps</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#onresult">onResult</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">result</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">AskResult</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">ctx</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ToolContext</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#trusted">trusted</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/9b95bff96e0bca2f85354bd5d0d600da72c47a75/packages/agent-tools/src/delegate.ts#L12">packages/agent-tools/src/delegate.ts:12</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/agent-tools/src/delegate.ts#L12">packages/agent-tools/src/delegate.ts:12</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -35,21 +35,21 @@
 <div class="tsd-comment tsd-typography"><p>The sub-agents the model may hand work to, by name.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/9b95bff96e0bca2f85354bd5d0d600da72c47a75/packages/agent-tools/src/delegate.ts#L14">packages/agent-tools/src/delegate.ts:14</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/agent-tools/src/delegate.ts#L14">packages/agent-tools/src/delegate.ts:14</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="maxsteps"><code class="tsd-tag">Optional</code><span>max<wbr/>Steps</span><a href="#maxsteps" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maxSteps</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>Step budget for each delegated run. Defaults to the sub-agent's own.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/9b95bff96e0bca2f85354bd5d0d600da72c47a75/packages/agent-tools/src/delegate.ts#L16">packages/agent-tools/src/delegate.ts:16</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/agent-tools/src/delegate.ts#L16">packages/agent-tools/src/delegate.ts:16</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="onresult"><code class="tsd-tag">Optional</code><span>on<wbr/>Result</span><a href="#onresult" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onResult</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">result</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">AskResult</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">ctx</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ToolContext</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-comment tsd-typography"><p>Called when a delegated run finishes, e.g. to log or meter it.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/9b95bff96e0bca2f85354bd5d0d600da72c47a75/packages/agent-tools/src/delegate.ts#L24">packages/agent-tools/src/delegate.ts:24</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/agent-tools/src/delegate.ts#L24">packages/agent-tools/src/delegate.ts:24</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="trusted"><code class="tsd-tag">Optional</code><span>trusted</span><a href="#trusted" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">trusted</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -63,7 +63,7 @@ content: a sub-agent that read a hostile file can pass its instructions on in it
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/9b95bff96e0bca2f85354bd5d0d600da72c47a75/packages/agent-tools/src/delegate.ts#L22">packages/agent-tools/src/delegate.ts:22</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/agent-tools/src/delegate.ts#L22">packages/agent-tools/src/delegate.ts:22</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
