@@ -92,8 +92,7 @@ export function decodeEntities(text: string): string {
   })
 }
 
-const TOKEN =
-  /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!(?:doctype|[^>]*)>|<(\/?)([a-zA-Z][\w:-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>|[^<]+|</gi
+const TOKEN = /<!(?:doctype|[^>]*)>|<(\/?)([a-zA-Z][\w:-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>|[^<]+|</gi
 const ATTR = /([^\s=/"'<>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g
 
 function parseAttrs(source: string): Record<string, string> {
@@ -120,7 +119,7 @@ export function parseHtml(html: string): El {
         return
     }
   }
-  for (const m of html.matchAll(TOKEN)) {
+  for (const m of stripDelimited(stripComments(html), '<![CDATA[', ']]>').matchAll(TOKEN)) {
     const [whole, slash, rawTag, rawAttrs] = m
     if (!rawTag) {
       if (!whole.startsWith('<!') && !whole.startsWith('<')) top().children.push(whole)
@@ -146,19 +145,24 @@ export function parseHtml(html: string): El {
   return root
 }
 
-/** Removes `<!-- … -->` comments; an unterminated one swallows the rest of the page, as in a browser. */
-export function stripComments(html: string): string {
+/** Removes `open … close` spans; an unterminated one swallows the rest, as in a browser. */
+function stripDelimited(html: string, open: string, close: string): string {
   let out = ''
   let pos = 0
   for (;;) {
-    const start = html.indexOf('<!--', pos)
+    const start = html.indexOf(open, pos)
     if (start < 0) break
     out += html.slice(pos, start)
-    const end = html.indexOf('-->', start + 4)
+    const end = html.indexOf(close, start + open.length)
     if (end < 0) return out
-    pos = end + 3
+    pos = end + close.length
   }
   return out + html.slice(pos)
+}
+
+/** Removes `<!-- … -->` comments. */
+export function stripComments(html: string): string {
+  return stripDelimited(html, '<!--', '-->')
 }
 
 /** Removes tags until none are left, so nested fragments like `<<b>script>` cannot survive. */
