@@ -679,8 +679,8 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
       ignore:
-        specifier: ^7.0.12
-        version: 7.0.12
+        specifier: ^7.0.13
+        version: 7.0.13
       intellibrix:
         specifier: workspace:^
         version: link:../core
@@ -3631,8 +3631,8 @@ packages:
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
-  ignore@7.0.12:
-    resolution: {integrity: sha512-/8UvqAPU9DGTI9k4mxtf49U37Isfwr8Uts96+SBHIkFxPJnHS0Ew4f00sM4Scd8V8EjM0jUNtVDdv1kPdt35lg==}
+  ignore@7.0.13:
+    resolution: {integrity: sha512-2E8Q6rh+1RRSq/YdaGsNfXsEZy9FVqv6BSSrkmZJP7BnaoPnRfKL+YaofPvP+5rzdk144qSm6i4+hvPgUcbV4Q==}
     engines: {node: '>= 4'}
 
   import-fresh@3.3.1:
@@ -9005,7 +9005,7 @@ snapshots:
 
   ieee754@1.2.1: {}
 
-  ignore@7.0.12: {}
+  ignore@7.0.13: {}
 
   import-fresh@3.3.1:
     dependencies:
