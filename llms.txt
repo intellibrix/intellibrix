@@ -1,0 +1,314 @@
+# intellibrix
+
+> Model-agnostic, TypeScript-native, agent-native framework: Structure → Brick → Program, typed tools, an agent loop, MCP, multi-agent structures. Full reference: https://intellibrix.dev/llms-full.txt
+
+## @intellibrix/agent-tools
+
+- [agentTools](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.agentTools.html): `apply_patch`, `run_checks`, `todo`, `calculator`, `datetime`, `json_query` and `diff` for a workspace rooted at `root`, plus `fetch_url`, `web_search`, `memory`, `ask_user` and `delegate` when you configure them.
+- [AgentToolsOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.AgentToolsOptions.html)
+- [ApplyPatchOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.ApplyPatchOptions.html)
+- [applyPatchTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.applyPatchTool.html): An `apply_patch` tool that applies a unified diff to files inside the workspace, atomically: every hunk of every file is applied in memory first, and nothing is written unless all of them apply.
+- [askUserTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.askUserTool.html): An `ask_user` tool: the model pauses to ask the human a clarifying question instead of guessing.
+- [AskUserToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.AskUserToolOptions.html)
+- [braveSearch](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.braveSearch.html): [Brave Search](https://brave.com/search/api/).
+- [calculatorTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.calculatorTool.html): A `calculator` tool for exact arithmetic, which models do badly in their heads.
+- [CheckFailure](https://intellibrix.dev/api/types/_intellibrix_agent-tools.CheckFailure.html): One problem pulled out of a check's output.
+- [CheckResult](https://intellibrix.dev/api/types/_intellibrix_agent-tools.CheckResult.html): The outcome of one named check.
+- [CheckSpec](https://intellibrix.dev/api/types/_intellibrix_agent-tools.CheckSpec.html): A command the model may run through `run_checks`.
+- [createUnifiedDiff](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.createUnifiedDiff.html): A unified diff from `before` to `after`, with `context` lines around each change.
+- [datetimeTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.datetimeTool.html): A `datetime` tool for the things models get wrong: what time it is now, converting between time zones, adding to a date, and the distance between two dates.
+- [DatetimeToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.DatetimeToolOptions.html)
+- [Delegate](https://intellibrix.dev/api/types/_intellibrix_agent-tools.Delegate.html): Anything that answers a prompt: an `Intelligence`, a `Brick`, or your own wrapper.
+- [delegateTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.delegateTool.html): A `delegate` tool: the model hands a self-contained task to a named sub-agent and gets back its final answer.
+- [DelegateToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.DelegateToolOptions.html)
+- [detectChecks](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.detectChecks.html): Infers checks from `package.json` scripts: `test`, `typecheck` (or `type-check`/`tsc`), `lint` and `build`, run with the package manager that owns the lockfile.
+- [diffTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.diffTool.html): A `diff` tool that compares two files in the workspace, or two pieces of text, and returns a unified diff: for "what changed between these two versions?" when git has no answer, such as a generated file against its backup, or a file against the text the model plans to write.
+- [DiffToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.DiffToolOptions.html)
+- [evaluate](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.evaluate.html): Evaluates an arithmetic expression with a small recursive-descent parser, never `eval`.
+- [FailureParser](https://intellibrix.dev/api/types/_intellibrix_agent-tools.FailureParser.html): Turns a check's (color-stripped) output into structured failures.
+- [FetchBlockedError](https://intellibrix.dev/api/classes/_intellibrix_agent-tools.FetchBlockedError.html)
+- [fetchUrlTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.fetchUrlTool.html): A `fetch_url` tool that reads a web page or API response as text, built so a prompt-injected model cannot use it to reach your internal network:
+- [FetchUrlToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.FetchUrlToolOptions.html)
+- [htmlToMarkdown](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.htmlToMarkdown.html): Converts an HTML page to Markdown, keeping headings, links, lists, code blocks and tables, and dropping scripts, navigation, ads, cookie banners and other page furniture.
+- [htmlToText](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.htmlToText.html): A readable plain-text rendering of an HTML page: no scripts, styles or markup.
+- [isPrivateAddress](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.isPrivateAddress.html): Whether `address` is loopback, private, link-local, multicast or otherwise not a public internet address, including IPv6 forms that wrap an IPv4 address.
+- [jsonQueryTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.jsonQueryTool.html): A `json_query` tool: run a jq-style query over a JSON (or JSON Lines) file in the workspace so the model reads only the slice it needs, not a megabyte of API output.
+- [JsonQueryToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.JsonQueryToolOptions.html)
+- [memoryTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.memoryTool.html): A `memory` tool: the model saves short notes under a key and finds them again later, even in a new run, because they live in a `KeyValueStore` you choose.
+- [MemoryToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.MemoryToolOptions.html)
+- [parseRobots](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.parseRobots.html)
+- [parseUnifiedDiff](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.parseUnifiedDiff.html): Parses a unified diff, tolerating `diff --git` headers and wrong hunk line counts.
+- [PatchedFile](https://intellibrix.dev/api/types/_intellibrix_agent-tools.PatchedFile.html): What a patch did (or would do) to one file.
+- [queryJson](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.queryJson.html): Runs the jq-style `query` over `data` and returns every value it produces.
+- [Robots](https://intellibrix.dev/api/types/_intellibrix_agent-tools.Robots.html): A parsed `robots.txt`, as RFC 9309 describes it.
+- [robotsAllows](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.robotsAllows.html): Whether `userAgent` may fetch `path` (path plus query).
+- [RunChecksOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.RunChecksOptions.html)
+- [runChecksTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.runChecksTool.html): A `run_checks` tool that runs named, developer-defined commands (tests, typecheck, lint, build) and returns structured results (pass/fail, exit code, parsed file/line failures) instead of raw terminal output, so a model can drive an edit, check, fix loop.
+- [SearchProvider](https://intellibrix.dev/api/interfaces/_intellibrix_agent-tools.SearchProvider.html): A web-search backend (Brave, Tavily, SearXNG, ...).
+- [SearchProviderOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.SearchProviderOptions.html)
+- [SearchResult](https://intellibrix.dev/api/types/_intellibrix_agent-tools.SearchResult.html): One hit from a search backend.
+- [searxngSearch](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.searxngSearch.html): A self-hosted [SearXNG](https://docs.searxng.org) instance, which must have the `json` format enabled.
+- [tavilySearch](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.tavilySearch.html): [Tavily](https://tavily.com).
+- [TodoItem](https://intellibrix.dev/api/types/_intellibrix_agent-tools.TodoItem.html)
+- [TodoStatus](https://intellibrix.dev/api/types/_intellibrix_agent-tools.TodoStatus.html)
+- [TodoStore](https://intellibrix.dev/api/classes/_intellibrix_agent-tools.TodoStore.html): Holds each run's task list so the host can show or persist it.
+- [todoTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.todoTool.html): A `todo` tool: the model keeps a task list for the current run, replacing the whole list on each call (omit `todos` to read it back).
+- [TodoTool](https://intellibrix.dev/api/types/_intellibrix_agent-tools.TodoTool.html): The `todo` tool plus the `TodoStore` that backs it.
+- [TodoToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.TodoToolOptions.html)
+- [UnifiedDiff](https://intellibrix.dev/api/types/_intellibrix_agent-tools.UnifiedDiff.html)
+- [UserQuestion](https://intellibrix.dev/api/types/_intellibrix_agent-tools.UserQuestion.html): A question the model wants a human to answer.
+- [webSearchTool](https://intellibrix.dev/api/functions/_intellibrix_agent-tools.webSearchTool.html): A `web_search` tool over a swappable `SearchProvider`.
+- [WebSearchToolOptions](https://intellibrix.dev/api/types/_intellibrix_agent-tools.WebSearchToolOptions.html)
+
+## @intellibrix/ai-sdk
+
+- [aiSdkProvider](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.aiSdkProvider.html): Wraps an AI SDK `LanguageModel` as an intellibrix `Provider`.
+- [AiSdkProviderOptions](https://intellibrix.dev/api/types/_intellibrix_ai-sdk.AiSdkProviderOptions.html): Options for `aiSdkProvider`.
+- [compatibleProvider](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.compatibleProvider.html): Resolves an intellibrix `IntellibrixProvider` against an OpenAI-compatible HTTP endpoint (Ollama, OpenRouter, vLLM, etc.) via `@ai-sdk/openai-compatible`.
+- [fromAiSdkContent](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.fromAiSdkContent.html): Converts a single generated step's AI SDK content array into intellibrix's assistant `Message`.
+- [fromAiSdkFinishReason](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.fromAiSdkFinishReason.html): Converts an AI SDK `finishReason` into intellibrix's `FinishReason`.
+- [fromAiSdkStep](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.fromAiSdkStep.html): Converts a single-step AI SDK `generateText` result's essentials into intellibrix's `StepResult`.
+- [fromAiSdkUsage](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.fromAiSdkUsage.html): Converts an AI SDK `LanguageModelUsage` into intellibrix's `Usage`.
+- [provider](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.provider.html): Resolves an intellibrix `IntellibrixProvider` from a `"<vendor>:<model>"` string (e.g. `"anthropic:claude-sonnet-5"`), backed by whichever `@ai-sdk/*` vendor adapter is installed.
+- [toAiSdkMessages](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.toAiSdkMessages.html): Converts intellibrix's normalized `Message` array into AI SDK's `ModelMessage[]` shape.
+- [toAiSdkTools](https://intellibrix.dev/api/functions/_intellibrix_ai-sdk.toAiSdkTools.html): Converts intellibrix `ToolDefinition[]` into an AI SDK `ToolSet`, declared schema-only with no `execute` attached, so AI SDK returns control to the caller on a tool-call finish reason instead of looping internally.
+
+## @intellibrix/cli
+
+- [init](https://intellibrix.dev/api/functions/_intellibrix_cli.init.html): Scaffolds a new intellibrix project into `dir`.
+- [InitOptions](https://intellibrix.dev/api/types/_intellibrix_cli.InitOptions.html)
+- [loadEntry](https://intellibrix.dev/api/functions/_intellibrix_cli.loadEntry.html): Loads a TypeScript (or JS) entry through tsx's programmatic API, in-process, and returns its default export, which must be a Brick or Structure.
+- [runCli](https://intellibrix.dev/api/functions/_intellibrix_cli.runCli.html): Runs the CLI.
+- [SCAFFOLD_VERSION](https://intellibrix.dev/api/variables/_intellibrix_cli.SCAFFOLD_VERSION.html): Version range the scaffolded project depends on.
+
+## @intellibrix/express
+
+- [askRoute](https://intellibrix.dev/api/functions/_intellibrix_express.askRoute.html): POST handler: reads `{prompt, threadId?}` from the JSON body and replies `{reply}` with the target's answer.
+- [askStreamRoute](https://intellibrix.dev/api/functions/_intellibrix_express.askStreamRoute.html): GET handler: reads `?prompt=` (and optional `threadId`) and streams the target's `Intelligence.stream` output as Server-Sent Events, one `event: <type>` / `data: <json>` frame per stream event.
+- [AskTarget](https://intellibrix.dev/api/types/_intellibrix_express.AskTarget.html): Anything `askRoute`/`askStreamRoute` can send a prompt to.
+- [default](https://intellibrix.dev/api/classes/_intellibrix_express.default.html): Class representing a brick that sets up an Express server.
+- [ExpressBrickOptions](https://intellibrix.dev/api/interfaces/_intellibrix_express.ExpressBrickOptions.html): Interface for the options of ExpressBrick.
+- [ExpressBrickRequest](https://intellibrix.dev/api/interfaces/_intellibrix_express.ExpressBrickRequest.html): Interface for the request object in ExpressBrick.
+
+## @intellibrix/github
+
+- [githubTools](https://intellibrix.dev/api/functions/_intellibrix_github.githubTools.html): Issue, pull-request, comment and review tools over octokit.
+- [GithubToolsOptions](https://intellibrix.dev/api/types/_intellibrix_github.GithubToolsOptions.html)
+- [githubWebhookHandler](https://intellibrix.dev/api/functions/_intellibrix_github.githubWebhookHandler.html): A webhook handler for GitHub deliveries.
+- [GithubWebhookOptions](https://intellibrix.dev/api/types/_intellibrix_github.GithubWebhookOptions.html)
+- [githubWebhookRoute](https://intellibrix.dev/api/functions/_intellibrix_github.githubWebhookRoute.html): Middleware pair for `app.post(path, ...githubWebhookRoute(opts))`: `express.raw` scoped to this route, then `githubWebhookHandler`.
+- [signPayload](https://intellibrix.dev/api/functions/_intellibrix_github.signPayload.html): Computes GitHub's `X-Hub-Signature-256` value for a raw body.
+- [verifySignature](https://intellibrix.dev/api/functions/_intellibrix_github.verifySignature.html): Constant-time check of a signature header against the raw body.
+- [WebhookTarget](https://intellibrix.dev/api/types/_intellibrix_github.WebhookTarget.html): Anything with an event bus: a `Brick` or a `Structure`.
+
+## @intellibrix/i18n
+
+- [I18nBrick](https://intellibrix.dev/api/classes/_intellibrix_i18n.I18nBrick.html): Class representing an I18n (Internationalization) Brick.
+- [I18nBrickOptions](https://intellibrix.dev/api/interfaces/_intellibrix_i18n.I18nBrickOptions.html): Interface representing the options for the I18nBrick.
+
+## @intellibrix/mcp
+
+- [contentToParts](https://intellibrix.dev/api/functions/_intellibrix_mcp.contentToParts.html)
+- [ElicitationRequest](https://intellibrix.dev/api/types/_intellibrix_mcp.ElicitationRequest.html): A request for the human on the MCP client to supply structured input (MCP `elicitation/create`).
+- [ElicitationResult](https://intellibrix.dev/api/types/_intellibrix_mcp.ElicitationResult.html)
+- [McpServerHandle](https://intellibrix.dev/api/types/_intellibrix_mcp.McpServerHandle.html)
+- [McpToolContext](https://intellibrix.dev/api/types/_intellibrix_mcp.McpToolContext.html): Extra capabilities the MCP server wrapper adds to a tool's `ctx` while it runs behind `serveMcp`.
+- [mcpTools](https://intellibrix.dev/api/functions/_intellibrix_mcp.mcpTools.html): Connects to an MCP server and mounts each of its tools as an intellibrix `ToolDefinition`.
+- [McpToolsHandle](https://intellibrix.dev/api/types/_intellibrix_mcp.McpToolsHandle.html)
+- [McpToolsOptions](https://intellibrix.dev/api/types/_intellibrix_mcp.McpToolsOptions.html)
+- [McpTransportOptions](https://intellibrix.dev/api/types/_intellibrix_mcp.McpTransportOptions.html)
+- [partsToContentBlocks](https://intellibrix.dev/api/functions/_intellibrix_mcp.partsToContentBlocks.html)
+- [samplingFromProvider](https://intellibrix.dev/api/functions/_intellibrix_mcp.samplingFromProvider.html): Builds an `onSamplingRequest` handler that answers MCP sampling requests with any intellibrix `Provider`.
+- [SamplingRequest](https://intellibrix.dev/api/types/_intellibrix_mcp.SamplingRequest.html): A request for the MCP peer's LLM to produce a completion (MCP `sampling/createMessage`), expressed in intellibrix's own message shapes.
+- [SamplingResult](https://intellibrix.dev/api/types/_intellibrix_mcp.SamplingResult.html)
+- [serveMcp](https://intellibrix.dev/api/functions/_intellibrix_mcp.serveMcp.html): Exposes a Brick (its programs plus attached tools) or a whole Structure (merged across its bricks; duplicate names throw at startup, not call time) as an MCP server.
+- [ServeMcpOptions](https://intellibrix.dev/api/types/_intellibrix_mcp.ServeMcpOptions.html)
+- [textMessage](https://intellibrix.dev/api/functions/_intellibrix_mcp.textMessage.html): Convenience constructor for a single-text-part `Message`.
+- [textOf](https://intellibrix.dev/api/functions/_intellibrix_mcp.textOf.html): Extracts and concatenates all text parts of a `Message`.
+
+## @intellibrix/memory-sqlite
+
+- [SQLiteConversationMemory](https://intellibrix.dev/api/classes/_intellibrix_memory-sqlite.SQLiteConversationMemory.html): A `ConversationMemory` on Node's built-in `node:sqlite`, with no native dependencies.
+- [SQLiteConversationMemoryOptions](https://intellibrix.dev/api/types/_intellibrix_memory-sqlite.SQLiteConversationMemoryOptions.html): Options for creating a `SQLiteConversationMemory`.
+- [SQLiteVectorStore](https://intellibrix.dev/api/classes/_intellibrix_memory-sqlite.SQLiteVectorStore.html): A `VectorStore` on `node:sqlite`.
+- [SQLiteVectorStoreOptions](https://intellibrix.dev/api/types/_intellibrix_memory-sqlite.SQLiteVectorStoreOptions.html): Options for creating a `SQLiteVectorStore`.
+
+## @intellibrix/sandbox
+
+- [cloudflareProvider](https://intellibrix.dev/api/functions/_intellibrix_sandbox.cloudflareProvider.html): Wraps a Cloudflare Sandbox handle.
+- [CloudflareSandboxHandle](https://intellibrix.dev/api/interfaces/_intellibrix_sandbox.CloudflareSandboxHandle.html): The slice of a [Cloudflare Sandbox](https://developers.cloudflare.com/sandbox/) handle (from `getSandbox(env.Sandbox, id)` inside a Worker) this adapter uses.
+- [ContainerExec](https://intellibrix.dev/api/types/_intellibrix_sandbox.ContainerExec.html): Runs the container CLI.
+- [ContainerExecResult](https://intellibrix.dev/api/types/_intellibrix_sandbox.ContainerExecResult.html): The result of one container CLI invocation.
+- [ContainerMount](https://intellibrix.dev/api/types/_intellibrix_sandbox.ContainerMount.html): A directory shared from the host into the container.
+- [containerProvider](https://intellibrix.dev/api/functions/_intellibrix_sandbox.containerProvider.html): Runs code in a local [Podman](https://podman.io) or [Docker](https://docker.com) container, so nothing leaves the machine and no account is needed.
+- [ContainerProviderOptions](https://intellibrix.dev/api/types/_intellibrix_sandbox.ContainerProviderOptions.html)
+- [daytonaProvider](https://intellibrix.dev/api/functions/_intellibrix_sandbox.daytonaProvider.html): [Daytona](https://daytona.io) sandboxes.
+- [DaytonaProviderOptions](https://intellibrix.dev/api/types/_intellibrix_sandbox.DaytonaProviderOptions.html)
+- [e2bProvider](https://intellibrix.dev/api/functions/_intellibrix_sandbox.e2bProvider.html): [E2B](https://e2b.dev) code-interpreter sandboxes.
+- [E2BProviderOptions](https://intellibrix.dev/api/types/_intellibrix_sandbox.E2BProviderOptions.html)
+- [importVendor](https://intellibrix.dev/api/functions/_intellibrix_sandbox.importVendor.html): Dynamically imports an optional vendor SDK, throwing an actionable error (naming the package to install) when it is absent.
+- [RunCodeResult](https://intellibrix.dev/api/types/_intellibrix_sandbox.RunCodeResult.html): The outcome of running code in a sandbox.
+- [Sandbox](https://intellibrix.dev/api/interfaces/_intellibrix_sandbox.Sandbox.html): A live, isolated execution environment.
+- [SandboxProvider](https://intellibrix.dev/api/interfaces/_intellibrix_sandbox.SandboxProvider.html): A hosted-sandbox backend (E2B, Daytona, Cloudflare, ...).
+- [sandboxTool](https://intellibrix.dev/api/functions/_intellibrix_sandbox.sandboxTool.html): Builds a single `run_code` tool backed by `provider`.
+- [SandboxTool](https://intellibrix.dev/api/types/_intellibrix_sandbox.SandboxTool.html): The `run_code` tool plus lifecycle controls for its per-run sandbox cache.
+- [SandboxToolOptions](https://intellibrix.dev/api/types/_intellibrix_sandbox.SandboxToolOptions.html)
+
+## @intellibrix/sql
+
+- [default](https://intellibrix.dev/api/classes/_intellibrix_sql.default.html): Represents a SQL-backed Database that may be used by Bricks to manage data.
+- [PgVectorStore](https://intellibrix.dev/api/classes/_intellibrix_sql.PgVectorStore.html): A `VectorStore` on Postgres + pgvector.
+- [PgVectorStoreOptions](https://intellibrix.dev/api/types/_intellibrix_sql.PgVectorStoreOptions.html): Options for creating a `PgVectorStore`.
+- [SQLDatabaseOptions](https://intellibrix.dev/api/types/_intellibrix_sql.SQLDatabaseOptions.html): Represents the options for creating a SQLDatabase instance.
+- [SQLInterface](https://intellibrix.dev/api/interfaces/_intellibrix_sql.SQLInterface.html): Represents a SQL interface for a database.
+- [SQLKeyValueStore](https://intellibrix.dev/api/classes/_intellibrix_sql.SQLKeyValueStore.html): A `KeyValueStore` backed by a SQL table via Sequelize, using a parametrized UPSERT.
+- [SQLKeyValueStoreOptions](https://intellibrix.dev/api/types/_intellibrix_sql.SQLKeyValueStoreOptions.html): Options for creating a `SQLKeyValueStore`.
+
+## @intellibrix/structures
+
+- [assertDepth](https://intellibrix.dev/api/functions/_intellibrix_structures.assertDepth.html): Throws `DepthExceededError` if `depth` exceeds `max`.
+- [asTool](https://intellibrix.dev/api/functions/_intellibrix_structures.asTool.html): Wraps a whole `Brick` as one opaque `ToolDefinition`: `execute` calls `brick.ask(input.prompt)`.
+- [AsToolOptions](https://intellibrix.dev/api/types/_intellibrix_structures.AsToolOptions.html): Options for `asTool`.
+- [DepthExceededError](https://intellibrix.dev/api/classes/_intellibrix_structures.DepthExceededError.html): Thrown by `assertDepth` when a delegation chain exceeds its configured `maxDepth`.
+- [HandoffContinueSentinel](https://intellibrix.dev/api/types/_intellibrix_structures.HandoffContinueSentinel.html): Sentinel returned by a `'continue'`-mode handoff tool, recognized by `loop.ts`'s opt-in handoff hook to swap `system`/`tools` mid-run without terminating the current turn.
+- [HandoffOptions](https://intellibrix.dev/api/types/_intellibrix_structures.HandoffOptions.html): Options for `handoffTool`.
+- [handoffTool](https://intellibrix.dev/api/functions/_intellibrix_structures.handoffTool.html): A `ToolDefinition` transferring control to another brick.
+- [parallel](https://intellibrix.dev/api/functions/_intellibrix_structures.parallel.html): Fans the same input to every step via `Promise.all`, mirroring `loop.ts`'s own parallel tool-dispatch pattern.
+- [PipelineStep](https://intellibrix.dev/api/types/_intellibrix_structures.PipelineStep.html): A pipeline step: either a `Brick` (invoked via `ask()`, receiving/producing a string) or a `Program` (invoked via its owning brick's `run()`, passed as a `[brick, program]` tuple so `pipeline.ts` doesn't need its own dispatch mechanism).
+- [router](https://intellibrix.dev/api/functions/_intellibrix_structures.router.html): Classifies a prompt into one of `routes` via a single `Intelligence.object()` structured-output call (one model step, no loop), then dispatches to the matched brick's `ask()`.
+- [RouterOptions](https://intellibrix.dev/api/types/_intellibrix_structures.RouterOptions.html): Options for `router`.
+- [sequential](https://intellibrix.dev/api/functions/_intellibrix_structures.sequential.html): Chains each step's output into the next step's input.
+- [StructureHopEvent](https://intellibrix.dev/api/types/_intellibrix_structures.StructureHopEvent.html): Emitted by supervisor/router/handoff/pipeline at each delegation point.
+- [StructuresEvent](https://intellibrix.dev/api/types/_intellibrix_structures.StructuresEvent.html)
+- [StructuresEventHandler](https://intellibrix.dev/api/types/_intellibrix_structures.StructuresEventHandler.html)
+- [supervisor](https://intellibrix.dev/api/functions/_intellibrix_structures.supervisor.html): Wires the parent `supervisor` Intelligence's tool list to the given `bricks`, each wrapped (by default) as a single opaque tool via `asTool`, so nested delegation happens through the existing agent-loop tool-dispatch machinery, with no new execution engine.
+- [SupervisorOptions](https://intellibrix.dev/api/types/_intellibrix_structures.SupervisorOptions.html): Options for `supervisor`.
+- [SupervisorResult](https://intellibrix.dev/api/types/_intellibrix_structures.SupervisorResult.html): The result of asking a `supervisor()`.
+
+## @intellibrix/terminal
+
+- [chatRepl](https://intellibrix.dev/api/functions/_intellibrix_terminal.chatRepl.html): Runs an interactive chat loop: read a line with the brick's own `input()`, send it through `brick.ask()`, print the reply.
+- [ChatReplOptions](https://intellibrix.dev/api/interfaces/_intellibrix_terminal.ChatReplOptions.html)
+- [default](https://intellibrix.dev/api/classes/_intellibrix_terminal.default.html): Class representing a Terminal Brick.
+- [InputClosedError](https://intellibrix.dev/api/classes/_intellibrix_terminal.InputClosedError.html): Thrown by `TerminalBrick.input` when stdin closes or the user presses Ctrl+C before input is entered.
+- [ReplIO](https://intellibrix.dev/api/interfaces/_intellibrix_terminal.ReplIO.html): The slice of `TerminalBrick` that `chatRepl` needs.
+
+## @intellibrix/workspace
+
+- [FileTracker](https://intellibrix.dev/api/classes/_intellibrix_workspace.FileTracker.html): Remembers what the model last saw of each file, so a write can be refused when the file has changed since (another process, a formatter, the user) or was never read.
+- [FsToolOptions](https://intellibrix.dev/api/types/_intellibrix_workspace.FsToolOptions.html)
+- [fsTools](https://intellibrix.dev/api/functions/_intellibrix_workspace.fsTools.html): Jailed read tools (`read_file`, `list_dir`, `glob`, `grep`) and write tools (`write_file`, `edit_file`).
+- [GitToolOptions](https://intellibrix.dev/api/types/_intellibrix_workspace.GitToolOptions.html)
+- [gitTools](https://intellibrix.dev/api/functions/_intellibrix_workspace.gitTools.html): `git_status`, `git_diff`, `git_commit`, `git_branch` over simple-git, scoped to the workspace root.
+- [JailEscapeError](https://intellibrix.dev/api/classes/_intellibrix_workspace.JailEscapeError.html): Thrown when a requested path resolves outside the workspace root.
+- [readTextFile](https://intellibrix.dev/api/functions/_intellibrix_workspace.readTextFile.html): Reads a UTF-8 file and its size through one handle, so the size describes the text returned.
+- [resolveJailed](https://intellibrix.dev/api/functions/_intellibrix_workspace.resolveJailed.html): Resolves `requested` (relative to `root`, or absolute) to an absolute path guaranteed to lie inside `root`.
+- [shellTool](https://intellibrix.dev/api/functions/_intellibrix_workspace.shellTool.html): A `shell` tool that runs allowlisted binaries via `execFile`, never through a shell, so there is no metacharacter interpolation.
+- [ShellToolOptions](https://intellibrix.dev/api/types/_intellibrix_workspace.ShellToolOptions.html)
+- [withFileLock](https://intellibrix.dev/api/functions/_intellibrix_workspace.withFileLock.html): Runs `fn` while holding an in-process lock on `file`, so concurrent tool calls on the same file (the agent loop runs one step's calls in parallel) take turns instead of losing each other's update.
+- [withFileLocks](https://intellibrix.dev/api/functions/_intellibrix_workspace.withFileLocks.html): Like `withFileLock` for several files at once, taken in a fixed order so callers cannot deadlock.
+- [workspaceTools](https://intellibrix.dev/api/functions/_intellibrix_workspace.workspaceTools.html): The full toolset for a workspace rooted at `root`.
+- [WorkspaceToolsOptions](https://intellibrix.dev/api/types/_intellibrix_workspace.WorkspaceToolsOptions.html)
+- [writeFileAtomic](https://intellibrix.dev/api/functions/_intellibrix_workspace.writeFileAtomic.html): Replaces `file` with `content` so readers see the old content or the new, never a partial file: the content goes to a temporary file in the same directory, which then takes the file's place with a single `rename`.
+- [WriteFileAtomicOptions](https://intellibrix.dev/api/types/_intellibrix_workspace.WriteFileAtomicOptions.html)
+
+## intellibrix
+
+- [Action](https://intellibrix.dev/api/types/intellibrix.Core.Action.html): Represents an action in a step with an optional name, description and a method.
+- [ApprovalDecision](https://intellibrix.dev/api/types/intellibrix.Core.ApprovalDecision.html): A decision returned by an approval hook.
+- [ApprovalHook](https://intellibrix.dev/api/types/intellibrix.Core.ApprovalHook.html): A hook invoked before a gated tool call executes.
+- [AskOptions](https://intellibrix.dev/api/types/intellibrix.Core.AskOptions.html): Options for a single `ask`/`stream` call.
+- [AskResult](https://intellibrix.dev/api/types/intellibrix.Core.AskResult.html)
+- [Brick](https://intellibrix.dev/api/classes/intellibrix.Core.Brick.html): A Brick is the core of the framework.
+- [BrickOptions](https://intellibrix.dev/api/types/intellibrix.Core.BrickOptions.html): Represents the options for creating a Brick instance.
+- [Checkpointer](https://intellibrix.dev/api/interfaces/intellibrix.Core.Checkpointer.html): A save/load hook a durable-execution backend can implement against.
+- [CheckpointState](https://intellibrix.dev/api/types/intellibrix.Core.CheckpointState.html): The saveable state of an in-progress agent-loop run.
+- [ContractCase](https://intellibrix.dev/api/types/intellibrix.testing.ContractCase.html): A single named check from a store contract.
+- [ConversationMemory](https://intellibrix.dev/api/interfaces/intellibrix.Core.ConversationMemory.html): Persists and retrieves conversation history by thread id.
+- [conversationMemoryContract](https://intellibrix.dev/api/functions/intellibrix.testing.conversationMemoryContract.html): Behavior every `ConversationMemory` implementation must share.
+- [customProvider](https://intellibrix.dev/api/functions/intellibrix.Core.customProvider.html): Wraps a plain async function as a `Provider`, for simple custom integrations that don't need the full agent-loop machinery.
+- [defaultPriceTable](https://intellibrix.dev/api/variables/intellibrix.Core.defaultPriceTable.html): A conservative, non-exhaustive starting price table.
+- [defaultToolCallParsers](https://intellibrix.dev/api/variables/intellibrix.Core.defaultToolCallParsers.html): The parsers `textToolCalls` uses unless `parsers` is given.
+- [defineTool](https://intellibrix.dev/api/functions/intellibrix.Core.defineTool.html): Defines a `ToolDefinition`.
+- [EmbedOptions](https://intellibrix.dev/api/types/intellibrix.Core.EmbedOptions.html): Options for an embedding request.
+- [FilePart](https://intellibrix.dev/api/types/intellibrix.Core.FilePart.html): An arbitrary file attachment, referenced by URL or inlined as base64 data.
+- [FinishReason](https://intellibrix.dev/api/types/intellibrix.Core.FinishReason.html): The reason a model step finished.
+- [fromJSONSchema](https://intellibrix.dev/api/functions/intellibrix.Core.fromJSONSchema.html): Wraps a raw JSON Schema as a Standard Schema, validated at runtime with Ajv.
+- [GenerateRequest](https://intellibrix.dev/api/types/intellibrix.Core.GenerateRequest.html): A request for a single model step.
+- [getSharedLogger](https://intellibrix.dev/api/functions/intellibrix.Core.getSharedLogger.html): Returns a process-wide shared pino logger, created lazily on first use and shared across every `Brick`/`Structure` instance.
+- [getTracer](https://intellibrix.dev/api/functions/intellibrix.Core.getTracer.html): Memoizes a single attempt to load `@opentelemetry/api` (an optional peer) and wrap its tracer behind our structural `Tracer` shape, falling back to a permanent no-op tracer/span pair if the package isn't installed or the attempt otherwise fails.
+- [hermesToolCalls](https://intellibrix.dev/api/variables/intellibrix.Core.hermesToolCalls.html): JSON calls in `<tool_call>` tags, as emitted by Hermes, Qwen and many other open models: `<tool_call>{"name":"read_file","arguments":{"path":"a.txt"}}</tool_call>`.
+- [ImageOptions](https://intellibrix.dev/api/types/intellibrix.Core.ImageOptions.html): Options for an image-generation request.
+- [ImagePart](https://intellibrix.dev/api/types/intellibrix.Core.ImagePart.html): An image, referenced by URL or inlined as base64 data.
+- [InMemoryCheckpointer](https://intellibrix.dev/api/classes/intellibrix.Core.InMemoryCheckpointer.html): The default `Checkpointer`: an in-memory `Map`.
+- [Intelligence](https://intellibrix.dev/api/classes/intellibrix.Core.Intelligence.html): Represents an intelligence service that can be used by a `Brick` to process and respond to messages, backed by any `Provider`.
+- [IntelligenceOptions](https://intellibrix.dev/api/types/intellibrix.Core.IntelligenceOptions.html): Options for creating an `Intelligence` instance.
+- [invokeToolCalls](https://intellibrix.dev/api/variables/intellibrix.Core.invokeToolCalls.html): `<invoke name="…">` blocks with `<parameter name="…">` children, optionally inside a wrapper tag such as `<function_calls>` or `<dots_function_call>`: `<invoke name="read_file"><parameter name="path">a.txt</parameter></invoke>`.
+- [isFilePart](https://intellibrix.dev/api/functions/intellibrix.Core.isFilePart.html): Type guard for `FilePart`.
+- [isImagePart](https://intellibrix.dev/api/functions/intellibrix.Core.isImagePart.html): Type guard for `ImagePart`.
+- [isTextPart](https://intellibrix.dev/api/functions/intellibrix.Core.isTextPart.html): Type guard for `TextPart`.
+- [isToolCallPart](https://intellibrix.dev/api/functions/intellibrix.Core.isToolCallPart.html): Type guard for `ToolCallPart`.
+- [isToolResultPart](https://intellibrix.dev/api/functions/intellibrix.Core.isToolResultPart.html): Type guard for `ToolResultPart`.
+- [JSONSchema](https://intellibrix.dev/api/types/intellibrix.Core.JSONSchema.html): A raw JSON Schema object, e.g. as advertised by an MCP server's tool.
+- [JSONSchemaBackedSchema](https://intellibrix.dev/api/types/intellibrix.Core.JSONSchemaBackedSchema.html): A Standard Schema that also exposes its source JSON Schema via the Standard JSON Schema interface, so it round-trips through `toolToJSONSchema()`.
+- [jsonToolCalls](https://intellibrix.dev/api/variables/intellibrix.Core.jsonToolCalls.html): A reply that is nothing but a JSON tool call (optionally in a code fence), e.g. `{"tool": "read_file", "args": {"path": "a.txt"}}`.
+- [KeyValueStore](https://intellibrix.dev/api/interfaces/intellibrix.Core.KeyValueStore.html): A simple, provider-agnostic key-value store.
+- [keyValueStoreContract](https://intellibrix.dev/api/functions/intellibrix.testing.keyValueStoreContract.html): Behavior every `KeyValueStore` implementation must share.
+- [LoopEvent](https://intellibrix.dev/api/types/intellibrix.Core.LoopEvent.html): Typed events emitted at every stage of `runAgentLoop`.
+- [LoopOptions](https://intellibrix.dev/api/types/intellibrix.Core.LoopOptions.html)
+- [LoopResult](https://intellibrix.dev/api/types/intellibrix.Core.LoopResult.html)
+- [MemoryConversationMemory](https://intellibrix.dev/api/classes/intellibrix.Core.MemoryConversationMemory.html): An in-memory `ConversationMemory`, keyed by thread id.
+- [MemoryKeyValueStore](https://intellibrix.dev/api/classes/intellibrix.Core.MemoryKeyValueStore.html): An in-memory `KeyValueStore`.
+- [MemoryVectorStore](https://intellibrix.dev/api/classes/intellibrix.Core.MemoryVectorStore.html): An in-memory `VectorStore` using brute-force cosine similarity.
+- [Message](https://intellibrix.dev/api/types/intellibrix.Core.Message.html): A normalized chat message, provider-agnostic.
+- [MockProvider](https://intellibrix.dev/api/classes/intellibrix.testing.MockProvider.html): A `Provider` implementation scripted with a fixed array of steps, for deterministic tests with zero network calls.
+- [MockStep](https://intellibrix.dev/api/types/intellibrix.testing.MockStep.html): A single scripted step for `MockProvider`: either a plain text reply or one or more tool calls.
+- [mockTool](https://intellibrix.dev/api/functions/intellibrix.testing.mockTool.html): Convenience helper for defining a simple mock tool in tests.
+- [ParsedToolCall](https://intellibrix.dev/api/types/intellibrix.Core.ParsedToolCall.html): A tool call recovered from model-generated text.
+- [Part](https://intellibrix.dev/api/types/intellibrix.Core.Part.html): A single unit of content within a `Message`.
+- [PriceTable](https://intellibrix.dev/api/types/intellibrix.Core.PriceTable.html): Per-million-token pricing for a `"provider:model"` key.
+- [Program](https://intellibrix.dev/api/types/intellibrix.Core.Program.html): Represents a program with a name, optional description and a list of steps.
+- [Provider](https://intellibrix.dev/api/interfaces/intellibrix.Core.Provider.html): A model provider.
+- [pythonicToolCalls](https://intellibrix.dev/api/variables/intellibrix.Core.pythonicToolCalls.html): Pythonic calls wrapped in special tokens, as emitted by e.g. Liquid's LFM models: `<|tool_call_start|>[read_file(path='a.txt')]<|tool_call_end|>`.
+- [RecordedStep](https://intellibrix.dev/api/types/intellibrix.Core.RecordedStep.html): One recorded `generate()` call: the (serializable) request and the result it produced.
+- [recordProvider](https://intellibrix.dev/api/functions/intellibrix.Core.recordProvider.html): Wraps a real `Provider`, intercepting every `generate`/`stream` call and reporting the (serialized) request/result pair to `onRecord`.
+- [replayProvider](https://intellibrix.dev/api/functions/intellibrix.Core.replayProvider.html): Plays back a fixed array of `RecordedStep`s in call order.
+- [resetSharedLogger](https://intellibrix.dev/api/functions/intellibrix.Core.resetSharedLogger.html): Resets the shared logger singleton.
+- [resetTracer](https://intellibrix.dev/api/functions/intellibrix.Core.resetTracer.html): Test-only: clears the memoized tracer so `getTracer()` re-attempts resolution.
+- [resolveNeedsApproval](https://intellibrix.dev/api/functions/intellibrix.Core.resolveNeedsApproval.html): Resolves a tool's `needsApproval` (static or predicate) for a given call.
+- [Role](https://intellibrix.dev/api/types/intellibrix.Core.Role.html): The role of a message's author.
+- [runAgentLoop](https://intellibrix.dev/api/functions/intellibrix.Core.runAgentLoop.html): Runs a single agent loop: generate -> append -> (if tool calls) execute in parallel, gated by approval -> append results -> repeat, until the model stops calling tools, `stopWhen` returns true, `maxSteps` is reached, or the loop is aborted.
+- [RunEvent](https://intellibrix.dev/api/types/intellibrix.Core.RunEvent.html): Structural observability events, layered onto `LoopEvent` (additive, not a replacement, so nothing already consuming `LoopEvent`s breaks).
+- [RunEventHandler](https://intellibrix.dev/api/types/intellibrix.Core.RunEventHandler.html): A callback invoked with each `RunEvent`, wired via `LoopOptions.onRunEvent`.
+- [SerializableGenerateRequest](https://intellibrix.dev/api/types/intellibrix.Core.SerializableGenerateRequest.html): `GenerateRequest` minus non-serializable fields (`abortSignal`, and tool `execute`/`needsApproval` functions; tools are reduced to their name/description/schema).
+- [Span](https://intellibrix.dev/api/types/intellibrix.Core.Span.html): A structural span, shaped closely enough to `@opentelemetry/api`'s `Span` to be a drop-in for anyone bridging into a real OTel setup, but never re-exported from that package, so `tsc` never needs `@opentelemetry/api` installed to typecheck core.
+- [Step](https://intellibrix.dev/api/types/intellibrix.Core.Step.html): Represents a step in a program with an optional name, description and a list of actions.
+- [StepResult](https://intellibrix.dev/api/types/intellibrix.Core.StepResult.html): The result of a single model step.
+- [StreamEvent](https://intellibrix.dev/api/types/intellibrix.Core.StreamEvent.html): A single streamed event during a model step.
+- [Structure](https://intellibrix.dev/api/classes/intellibrix.Core.Structure.html): Represents a Structure that can contain multiple `Brick`s.
+- [StructureEvents](https://intellibrix.dev/api/types/intellibrix.Core.StructureEvents.html): Typed events emitted on a `Structure`'s event bus.
+- [StructureOptions](https://intellibrix.dev/api/types/intellibrix.Core.StructureOptions.html): Represents the options for creating a Structure instance.
+- [Task](https://intellibrix.dev/api/types/intellibrix.Core.Task.html): Represents a Scheduled Task with a name, optional description, schedule, start flag, optional timezone and a method.
+- [textMessage](https://intellibrix.dev/api/functions/intellibrix.Core.textMessage.html): Convenience constructor for a single-text-part `Message`.
+- [textOf](https://intellibrix.dev/api/functions/intellibrix.Core.textOf.html): Extracts and concatenates all text parts of a `Message`.
+- [TextPart](https://intellibrix.dev/api/types/intellibrix.Core.TextPart.html): A block of text content.
+- [TextToolCallParser](https://intellibrix.dev/api/interfaces/intellibrix.Core.TextToolCallParser.html): Recognizes one text-based tool-call format that some models emit in place of native tool calls.
+- [textToolCalls](https://intellibrix.dev/api/functions/intellibrix.Core.textToolCalls.html): Wraps a `Provider` so models that write tool calls as plain text (instead of using the API's native tool calling) still drive the agent loop.
+- [TextToolCallsOptions](https://intellibrix.dev/api/types/intellibrix.Core.TextToolCallsOptions.html)
+- [ToolCallPart](https://intellibrix.dev/api/types/intellibrix.Core.ToolCallPart.html): A request from the model to call a tool.
+- [ToolContext](https://intellibrix.dev/api/types/intellibrix.Core.ToolContext.html): Context passed to a `ToolDefinition`'s `execute` function.
+- [ToolDefinition](https://intellibrix.dev/api/types/intellibrix.Core.ToolDefinition.html): A typed tool a `Provider` can be offered and the agent loop can execute.
+- [ToolResultPart](https://intellibrix.dev/api/types/intellibrix.Core.ToolResultPart.html): The result of executing a tool call.
+- [toolToJSONSchema](https://intellibrix.dev/api/functions/intellibrix.Core.toolToJSONSchema.html): Returns a tool's input as JSON Schema (draft 2020-12), using the Standard JSON Schema interface when the schema implements it (Zod 4 does), and falling back to a permissive object schema otherwise.
+- [Tracer](https://intellibrix.dev/api/types/intellibrix.Core.Tracer.html): A structural tracer.
+- [Trust](https://intellibrix.dev/api/types/intellibrix.Core.Trust.html): Trust level of a `Part`.
+- [Usage](https://intellibrix.dev/api/types/intellibrix.Core.Usage.html): Token usage reported by a single model step.
+- [UsageAccumulator](https://intellibrix.dev/api/classes/intellibrix.Core.UsageAccumulator.html): Accumulates token usage (and, optionally, cost) across model calls.
+- [UsageTotals](https://intellibrix.dev/api/types/intellibrix.Core.UsageTotals.html): Running totals accumulated across one or more `.add()` calls.
+- [validateToolInput](https://intellibrix.dev/api/functions/intellibrix.Core.validateToolInput.html): Validates `input` against a tool's input schema, throwing a descriptive error if validation fails, synchronously unwrapping an async validator.
+- [VectorMatch](https://intellibrix.dev/api/types/intellibrix.Core.VectorMatch.html): A vector-similarity search result.
+- [VectorRecord](https://intellibrix.dev/api/types/intellibrix.Core.VectorRecord.html): A single entry in a `VectorStore`.
+- [VectorStore](https://intellibrix.dev/api/interfaces/intellibrix.Core.VectorStore.html): A provider-agnostic vector store for semantic search / retrieval.
+- [vectorStoreContract](https://intellibrix.dev/api/functions/intellibrix.testing.vectorStoreContract.html): Behavior every `VectorStore` implementation must share.
+- [withSpan](https://intellibrix.dev/api/functions/intellibrix.Core.withSpan.html): Runs `fn` inside a span named `name`, recording any thrown exception and always ending the span.
+- [xmlToolCalls](https://intellibrix.dev/api/variables/intellibrix.Core.xmlToolCalls.html): Function/parameter tags inside `<tool_call>`, as emitted by Qwen3-Coder and similar models: `<tool_call><function=read_file><parameter=path>a.txt</parameter></function></tool_call>`.

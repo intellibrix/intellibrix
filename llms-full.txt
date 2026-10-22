@@ -1,0 +1,2834 @@
+# intellibrix: full API reference
+
+Generated from TSDoc. Index: https://intellibrix.dev/llms.txt
+
+## @intellibrix/agent-tools
+
+### Function agentTools
+
+```ts
+agentTools(options: AgentToolsOptions): ToolDefinition[]
+```
+
+`apply_patch`, `run_checks`, `todo`, `calculator`, `datetime`, `json_query` and `diff` for a
+workspace rooted at `root`, plus `fetch_url`, `web_search`, `memory`, `ask_user` and `delegate`
+when you configure them.
+
+### Type Alias AgentToolsOptions
+
+```ts
+AgentToolsOptions:
+```
+
+### Type Alias ApplyPatchOptions
+
+```ts
+ApplyPatchOptions:
+```
+
+### Function applyPatchTool
+
+```ts
+applyPatchTool(options: ApplyPatchOptions): ToolDefinition
+```
+
+An `apply_patch` tool that applies a unified diff to files inside the workspace, atomically:
+every hunk of every file is applied in memory first, and nothing is written unless all of them
+apply. Line numbers in hunk headers are treated as hints (models get them wrong), so each hunk
+is located by its context. Pass `check: true` to validate without writing.
+
+### Function askUserTool
+
+```ts
+askUserTool(__namedParameters: AskUserToolOptions): ToolDefinition
+```
+
+An `ask_user` tool: the model pauses to ask the human a clarifying question instead of guessing.
+The host decides how the question is shown and answered. The answer is the human's own words, so
+it is trusted.
+
+### Type Alias AskUserToolOptions
+
+```ts
+AskUserToolOptions:
+```
+
+### Function braveSearch
+
+```ts
+braveSearch(options: SearchProviderOptions & { apiKey: string }): SearchProvider
+```
+
+[Brave Search](https://brave.com/search/api/). Needs an API key.
+
+### Function calculatorTool
+
+```ts
+calculatorTool(): ToolDefinition
+```
+
+A `calculator` tool for exact arithmetic, which models do badly in their heads. It evaluates an
+expression with a small parser (no `eval`), so it is safe to run without approval.
+
+### Type Alias CheckFailure
+
+```ts
+CheckFailure:
+```
+
+One problem pulled out of a check's output.
+
+### Type Alias CheckResult
+
+```ts
+CheckResult:
+```
+
+The outcome of one named check.
+
+### Type Alias CheckSpec
+
+```ts
+CheckSpec:
+```
+
+A command the model may run through `run_checks`.
+
+### Function createUnifiedDiff
+
+```ts
+createUnifiedDiff(before: string, after: string, options: { afterName?: string; beforeName?: string; context?: number }): UnifiedDiff
+```
+
+A unified diff from `before` to `after`, with `context` lines around each change. The output
+applies with `patch -p1` or `apply_patch`; a missing final newline is marked the usual way.
+
+### Function datetimeTool
+
+```ts
+datetimeTool(options: DatetimeToolOptions): ToolDefinition
+```
+
+A `datetime` tool for the things models get wrong: what time it is now, converting between time
+zones, adding to a date, and the distance between two dates. Works on ISO 8601 text and IANA time
+zone names, with no dependencies.
+
+### Type Alias DatetimeToolOptions
+
+```ts
+DatetimeToolOptions:
+```
+
+### Type Alias Delegate
+
+```ts
+Delegate:
+```
+
+Anything that answers a prompt: an `Intelligence`, a `Brick`, or your own wrapper.
+
+### Function delegateTool
+
+```ts
+delegateTool(options: DelegateToolOptions): ToolDefinition
+```
+
+A `delegate` tool: the model hands a self-contained task to a named sub-agent and gets back its
+final answer. The sub-agent keeps its own conversation, tools and approval policy, so configure
+`onToolApproval` on its `Intelligence`; delegation never widens what a tool call is allowed to
+do. Do not give the sub-agent this tool, or it can delegate to itself without limit.
+
+### Type Alias DelegateToolOptions
+
+```ts
+DelegateToolOptions:
+```
+
+### Function detectChecks
+
+```ts
+detectChecks(root: string): Promise<Record<string, CheckSpec>>
+```
+
+Infers checks from `package.json` scripts: `test`, `typecheck` (or `type-check`/`tsc`), `lint`
+and `build`, run with the package manager that owns the lockfile. Returns `{}` when there is no
+`package.json`.
+
+### Function diffTool
+
+```ts
+diffTool(options: DiffToolOptions): ToolDefinition
+```
+
+A `diff` tool that compares two files in the workspace, or two pieces of text, and returns a
+unified diff: for "what changed between these two versions?" when git has no answer, such as
+a generated file against its backup, or a file against the text the model plans to write.
+
+### Type Alias DiffToolOptions
+
+```ts
+DiffToolOptions:
+```
+
+### Function evaluate
+
+```ts
+evaluate(expression: string): number
+```
+
+Evaluates an arithmetic expression with a small recursive-descent parser, never `eval`.
+Supports `+ - * / % ^ **`, parentheses, the constants `pi`, `e` and `tau`, and common functions
+such as `sqrt`, `round`, `min`, `max`, `log` and `sin`. Numbers are IEEE 754 doubles.
+
+### Type Alias FailureParser
+
+```ts
+FailureParser: (output: string) => CheckFailure[]
+```
+
+Turns a check's (color-stripped) output into structured failures.
+
+### Class FetchBlockedError
+
+```ts
+FetchBlockedError
+```
+
+- `constructor(message: string): FetchBlockedError`
+- `cause`
+- `message`
+- `name`
+- `stack`
+- `stackTraceLimit`: The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`).
+- `captureStackTrace(targetObject: object, constructorOpt?: Function): void`: Creates a `.stack` property on `targetObject`, which when accessed returns a string representing the location in the code at which `Error.captureStackTrace()` was called.
+- `prepareStackTrace(err: Error, stackTraces: CallSite[]): any`
+
+### Function fetchUrlTool
+
+```ts
+fetchUrlTool(options: FetchUrlToolOptions): ToolDefinition
+```
+
+A `fetch_url` tool that reads a web page or API response as text, built so a prompt-injected
+model cannot use it to reach your internal network:
+
+- only `http` and `https`;
+- the address is checked when the connection is made, so DNS rebinding cannot swap in an internal
+  one, and loopback, private, link-local (cloud metadata) and multicast ranges are refused;
+- every redirect is followed by hand and re-checked, including against `allowHosts`;
+- bounded in size and time, uncompressed, text content types only.
+
+Pages are returned as Markdown of their main content (`format: 'text'` for plain text of the whole
+page, `'raw'` for the source) and tagged `untrusted`.
+Fetches need approval unless you pin `allowHosts`, because a URL can carry data out in its query
+string.
+
+### Type Alias FetchUrlToolOptions
+
+```ts
+FetchUrlToolOptions:
+```
+
+### Function htmlToMarkdown
+
+```ts
+htmlToMarkdown(html: string, options: MarkdownOptions): string
+```
+
+Converts an HTML page to Markdown, keeping headings, links, lists, code blocks and tables, and
+dropping scripts, navigation, ads, cookie banners and other page furniture. Only the main
+content (`<article>` or `<main>`) is kept unless `wholePage` is set.
+
+### Function htmlToText
+
+```ts
+htmlToText(html: string): { text: string; title?: string }
+```
+
+A readable plain-text rendering of an HTML page: no scripts, styles or markup.
+
+### Function isPrivateAddress
+
+```ts
+isPrivateAddress(address: string): boolean
+```
+
+Whether `address` is loopback, private, link-local, multicast or otherwise not a public
+internet address, including IPv6 forms that wrap an IPv4 address. Anything that is not an IP
+literal counts as private so a caller can never fail open.
+
+### Function jsonQueryTool
+
+```ts
+jsonQueryTool(options: JsonQueryToolOptions): ToolDefinition
+```
+
+A `json_query` tool: run a jq-style query over a JSON (or JSON Lines) file in the workspace so the
+model reads only the slice it needs, not a megabyte of API output. Reads only, inside the
+workspace jail; results are tagged `untrusted` like any file content.
+
+### Type Alias JsonQueryToolOptions
+
+```ts
+JsonQueryToolOptions:
+```
+
+### Function memoryTool
+
+```ts
+memoryTool(options: MemoryToolOptions): ToolDefinition
+```
+
+A `memory` tool: the model saves short notes under a key and finds them again later, even in a
+new run, because they live in a `KeyValueStore` you choose. Actions: `save`, `get`, `search`
+(keyword match over keys and notes, best first), `list` and `delete`.
+
+Notes come back tagged `untrusted`: the model may have written them after reading a web page, and
+a later run must not treat them as instructions. Set `approveChanges` if a human should vet what
+gets remembered.
+
+### Type Alias MemoryToolOptions
+
+```ts
+MemoryToolOptions:
+```
+
+### Function parseRobots
+
+```ts
+parseRobots(text: string): Robots
+```
+
+### Function parseUnifiedDiff
+
+```ts
+parseUnifiedDiff(patch: string): FilePatch[]
+```
+
+Parses a unified diff, tolerating `diff --git` headers and wrong hunk line counts.
+
+### Type Alias PatchedFile
+
+```ts
+PatchedFile:
+```
+
+What a patch did (or would do) to one file.
+
+### Function queryJson
+
+```ts
+queryJson(data: unknown, query: string): unknown[]
+```
+
+Runs the jq-style `query` over `data` and returns every value it produces.
+
+### Type Alias Robots
+
+```ts
+Robots: Group[]
+```
+
+A parsed `robots.txt`, as RFC 9309 describes it.
+
+### Function robotsAllows
+
+```ts
+robotsAllows(robots: Robots, userAgent: string, path: string): boolean
+```
+
+Whether `userAgent` may fetch `path` (path plus query). The most specific user-agent group wins,
+then the longest matching rule, with Allow winning a tie.
+
+### Type Alias RunChecksOptions
+
+```ts
+RunChecksOptions:
+```
+
+### Function runChecksTool
+
+```ts
+runChecksTool(options: RunChecksOptions): ToolDefinition
+```
+
+A `run_checks` tool that runs named, developer-defined commands (tests, typecheck, lint, build)
+and returns structured results (pass/fail, exit code, parsed file/line failures) instead of raw
+terminal output, so a model can drive an edit, check, fix loop. The model picks check names,
+never command lines. Commands run via `execFile`, never through a shell.
+
+### Interface SearchProvider
+
+```ts
+SearchProvider
+```
+
+A web-search backend (Brave, Tavily, SearXNG, ...). Implementations are thin; the package
+ships no default so you pick one explicitly.
+
+- `id`
+- `search(query: string, options: { limit: number; signal?: AbortSignal }): Promise<SearchResult[]>`
+
+### Type Alias SearchProviderOptions
+
+```ts
+SearchProviderOptions:
+```
+
+### Type Alias SearchResult
+
+```ts
+SearchResult:
+```
+
+One hit from a search backend.
+
+### Function searxngSearch
+
+```ts
+searxngSearch(options: SearchProviderOptions & { baseUrl: string }): SearchProvider
+```
+
+A self-hosted [SearXNG](https://docs.searxng.org) instance, which must have the `json` format enabled.
+
+### Function tavilySearch
+
+```ts
+tavilySearch(options: SearchProviderOptions & { apiKey: string }): SearchProvider
+```
+
+[Tavily](https://tavily.com). Needs an API key.
+
+### Type Alias TodoItem
+
+```ts
+TodoItem:
+```
+
+### Type Alias TodoStatus
+
+```ts
+TodoStatus: "pending" | "in_progress" | "completed"
+```
+
+### Class TodoStore
+
+```ts
+TodoStore
+```
+
+Holds each run's task list so the host can show or persist it.
+
+- `constructor(onChange?: (runId: string, todos: TodoItem[]) => void): TodoStore`
+- `clear(runId: string): void`
+- `get(runId: string): TodoItem[]`: The task list for `runId` (empty if the model has not made one).
+- `set(runId: string, todos: TodoItem[]): void`
+
+### Function todoTool
+
+```ts
+todoTool(options: TodoToolOptions): TodoTool
+```
+
+A `todo` tool: the model keeps a task list for the current run, replacing the whole list on each
+call (omit `todos` to read it back). Lists are scoped to the `runId`. At most one task may be
+`in_progress`, which keeps the model working through the list one item at a time.
+
+### Type Alias TodoTool
+
+```ts
+TodoTool: ToolDefinition & { store: TodoStore }
+```
+
+The `todo` tool plus the `TodoStore` that backs it.
+
+### Type Alias TodoToolOptions
+
+```ts
+TodoToolOptions:
+```
+
+### Type Alias UnifiedDiff
+
+```ts
+UnifiedDiff:
+```
+
+### Type Alias UserQuestion
+
+```ts
+UserQuestion:
+```
+
+A question the model wants a human to answer.
+
+### Function webSearchTool
+
+```ts
+webSearchTool(provider: SearchProvider, options: WebSearchToolOptions): ToolDefinition
+```
+
+A `web_search` tool over a swappable `SearchProvider`. Results are titles, URLs and
+snippets from the open web, so they are tagged `untrusted`; pair it with `fetch_url` to read a
+result in full.
+
+### Type Alias WebSearchToolOptions
+
+```ts
+WebSearchToolOptions:
+```
+
+## @intellibrix/ai-sdk
+
+### Function aiSdkProvider
+
+```ts
+aiSdkProvider(model: LanguageModel, opts?: AiSdkProviderOptions): Provider
+```
+
+Wraps an AI SDK `LanguageModel` as an intellibrix `Provider`.
+`generate`/`stream` each perform exactly one model step (`stepCountIs(1)`)
+(tools are declared schema-only via `toAiSdkTools`, with no
+`execute` attached), so AI SDK always returns control to `loop.ts` on a
+tool-call finish reason instead of looping internally.
+
+### Type Alias AiSdkProviderOptions
+
+```ts
+AiSdkProviderOptions:
+```
+
+Options for `aiSdkProvider`.
+
+### Function compatibleProvider
+
+```ts
+compatibleProvider(model: string, config: { apiKey?: string; baseURL: string; name?: string }, opts?: AiSdkProviderOptions): Provider
+```
+
+Resolves an intellibrix `IntellibrixProvider` against an
+OpenAI-compatible HTTP endpoint (Ollama, OpenRouter, vLLM, etc.) via
+`@ai-sdk/openai-compatible`.
+
+### Function fromAiSdkContent
+
+```ts
+fromAiSdkContent(content: ContentPart<ToolSet>[]): Message
+```
+
+Converts a single generated step's AI SDK content array into intellibrix's
+assistant `Message`.
+
+### Function fromAiSdkFinishReason
+
+```ts
+fromAiSdkFinishReason(reason: FinishReason): FinishReason
+```
+
+Converts an AI SDK `finishReason` into intellibrix's `FinishReason`.
+The two unions are string-for-string identical; this is a type-level
+re-tag, not a remapping.
+
+### Function fromAiSdkStep
+
+```ts
+fromAiSdkStep(content: ContentPart<ToolSet>[], finishReason: FinishReason, usage: LanguageModelUsage): StepResult
+```
+
+Converts a single-step AI SDK `generateText` result's essentials into
+intellibrix's `StepResult`.
+
+### Function fromAiSdkUsage
+
+```ts
+fromAiSdkUsage(usage: LanguageModelUsage): Usage
+```
+
+Converts an AI SDK `LanguageModelUsage` into intellibrix's `Usage`.
+
+### Function provider
+
+```ts
+provider(modelString: string, opts?: AiSdkProviderOptions): Provider
+```
+
+Resolves an intellibrix `IntellibrixProvider` from a
+`"<vendor>:<model>"` string (e.g. `"anthropic:claude-sonnet-5"`), backed by
+whichever `@ai-sdk/*` vendor adapter is installed. Throws an actionable
+error naming the missing package if the vendor's adapter isn't installed.
+
+### Function toAiSdkMessages
+
+```ts
+toAiSdkMessages(messages: Message[]): ModelMessage[]
+```
+
+Converts intellibrix's normalized `Message` array into AI SDK's
+`ModelMessage[]` shape. `system` messages become AI SDK `system` messages;
+`tool` messages become AI SDK `tool` messages carrying tool-result parts.
+
+### Function toAiSdkTools
+
+```ts
+toAiSdkTools(tools: ToolDefinition[] | undefined): ToolSet | undefined
+```
+
+Converts intellibrix `ToolDefinition[]` into an AI SDK `ToolSet`, declared
+schema-only with no `execute` attached, so AI SDK returns control to the
+caller on a tool-call finish reason instead of looping internally.
+
+## @intellibrix/cli
+
+### Function init
+
+```ts
+init(dir: string, options: InitOptions): Promise<string[]>
+```
+
+Scaffolds a new intellibrix project into `dir`. Refuses to write into a
+non-empty directory unless `force` is set. Returns the files written.
+
+### Type Alias InitOptions
+
+```ts
+InitOptions:
+```
+
+### Function loadEntry
+
+```ts
+loadEntry(entry: string): Promise<Brick | Structure>
+```
+
+Loads a TypeScript (or JS) entry through tsx's programmatic API, in-process,
+and returns its default export, which must be a Brick or Structure.
+
+### Function runCli
+
+```ts
+runCli(argv: string[]): Promise<McpServerHandle | undefined>
+```
+
+Runs the CLI. Returns the live server handle for `mcp serve` so the caller can
+close it on shutdown; `undefined` for commands that finish on their own.
+
+### Variable SCAFFOLD_VERSION
+
+```ts
+SCAFFOLD_VERSION: "^1.0.0"
+```
+
+Version range the scaffolded project depends on.
+
+## @intellibrix/express
+
+### Function askRoute
+
+```ts
+askRoute(target: AskTarget): (req: Request, res: Response) => Promise<void>
+```
+
+POST handler: reads `{prompt, threadId?}` from the JSON body and replies
+`{reply}` with the target's answer. Responds 400 on a missing prompt and 500
+on failure.
+
+### Function askStreamRoute
+
+```ts
+askStreamRoute(target: AskTarget): (req: Request, res: Response) => Promise<void>
+```
+
+GET handler: reads `?prompt=` (and optional `threadId`) and streams the
+target's `Intelligence.stream` output as Server-Sent Events, one
+`event: <type>` / `data: <json>` frame per stream event. The run is aborted
+if the client disconnects.
+
+### Type Alias AskTarget
+
+```ts
+AskTarget: Brick | Intelligence
+```
+
+Anything `askRoute`/`askStreamRoute` can send a prompt to.
+
+### Class default
+
+```ts
+default
+```
+
+Class representing a brick that sets up an Express server.
+It extends from the `intellibrix!Brick` class.
+
+Access all of Express's functionality through the `ExpressBrick.express` property.
+
+- `constructor(options: ExpressBrickOptions): default`: Creates a new ExpressBrick.
+- `ai`: The intelligence of the Brick instance.
+- `db`: The key-value store of the Brick instance.
+- `events`: The event emitter of the Brick instance.
+- `express`: The Express application instance.
+- `id`: The unique identifier of the Brick instance.
+- `log`: The logger used by the Brick instance.
+- `name`: The name of the Brick instance.
+- `server`: The HTTP server instance.
+- `structure`: The parent Structure of the Brick instance, if any.
+- `usage`: Accumulates token usage/cost across every `ask()` call on this Brick.
+- `programs`
+- `ask(prompt: string, options?: AskOptions): Promise<AskResult>`: Runs a prompt through this Brick's `ai`, offering its programs (via `Brick.tools`) plus any tools attached via `Brick.use`.
+- `askEndpoint(path: string, target: AskTarget): default`: Registers `POST <path>` (default `/ask`) answering with `askRoute`.
+- `askStreamEndpoint(path: string, target: AskTarget): default`: Registers `GET <path>` (default `/ask/stream`) streaming with `askStreamRoute`.
+- `deprogram(name: string): void`: Removes a program from the private map of programs by its name.
+- `keepAlive(on: boolean): void`: Toggles the keep alive flag of the Brick instance, which will prevent the Node process from exiting
+- `program(program: Program): void`: Adds a program to the private map of programs.
+- `run(name: string, payload: any): Promise<any>`: Runs a program by its name with a given payload.
+- `schedule(task: Task): Task`: Schedules a `Task` to run on a given schedule.
+- `task(name: string): Task | undefined`: Returns a `Task` by its name.
+- `tools(): ToolDefinition[]`: Exposes every registered program as a `ToolDefinition`, each `execute` calling `this.run(program.name, input)`.
+- `toolset(): ToolDefinition[]`: Every tool this Brick offers: its programs (via `Brick.tools`) plus anything attached via `Brick.use`.
+- `unschedule(name: string): void`: Unschedules a task by its name.
+- `use(toolsets: ToolDefinition[][]): this`: Attaches external tool arrays (e.g. MCP-sourced tools) to this Brick, included whenever `ask()` builds its tool list.
+
+### Interface ExpressBrickOptions
+
+```ts
+ExpressBrickOptions
+```
+
+Interface for the options of ExpressBrick.
+It extends from `BrickOptions` and adds properties specific to ExpressBrick.
+
+- `builtinMiddleware`: An object specifying whether to use built-in middleware functions.
+- `database`: The key-value store of the Brick instance.
+- `host`: The host on which the Express server will listen.
+- `id`: The unique identifier of the Brick instance.
+- `intelligence`: The Intelligence of the Brick instance.
+- `logJSON`: A boolean indicating whether the logs should be in JSON format.
+- `logLevel`: The log level of the Brick instance.
+- `middleware`: An array of middleware functions to use in the Express application.
+- `name`: The name of the Brick instance.
+- `pinoOptions`: The options for the pino logger used by the Brick instance.
+- `port`: The port on which the Express server will listen.
+- `routes`: An array of routes that the Express server will handle.
+- `structure`: The parent Structure of the Brick, if any.
+
+### Interface ExpressBrickRequest
+
+```ts
+ExpressBrickRequest
+```
+
+Interface for the request object in ExpressBrick.
+It extends from the Request object and adds a property for the Brick instance.
+
+- `aborted`: The `message.aborted` property will be `true` if the request has been aborted.
+- `accepted`: Return an array of Accepted media types ordered from highest quality to lowest.
+- `app`
+- `baseUrl`
+- `body`
+- `brick`: The Brick instance associated with the request.
+- `closed`: Is `true` after `'close'` has been emitted.
+- `complete`: The `message.complete` property will be `true` if a complete HTTP message has been received and successfully parsed.
+- `connection`: Alias for `message.socket`.
+- `cookies`
+- `destroyed`: Is `true` after `readable.destroy()` has been called.
+- `errored`: Returns error if the stream has been destroyed with an error.
+- `fresh`: Check if the request is fresh, aka Last-Modified and/or the ETag still match.
+- `headers`: The request/response headers object.
+- `headersDistinct`: Similar to `message.headers`, but there is no join logic and the values are always arrays of strings, even for headers received just once.
+- `host`
+- `hostname`: Parse the "Host" header field hostname.
+- `httpVersion`: In case of server request, the HTTP version sent by the client.
+- `httpVersionMajor`
+- `httpVersionMinor`
+- `ip`: Return the remote address, or when "trust proxy" is `true` return the upstream addr.
+- `ips`: When "trust proxy" is `true`, parse the "X-Forwarded-For" ip address list.
+- `method`: **Only valid for request obtained from `Server`.**
+- `next`
+- `originalUrl`
+- `params`
+- `path`: Short-hand for `url.parse(req.url).pathname`.
+- `protocol`: Return the protocol string "http" or "https" when requested with TLS.
+- `query`
+- `rawHeaders`: The raw request/response headers list exactly as they were received.
+- `rawTrailers`: The raw request/response trailer keys and values exactly as they were received.
+- `readable`: Is `true` if it is safe to call `read`, which means the stream has not been destroyed or emitted `'error'` or `'end'`.
+- `readableAborted`: Returns whether the stream was destroyed or errored before emitting `'end'`.
+- `readableDidRead`: Returns whether `'data'` has been emitted.
+- `readableEncoding`: Getter for the property `encoding` of a given `Readable` stream.
+- `readableEnded`: Becomes `true` when [`'end'`](https://nodejs.org/docs/latest-v22.x/api/stream.html#event-end) event is emitted.
+- `readableFlowing`: This property reflects the current state of a `Readable` stream as described in the [Three states](https://nodejs.org/docs/latest-v22.x/api/stream.html#three-states) section.
+- `readableHighWaterMark`: Returns the value of `highWaterMark` passed when creating this `Readable`.
+- `readableLength`: This property contains the number of bytes (or objects) in the queue ready to be read.
+- `readableObjectMode`: Getter for the property `objectMode` of a given `Readable` stream.
+- `res`: After middleware.init executed, Request will contain res and next properties See: express/lib/middleware/init.js
+- `route`
+- `secure`: Short-hand for:
+- `signedCookies`
+- `socket`: The `net.Socket` object associated with the connection.
+- `stale`: Check if the request is stale, aka "Last-Modified" and / or the "ETag" for the resource has changed.
+- `statusCode`: **Only valid for response obtained from `ClientRequest`.**
+- `statusMessage`: **Only valid for response obtained from `ClientRequest`.**
+- `subdomains`: Return subdomains as an array.
+- `trailers`: The request/response trailers object.
+- `trailersDistinct`: Similar to `message.trailers`, but there is no join logic and the values are always arrays of strings, even for headers received just once.
+- `url`: **Only valid for request obtained from `Server`.**
+- `xhr`: Check if the request was an _XMLHttpRequest_.
+- `_construct(callback: (error?: Error | null) => void): void`
+- `_destroy(error: Error | null, callback: (error?: Error | null) => void): void`
+- `_read(size: number): void`
+- `[asyncDispose](): Promise<void>`: Calls `readable.destroy()` with an `AbortError` and returns a promise that fulfills when the stream is finished.
+- `[asyncIterator](): AsyncIterator<any>`
+- `[captureRejectionSymbol](error: Error, event: string | symbol, args: AnyRest): void`
+- `accepts(): string[]`: Check if the given `type(s)` is acceptable, returning the best match when true, otherwise `undefined`, in which case you should respond with 406 "Not Acceptable".
+- `acceptsCharsets(): string[]`: Returns the first accepted charset of the specified character sets, based on the request's Accept-Charset HTTP header field.
+- `acceptsEncodings(): string[]`: Returns the first accepted encoding of the specified encodings, based on the request's Accept-Encoding HTTP header field.
+- `acceptsLanguages(): string[]`: Returns the first accepted language of the specified languages, based on the request's Accept-Language HTTP header field.
+- `addListener(event: "close", listener: () => void): this`: Event emitter The defined events on documents including: 1. close 2. data 3. end 4. error 5. pause 6. readable 7. resume
+- `asIndexedPairs(options?: Pick<ArrayOptions, "signal">): Readable`: This method returns a new stream with chunks of the underlying stream paired with a counter in the form `[index, chunk]`.
+- `compose(stream: ComposeFnParam | T | Iterable<T, any, any> | AsyncIterable<T, any, any>, options?: { signal: AbortSignal }): T`
+- `destroy(error?: Error): this`: Calls `destroy()` on the socket that received the `IncomingMessage`.
+- `drop(limit: number, options?: Pick<ArrayOptions, "signal">): Readable`: This method returns a new stream with the first *limit* chunks dropped from the start.
+- `emit(event: "close"): boolean`: Synchronously calls each of the listeners registered for the event named `eventName`, in the order they were registered, passing the supplied arguments to each.
+- `eventNames(): (string | symbol)[]`: Returns an array listing the events for which the emitter has registered listeners.
+- `every(fn: (data: any, options?: Pick<ArrayOptions, "signal">) => boolean | Promise<boolean>, options?: ArrayOptions): Promise<boolean>`: This method is similar to `Array.prototype.every` and calls *fn* on each chunk in the stream to check if all awaited return values are truthy value for *fn*.
+- `filter(fn: (data: any, options?: Pick<ArrayOptions, "signal">) => boolean | Promise<boolean>, options?: ArrayOptions): Readable`: This method allows filtering the stream.
+- `find(fn: (data: any, options?: Pick<ArrayOptions, "signal">) => data is T, options?: ArrayOptions): Promise<T | undefined>`: This method is similar to `Array.prototype.find` and calls *fn* on each chunk in the stream to find a chunk with a truthy value for *fn*.
+- `flatMap(fn: (data: any, options?: Pick<ArrayOptions, "signal">) => any, options?: ArrayOptions): Readable`: This method returns a new stream by applying the given callback to each chunk of the stream and then flattening the result.
+- `forEach(fn: (data: any, options?: Pick<ArrayOptions, "signal">) => void | Promise<void>, options?: ArrayOptions): Promise<void>`: This method allows iterating a stream.
+- `get(name: "set-cookie"): string[] | undefined`: Return request header.
+- `getMaxListeners(): number`: Returns the current max listener value for the `EventEmitter` which is either set by `emitter.setMaxListeners(n)` or defaults to `EventEmitter.defaultMaxListeners`.
+- `header(name: "set-cookie"): string[] | undefined`
+- `is(type: string | string[]): string | false | null`: Check if the incoming request contains the "Content-Type" header field, and it contains the give mime `type`.
+- `isPaused(): boolean`: The `readable.isPaused()` method returns the current operating state of the `Readable`.
+- `iterator(options?: { destroyOnReturn?: boolean }): AsyncIterator<any>`: The iterator created by this method gives users the option to cancel the destruction of the stream if the `for await...of` loop is exited by `return`, `break`, or `throw`, or if the iterator should destroy the stream if the stream emitted an error during iteration.
+- `listenerCount(eventName: string | symbol, listener?: Function): number`: Returns the number of listeners listening for the event named `eventName`.
+- `listeners(eventName: string | symbol): Function[]`: Returns a copy of the array of listeners for the event named `eventName`.
+- `map(fn: (data: any, options?: Pick<ArrayOptions, "signal">) => any, options?: ArrayOptions): Readable`: This method allows mapping over the stream.
+- `off(eventName: string | symbol, listener: (args: any[]) => void): this`: Alias for `emitter.removeListener()`.
+- `on(event: "close", listener: () => void): this`: Adds the `listener` function to the end of the listeners array for the event named `eventName`.
+- `once(event: "close", listener: () => void): this`: Adds a **one-time** `listener` function for the event named `eventName`.
+- `param(name: string, defaultValue?: any): string`
+- `pause(): this`: The `readable.pause()` method will cause a stream in flowing mode to stop emitting `'data'` events, switching out of flowing mode.
+- `pipe(destination: T, options?: { end?: boolean }): T`
+- `prependListener(event: "close", listener: () => void): this`: Adds the `listener` function to the _beginning_ of the listeners array for the event named `eventName`.
+- `prependOnceListener(event: "close", listener: () => void): this`: Adds a **one-time**`listener` function for the event named `eventName` to the _beginning_ of the listeners array.
+- `push(chunk: any, encoding?: BufferEncoding): boolean`
+- `range(size: number, options?: Options): Ranges | Result | undefined`: Parse Range header field, capping to the given `size`.
+- `rawListeners(eventName: string | symbol): Function[]`: Returns a copy of the array of listeners for the event named `eventName`, including any wrappers (such as those created by `.once()`).
+- `read(size?: number): any`: The `readable.read()` method reads data out of the internal buffer and returns it.
+- `reduce(fn: (previous: any, data: any, options?: Pick<ArrayOptions, "signal">) => T, initial?: undefined, options?: Pick<ArrayOptions, "signal">): Promise<T>`: This method calls *fn* on each chunk of the stream in order, passing it the result from the calculation on the previous element.
+- `removeAllListeners(eventName?: string | symbol): this`: Removes all listeners, or those of the specified `eventName`.
+- `removeListener(event: "close", listener: () => void): this`: Removes the specified `listener` from the listener array for the event named `eventName`.
+- `resume(): this`: The `readable.resume()` method causes an explicitly paused `Readable` stream to resume emitting `'data'` events, switching the stream into flowing mode.
+- `setEncoding(encoding: BufferEncoding): this`: The `readable.setEncoding()` method sets the character encoding for data read from the `Readable` stream.
+- `setMaxListeners(n: number): this`: By default `EventEmitter`s will print a warning if more than `10` listeners are added for a particular event.
+- `setTimeout(msecs: number, callback?: () => void): this`: Calls `message.socket.setTimeout(msecs, callback)`.
+- `some(fn: (data: any, options?: Pick<ArrayOptions, "signal">) => boolean | Promise<boolean>, options?: ArrayOptions): Promise<boolean>`: This method is similar to `Array.prototype.some` and calls *fn* on each chunk in the stream until the awaited return value is `true` (or any truthy value).
+- `take(limit: number, options?: Pick<ArrayOptions, "signal">): Readable`: This method returns a new stream with the first *limit* chunks.
+- `toArray(options?: Pick<ArrayOptions, "signal">): Promise<any[]>`: This method allows easily obtaining the contents of a stream.
+- `unpipe(destination?: WritableStream): this`: The `readable.unpipe()` method detaches a `Writable` stream previously attached using the `pipe` method.
+- `unshift(chunk: any, encoding?: BufferEncoding): void`: Passing `chunk` as `null` signals the end of the stream (EOF) and behaves the same as `readable.push(null)`, after which no more data can be written.
+- `wrap(stream: ReadableStream): this`: Prior to Node.js 0.10, streams did not implement the entire `node:stream` module API as it is currently defined. (See `Compatibility` for more information.)
+
+## @intellibrix/github
+
+### Function githubTools
+
+```ts
+githubTools(options: GithubToolsOptions): ToolDefinition[]
+```
+
+Issue, pull-request, comment and review tools over octokit. Everything read
+from GitHub is user-controlled text, so read tools are tagged
+`resultTrust: 'untrusted'`; writes require approval by default.
+
+### Type Alias GithubToolsOptions
+
+```ts
+GithubToolsOptions:
+```
+
+### Function githubWebhookHandler
+
+```ts
+githubWebhookHandler(__namedParameters: GithubWebhookOptions): RequestHandler
+```
+
+A webhook handler for GitHub deliveries. The body must be the **raw**
+Buffer: HMAC verification is over the exact bytes GitHub sent, so a
+JSON-parsed body cannot be verified.
+
+Valid deliveries are re-emitted on `target.events` as `github.<event>` (and
+`github.<event>.<action>` when the payload has an action) with the parsed
+payload, plus a catch-all `github` event carrying `{event, action, deliveryId, payload}`.
+
+### Type Alias GithubWebhookOptions
+
+```ts
+GithubWebhookOptions:
+```
+
+### Function githubWebhookRoute
+
+```ts
+githubWebhookRoute(options: GithubWebhookOptions): RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>[]
+```
+
+Middleware pair for `app.post(path, ...githubWebhookRoute(opts))`: `express.raw`
+scoped to this route, then `githubWebhookHandler`.
+
+With `ExpressBrick`, disable its global JSON parser (`builtinMiddleware:
+{ json: false, urlencoded: true }`) or mount this route on the underlying app
+before it, otherwise the body is consumed before it can be verified.
+
+### Function signPayload
+
+```ts
+signPayload(secret: string, body: string | Buffer<ArrayBufferLike>): string
+```
+
+Computes GitHub's `X-Hub-Signature-256` value for a raw body.
+
+### Function verifySignature
+
+```ts
+verifySignature(secret: string, body: string | Buffer<ArrayBufferLike>, header: string | undefined): boolean
+```
+
+Constant-time check of a signature header against the raw body.
+
+### Type Alias WebhookTarget
+
+```ts
+WebhookTarget:
+```
+
+Anything with an event bus: a `Brick` or a `Structure`.
+
+## @intellibrix/i18n
+
+### Class I18nBrick
+
+```ts
+I18nBrick
+```
+
+Class representing an I18n (Internationalization) Brick.
+It extends from the `Brick` class.
+
+- `constructor(options: I18nBrickOptions): I18nBrick`: Creates a new I18n Brick.
+- `ai`: The intelligence of the Brick instance.
+- `db`: The key-value store of the Brick instance.
+- `events`: The event emitter of the Brick instance.
+- `i18next`: This brick's own i18next instance (never the global singleton).
+- `id`: The unique identifier of the Brick instance.
+- `initPromise`: Resolves once i18next has finished initializing.
+- `log`: The logger used by the Brick instance.
+- `name`: The name of the Brick instance.
+- `structure`: The parent Structure of the Brick instance, if any.
+- `t`: The translation function, bound to this brick's instance.
+- `usage`: Accumulates token usage/cost across every `ask()` call on this Brick.
+- `language`
+- `languages`
+- `programs`
+- `ask(prompt: string, options?: AskOptions): Promise<AskResult>`: Runs a prompt through this Brick's `ai`, offering its programs (via `Brick.tools`) plus any tools attached via `Brick.use`.
+- `deprogram(name: string): void`: Removes a program from the private map of programs by its name.
+- `get(text: string): string`: Translates text using the current language.
+- `keepAlive(on: boolean): void`: Toggles the keep alive flag of the Brick instance, which will prevent the Node process from exiting
+- `program(program: Program): void`: Adds a program to the private map of programs.
+- `run(name: string, payload: any): Promise<any>`: Runs a program by its name with a given payload.
+- `schedule(task: Task): Task`: Schedules a `Task` to run on a given schedule.
+- `task(name: string): Task | undefined`: Returns a `Task` by its name.
+- `tools(): ToolDefinition[]`: Exposes every registered program as a `ToolDefinition`, each `execute` calling `this.run(program.name, input)`.
+- `toolset(): ToolDefinition[]`: Every tool this Brick offers: its programs (via `Brick.tools`) plus anything attached via `Brick.use`.
+- `unschedule(name: string): void`: Unschedules a task by its name.
+- `use(toolsets: ToolDefinition[][]): this`: Attaches external tool arrays (e.g. MCP-sourced tools) to this Brick, included whenever `ask()` builds its tool list.
+- `create(options?: I18nBrickOptions): Promise<I18nBrick>`: Creates a brick and waits for i18next initialization to finish.
+
+### Interface I18nBrickOptions
+
+```ts
+I18nBrickOptions
+```
+
+Interface representing the options for the I18nBrick.
+It extends from `BrickOptions`.
+
+- `database`: The key-value store of the Brick instance.
+- `debug`: A flag indicating whether to enable debug mode.
+- `defaultLanguage`: The default language for the I18nBrick.
+- `id`: The unique identifier of the Brick instance.
+- `intelligence`: The Intelligence of the Brick instance.
+- `logJSON`: A boolean indicating whether the logs should be in JSON format.
+- `logLevel`: The log level of the Brick instance.
+- `name`: The name of the Brick instance.
+- `pinoOptions`: The options for the pino logger used by the Brick instance.
+- `resources`: The resources for the I18nBrick, organized by language and translation key.
+- `structure`: The parent Structure of the Brick, if any.
+
+## @intellibrix/mcp
+
+### Function contentToParts
+
+```ts
+contentToParts(content: unknown): Part[]
+```
+
+### Type Alias ElicitationRequest
+
+```ts
+ElicitationRequest:
+```
+
+A request for the human on the MCP client to supply structured input
+(MCP `elicitation/create`). `schema` is a flat JSON Schema object.
+
+### Type Alias ElicitationResult
+
+```ts
+ElicitationResult: { action: "accept"; content: Record<string, unknown> } | { action: "decline" } | { action: "cancel" }
+```
+
+### Type Alias McpServerHandle
+
+```ts
+McpServerHandle:
+```
+
+### Type Alias McpToolContext
+
+```ts
+McpToolContext:
+```
+
+Extra capabilities the MCP server wrapper adds to a tool's `ctx` while it
+runs behind `serveMcp`. Both are absent outside an MCP call (e.g. when
+the same tool runs inside a plain agent loop).
+
+### Function mcpTools
+
+```ts
+mcpTools(opts: McpToolsOptions): Promise<McpToolsHandle>
+```
+
+Connects to an MCP server and mounts each of its tools as an intellibrix
+`ToolDefinition`. Results are tagged `resultTrust: 'untrusted'`, since
+remote tool output is exactly the class of content the trust model exists for.
+
+### Type Alias McpToolsHandle
+
+```ts
+McpToolsHandle:
+```
+
+### Type Alias McpToolsOptions
+
+```ts
+McpToolsOptions: McpTransportOptions & { clientInfo?: { name: string; version: string }; needsApproval?: ToolDefinition["needsApproval"]; onElicitation?: (request: ElicitationRequest) => Promise<ElicitationResult>; onSamplingRequest?: (request: SamplingRequest) => Promise<SamplingResult> }
+```
+
+### Type Alias McpTransportOptions
+
+```ts
+McpTransportOptions: { args?: string[]; command: string; cwd?: string; env?: Record<string, string>; transport: "stdio" } | { headers?: Record<string, string>; transport: "http"; url: string } | { transport: Transport }
+```
+
+### Function partsToContentBlocks
+
+```ts
+partsToContentBlocks(parts: Part[]): McpContentBlock[]
+```
+
+### Function samplingFromProvider
+
+```ts
+samplingFromProvider(provider: Provider, model: string): (request: SamplingRequest) => Promise<SamplingResult>
+```
+
+Builds an `onSamplingRequest` handler that answers MCP sampling requests
+with any intellibrix `Provider`.
+
+### Type Alias SamplingRequest
+
+```ts
+SamplingRequest:
+```
+
+A request for the MCP peer's LLM to produce a completion (MCP `sampling/createMessage`),
+expressed in intellibrix's own message shapes.
+
+### Type Alias SamplingResult
+
+```ts
+SamplingResult:
+```
+
+### Function serveMcp
+
+```ts
+serveMcp(target: Brick | Structure, opts: ServeMcpOptions): Promise<McpServerHandle>
+```
+
+Exposes a Brick (its programs plus attached tools) or a whole Structure
+(merged across its bricks; duplicate names throw at startup, not call time)
+as an MCP server.
+
+Tool `execute` functions receive `ctx.sample()` / `ctx.elicit()` (see
+`McpToolContext`) to call back into the connected client's LLM or user.
+
+### Type Alias ServeMcpOptions
+
+```ts
+ServeMcpOptions:
+```
+
+### Function textMessage
+
+```ts
+textMessage(role: Role, text: string, trust?: Trust): Message
+```
+
+Convenience constructor for a single-text-part `Message`.
+
+### Function textOf
+
+```ts
+textOf(message: Message): string
+```
+
+Extracts and concatenates all text parts of a `Message`.
+
+## @intellibrix/memory-sqlite
+
+### Class SQLiteConversationMemory
+
+```ts
+SQLiteConversationMemory
+```
+
+A `ConversationMemory` on Node's built-in `node:sqlite`, with no native
+dependencies. Message content is stored as JSON-serialized `Part[]`.
+
+- `constructor(options: SQLiteConversationMemoryOptions): SQLiteConversationMemory`
+- `append(threadId: string, message: Message): Promise<void>`
+- `clear(threadId: string): Promise<void>`
+- `close(): void`: Closes the connection, unless it was passed in via `database`.
+- `getMessages(threadId: string): Promise<Message[]>`
+
+### Type Alias SQLiteConversationMemoryOptions
+
+```ts
+SQLiteConversationMemoryOptions: SQLiteOptions & { tableName?: string }
+```
+
+Options for creating a `SQLiteConversationMemory`.
+
+### Class SQLiteVectorStore
+
+```ts
+SQLiteVectorStore
+```
+
+A `VectorStore` on `node:sqlite`. `node:sqlite` has no vector extension,
+so `query()` is a brute-force cosine scan over the whole table. That is fine
+for small, local datasets (a CLI agent's personal memory); for anything
+larger use `PgVectorStore` from `@intellibrix/sql`.
+
+Vectors are stored as 32-bit floats.
+
+- `constructor(options: SQLiteVectorStoreOptions): SQLiteVectorStore`
+- `close(): void`: Closes the connection, unless it was passed in via `database`.
+- `delete(ids: string[]): Promise<void>`
+- `query(vector: number[], opts?: { topK?: number }): Promise<VectorMatch[]>`
+- `upsert(records: VectorRecord[]): Promise<void>`
+
+### Type Alias SQLiteVectorStoreOptions
+
+```ts
+SQLiteVectorStoreOptions: SQLiteOptions & { dimensions?: number; tableName?: string }
+```
+
+Options for creating a `SQLiteVectorStore`.
+
+## @intellibrix/sandbox
+
+### Function cloudflareProvider
+
+```ts
+cloudflareProvider(getHandle: () => CloudflareSandboxHandle | Promise<CloudflareSandboxHandle>): SandboxProvider
+```
+
+Wraps a Cloudflare Sandbox handle. `language` defaults to `python`.
+
+### Interface CloudflareSandboxHandle
+
+```ts
+CloudflareSandboxHandle
+```
+
+The slice of a [Cloudflare Sandbox](https://developers.cloudflare.com/sandbox/)
+handle (from `getSandbox(env.Sandbox, id)` inside a Worker) this adapter uses.
+Cloudflare sandboxes are bound to a Worker's environment, so unlike the other
+adapters the handle is supplied by the caller rather than imported.
+
+- `destroy(): Promise<void>`
+- `exec(command: string): Promise<{ exitCode: number; stderr: string; stdout: string }>`
+- `writeFile(path: string, contents: string): Promise<unknown>`
+
+### Type Alias ContainerExec
+
+```ts
+ContainerExec: (bin: string, args: string[], options?: { input?: string; signal?: AbortSignal; timeoutMs?: number }) => Promise<ContainerExecResult>
+```
+
+Runs the container CLI. The default spawns the binary directly (never through a shell);
+override it to test, to run the CLI over SSH, or to log every command.
+
+### Type Alias ContainerExecResult
+
+```ts
+ContainerExecResult:
+```
+
+The result of one container CLI invocation.
+
+### Type Alias ContainerMount
+
+```ts
+ContainerMount:
+```
+
+A directory shared from the host into the container.
+
+### Function containerProvider
+
+```ts
+containerProvider(options: ContainerProviderOptions): SandboxProvider
+```
+
+Runs code in a local [Podman](https://podman.io) or [Docker](https://docker.com) container, so
+nothing leaves the machine and no account is needed.
+
+Each sandbox is one long-lived container (so files persist between calls in a run), started with
+no network, dropped capabilities, `no-new-privileges`, and memory, CPU and process limits. Code
+is piped to the interpreter over stdin, never interpolated into a command line. A call that
+exceeds `runTimeoutMs` has its processes killed; files in the workdir survive.
+
+The container is a strong boundary, but it is on your machine: mount only what the code needs,
+keep secrets out of `env`, and leave `network` at `'none'` unless the task requires more.
+
+### Type Alias ContainerProviderOptions
+
+```ts
+ContainerProviderOptions:
+```
+
+### Function daytonaProvider
+
+```ts
+daytonaProvider(options: DaytonaProviderOptions): SandboxProvider
+```
+
+[Daytona](https://daytona.io) sandboxes. Requires `@daytonaio/sdk`.
+
+### Type Alias DaytonaProviderOptions
+
+```ts
+DaytonaProviderOptions:
+```
+
+### Function e2bProvider
+
+```ts
+e2bProvider(options: E2BProviderOptions): SandboxProvider
+```
+
+[E2B](https://e2b.dev) code-interpreter sandboxes. Requires `@e2b/code-interpreter`.
+
+### Type Alias E2BProviderOptions
+
+```ts
+E2BProviderOptions:
+```
+
+### Function importVendor
+
+```ts
+importVendor(pkg: string, adapter: string): Promise<T>
+```
+
+Dynamically imports an optional vendor SDK, throwing an actionable error
+(naming the package to install) when it is absent.
+
+### Type Alias RunCodeResult
+
+```ts
+RunCodeResult:
+```
+
+The outcome of running code in a sandbox.
+
+### Interface Sandbox
+
+```ts
+Sandbox
+```
+
+A live, isolated execution environment.
+
+- `close(): Promise<void>`
+- `runCode(code: string, opts?: { language?: string }): Promise<RunCodeResult>`
+
+### Interface SandboxProvider
+
+```ts
+SandboxProvider
+```
+
+A hosted-sandbox backend (E2B, Daytona, Cloudflare, ...). Implementations
+are thin; the package ships no default so consumers pick one explicitly.
+
+- `id`
+- `create(opts?: { template?: string; timeoutMs?: number }): Promise<Sandbox>`
+
+### Function sandboxTool
+
+```ts
+sandboxTool(provider: SandboxProvider, options: SandboxToolOptions): SandboxTool
+```
+
+Builds a single `run_code` tool backed by `provider`. One sandbox is created
+lazily per `runId` and reused for that run's later calls, so state (files,
+variables) persists across calls within a run. Sandboxes are closed by
+`closeRun`/`closeAll` or, as a backstop, after `idleTtlMs`.
+
+### Type Alias SandboxTool
+
+```ts
+SandboxTool: ToolDefinition & { closeAll: any; closeRun: any }
+```
+
+The `run_code` tool plus lifecycle controls for its per-run sandbox cache.
+
+### Type Alias SandboxToolOptions
+
+```ts
+SandboxToolOptions:
+```
+
+## @intellibrix/sql
+
+### Class default
+
+```ts
+default
+```
+
+Represents a SQL-backed Database that may be used by Bricks to manage data.
+
+See `SQLKeyValueStore` for the `KeyValueStore`-conformant store, and `PgVectorStore` for
+pgvector-backed similarity search.
+
+- `constructor(options: SQLDatabaseOptions): default`: Creates a new instance of the SQLDatabase class.
+- `interface`
+- `sequelize`
+
+### Class PgVectorStore
+
+```ts
+PgVectorStore
+```
+
+A `VectorStore` on Postgres + pgvector. Ranks by cosine similarity
+(`<=>`), and reports `score` as `1 - cosine distance` so it is comparable
+with the in-memory and SQLite stores.
+
+The table and extension are created on first use.
+
+- `constructor(options: PgVectorStoreOptions): PgVectorStore`
+- `delete(ids: string[]): Promise<void>`
+- `query(vector: number[], opts?: { topK?: number }): Promise<VectorMatch[]>`
+- `upsert(records: VectorRecord[]): Promise<void>`
+
+### Type Alias PgVectorStoreOptions
+
+```ts
+PgVectorStoreOptions:
+```
+
+Options for creating a `PgVectorStore`.
+
+### Type Alias SQLDatabaseOptions
+
+```ts
+SQLDatabaseOptions:
+```
+
+Represents the options for creating a SQLDatabase instance.
+
+### Interface SQLInterface
+
+```ts
+SQLInterface
+```
+
+Represents a SQL interface for a database.
+
+- `connect`
+- `disconnect`
+- `query`
+
+### Class SQLKeyValueStore
+
+```ts
+SQLKeyValueStore
+```
+
+A `KeyValueStore` backed by a SQL table via Sequelize, using a parametrized
+UPSERT. Values are stored as JSON text.
+
+- `constructor(options: SQLKeyValueStoreOptions): SQLKeyValueStore`
+- `delete(key: string): Promise<boolean>`
+- `dump(): Promise<Record<string, any>>`
+- `get(key: string): Promise<any>`
+- `load(data: Record<string, any>): Promise<void>`
+- `set(key: string, value: any): Promise<void>`
+
+### Type Alias SQLKeyValueStoreOptions
+
+```ts
+SQLKeyValueStoreOptions:
+```
+
+Options for creating a `SQLKeyValueStore`.
+
+## @intellibrix/structures
+
+### Function assertDepth
+
+```ts
+assertDepth(depth: number, max: number): void
+```
+
+Throws `DepthExceededError` if `depth` exceeds `max`. Depth is
+threaded explicitly through each hop's closure (incremented per
+delegation), not tracked via a global/WeakMap side-table.
+
+### Function asTool
+
+```ts
+asTool(brick: Brick, opts: AsToolOptions): ToolDefinition<{ prompt: string }>
+```
+
+Wraps a whole `Brick` as one opaque `ToolDefinition`: `execute` calls
+`brick.ask(input.prompt)`. Additive to `brick.tools()`, which exposes
+individual programs. This is for delegating an entire sub-brick as a
+single "ask it something" tool, the default granularity `supervisor()`
+uses for each sub-brick.
+
+### Type Alias AsToolOptions
+
+```ts
+AsToolOptions:
+```
+
+Options for `asTool`.
+
+### Class DepthExceededError
+
+```ts
+DepthExceededError
+```
+
+Thrown by `assertDepth` when a delegation chain exceeds its configured
+`maxDepth`.
+
+- `constructor(depth: number, max: number): DepthExceededError`
+- `cause`
+- `message`
+- `name`
+- `stack`
+- `stackTraceLimit`: The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`).
+- `captureStackTrace(targetObject: object, constructorOpt?: Function): void`: Creates a `.stack` property on `targetObject`, which when accessed returns a string representing the location in the code at which `Error.captureStackTrace()` was called.
+- `prepareStackTrace(err: Error, stackTraces: CallSite[]): any`
+
+### Type Alias HandoffContinueSentinel
+
+```ts
+HandoffContinueSentinel:
+```
+
+Sentinel returned by a `'continue'`-mode handoff tool, recognized by
+`loop.ts`'s opt-in handoff hook to swap `system`/`tools` mid-run without
+terminating the current turn.
+
+### Type Alias HandoffOptions
+
+```ts
+HandoffOptions:
+```
+
+Options for `handoffTool`.
+
+### Function handoffTool
+
+```ts
+handoffTool(opts: HandoffOptions): ToolDefinition<{ reason?: string }, string | HandoffContinueSentinel>
+```
+
+A `ToolDefinition` transferring control to another brick. Two modes: see
+`HandoffOptions.mode`.
+
+### Function parallel
+
+```ts
+parallel(steps: PipelineStep[]): { run: any }
+```
+
+Fans the same input to every step via `Promise.all`, mirroring `loop.ts`'s
+own parallel tool-dispatch pattern.
+
+### Type Alias PipelineStep
+
+```ts
+PipelineStep: Brick | [Brick, Program]
+```
+
+A pipeline step: either a `Brick` (invoked via `ask()`, receiving/producing
+a string) or a `Program` (invoked via its owning brick's `run()`, passed
+as a `[brick, program]` tuple so `pipeline.ts` doesn't need its own
+dispatch mechanism).
+
+### Function router
+
+```ts
+router(opts: RouterOptions): { ask: any }
+```
+
+Classifies a prompt into one of `routes` via a single
+`Intelligence.object()` structured-output call (one model step, no loop),
+then dispatches to the matched brick's `ask()`. Falls back to `fallback`
+(if provided) when the classifier picks an unknown route; throws
+otherwise. No depth limit at this layer; a routed-to brick that is itself
+a `supervisor()` enforces its own limit.
+
+### Type Alias RouterOptions
+
+```ts
+RouterOptions:
+```
+
+Options for `router`.
+
+### Function sequential
+
+```ts
+sequential(steps: PipelineStep[]): { run: any }
+```
+
+Chains each step's output into the next step's input.
+
+### Type Alias StructureHopEvent
+
+```ts
+StructureHopEvent:
+```
+
+Emitted by supervisor/router/handoff/pipeline at each delegation point.
+Combined with each Brick's own bubbled `RunEvent`s (annotated with
+`brickName`), a full multi-agent call graph for a given `runId` can be
+reconstructed purely from the event stream.
+
+### Type Alias StructuresEvent
+
+```ts
+StructuresEvent: RunEvent | StructureHopEvent
+```
+
+### Type Alias StructuresEventHandler
+
+```ts
+StructuresEventHandler: (event: StructuresEvent) => void
+```
+
+### Function supervisor
+
+```ts
+supervisor(opts: SupervisorOptions): { ask: any }
+```
+
+Wires the parent `supervisor` Intelligence's tool list to the given
+`bricks`, each wrapped (by default) as a single opaque tool via
+`asTool`, so nested delegation happens through the existing
+agent-loop tool-dispatch machinery, with no new execution engine. Depth is
+threaded explicitly through the closure, incremented per hop and checked
+against `maxDepth` (default 3).
+
+### Type Alias SupervisorOptions
+
+```ts
+SupervisorOptions:
+```
+
+Options for `supervisor`.
+
+### Type Alias SupervisorResult
+
+```ts
+SupervisorResult:
+```
+
+The result of asking a `supervisor()`.
+
+## @intellibrix/terminal
+
+### Function chatRepl
+
+```ts
+chatRepl(brick: Brick & ReplIO, opts: ChatReplOptions): Promise<void>
+```
+
+Runs an interactive chat loop: read a line with the brick's own `input()`,
+send it through `brick.ask()`, print the reply. Errors from `ask()` are
+printed and the loop continues. Resolves when an exit command is entered,
+the user presses Ctrl+C at the prompt or stdin closes (`InputClosedError`), or `opts.signal` aborts.
+Ctrl+C while a reply is being generated cancels just that turn.
+
+Uses the brick's `terminal-kit` input rather than `node:readline`, so two
+libraries never fight over stdin raw mode.
+
+### Interface ChatReplOptions
+
+```ts
+ChatReplOptions
+```
+
+- `exitCommands`: Inputs (case-insensitive) that end the session.
+- `hint`: Shown once when the session starts.
+- `prompt`: Prompt shown before each input.
+- `signal`: Aborts the session, including an in-flight `ask()`.
+- `threadId`: Thread id passed to `ask()`, so a configured `memory` carries the conversation.
+
+### Class default
+
+```ts
+default
+```
+
+Class representing a Terminal Brick.
+It extends from the `intellibrix!Brick` class.
+
+It uses the [TerminalKit](https://github.com/cronvel/terminal-kit) library to interact with the terminal.
+
+- `constructor(options: BrickOptions): default`: Creates a new Terminal Brick.
+- `ai`: The intelligence of the Brick instance.
+- `db`: The key-value store of the Brick instance.
+- `events`: The event emitter of the Brick instance.
+- `id`: The unique identifier of the Brick instance.
+- `kit`: The TerminalKit module.
+- `log`: The logger used by the Brick instance.
+- `name`: The name of the Brick instance.
+- `structure`: The parent Structure of the Brick instance, if any.
+- `terminal`: The TerminalKit terminal instance.
+- `usage`: Accumulates token usage/cost across every `ask()` call on this Brick.
+- `programs`
+- `ask(prompt: string, options?: AskOptions): Promise<AskResult>`: Runs a prompt through this Brick's `ai`, offering its programs (via `Brick.tools`) plus any tools attached via `Brick.use`.
+- `deprogram(name: string): void`: Removes a program from the private map of programs by its name.
+- `input(inputOptions: InputFieldOptions): Promise<string>`: Prompts the user for input in the terminal.
+- `keepAlive(on: boolean): void`: Toggles the keep alive flag of the Brick instance, which will prevent the Node process from exiting
+- `onInterrupt(handler: () => void): () => void`: Calls `handler` whenever the user presses Ctrl+C.
+- `print(text: string): void`: Prints some text to the terminal.
+- `printDebug(text: string): void`: Prints a debug message to the terminal in cyan color.
+- `printError(text: string): void`: Prints an error message to the terminal in red color.
+- `printInfo(text: string): void`: Prints an info message to the terminal in blue color.
+- `printLine(text: string): void`: Prints a line of text to the terminal.
+- `printSuccess(text: string): void`: Prints a success message to the terminal in green color.
+- `printWarning(text: string): void`: Prints a warning message to the terminal in yellow color.
+- `program(program: Program): void`: Adds a program to the private map of programs.
+- `release(): void`: Stops grabbing the terminal's input, restoring normal Ctrl+C handling and letting the process exit.
+- `run(name: string, payload: any): Promise<any>`: Runs a program by its name with a given payload.
+- `schedule(task: Task): Task`: Schedules a `Task` to run on a given schedule.
+- `task(name: string): Task | undefined`: Returns a `Task` by its name.
+- `tools(): ToolDefinition[]`: Exposes every registered program as a `ToolDefinition`, each `execute` calling `this.run(program.name, input)`.
+- `toolset(): ToolDefinition[]`: Every tool this Brick offers: its programs (via `Brick.tools`) plus anything attached via `Brick.use`.
+- `unschedule(name: string): void`: Unschedules a task by its name.
+- `use(toolsets: ToolDefinition[][]): this`: Attaches external tool arrays (e.g. MCP-sourced tools) to this Brick, included whenever `ask()` builds its tool list.
+
+### Class InputClosedError
+
+```ts
+InputClosedError
+```
+
+Thrown by `TerminalBrick.input` when stdin closes or the user presses Ctrl+C before input is entered.
+
+- `constructor(): InputClosedError`
+- `cause`
+- `message`
+- `name`
+- `stack`
+- `stackTraceLimit`: The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`).
+- `captureStackTrace(targetObject: object, constructorOpt?: Function): void`: Creates a `.stack` property on `targetObject`, which when accessed returns a string representing the location in the code at which `Error.captureStackTrace()` was called.
+- `prepareStackTrace(err: Error, stackTraces: CallSite[]): any`
+
+### Interface ReplIO
+
+```ts
+ReplIO
+```
+
+The slice of `TerminalBrick` that `chatRepl` needs.
+
+- `input(): Promise<string>`
+- `onInterrupt(handler: () => void): () => void`: Subscribes to Ctrl+C, returning an unsubscribe.
+- `print(text: string): void`
+- `printError(text: string): void`
+- `printLine(text: string): void`
+- `release(): void`: Called when the session ends, to give the terminal back.
+
+## @intellibrix/workspace
+
+### Class FileTracker
+
+```ts
+FileTracker
+```
+
+Remembers what the model last saw of each file, so a write can be refused when the file has
+changed since (another process, a formatter, the user) or was never read. Share one tracker
+between `workspaceTools` and `agentTools` so `read_file`, `edit_file`, `write_file` and
+`apply_patch` agree. Files are keyed by their real path; create one per session.
+
+- `constructor(): FileTracker`
+- `assertFresh(file: string, content: string | undefined, label: string): void`: Throws unless the model has seen the file's current `content`.
+- `recordDelete(file: string): void`: Notes that `file` is gone.
+- `recordRead(file: string, content: string): void`: Notes that the model has just read `content` from `file`.
+- `recordWrite(file: string, content: string): void`: Notes that `file` now holds `content`, because the model wrote it.
+
+### Type Alias FsToolOptions
+
+```ts
+FsToolOptions:
+```
+
+### Function fsTools
+
+```ts
+fsTools(__namedParameters: FsToolOptions): ToolDefinition[]
+```
+
+Jailed read tools (`read_file`, `list_dir`, `glob`, `grep`) and write tools (`write_file`, `edit_file`).
+
+### Type Alias GitToolOptions
+
+```ts
+GitToolOptions:
+```
+
+### Function gitTools
+
+```ts
+gitTools(__namedParameters: GitToolOptions): ToolDefinition[]
+```
+
+`git_status`, `git_diff`, `git_commit`, `git_branch` over simple-git, scoped to the workspace root.
+
+### Class JailEscapeError
+
+```ts
+JailEscapeError
+```
+
+Thrown when a requested path resolves outside the workspace root.
+
+- `constructor(requested: string): JailEscapeError`
+- `cause`
+- `message`
+- `name`
+- `stack`
+- `stackTraceLimit`: The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`).
+- `captureStackTrace(targetObject: object, constructorOpt?: Function): void`: Creates a `.stack` property on `targetObject`, which when accessed returns a string representing the location in the code at which `Error.captureStackTrace()` was called.
+- `prepareStackTrace(err: Error, stackTraces: CallSite[]): any`
+
+### Function readTextFile
+
+```ts
+readTextFile(file: string, maxBytes: number): Promise<{ size: number; text?: string }>
+```
+
+Reads a UTF-8 file and its size through one handle, so the size describes the text returned.
+`text` is undefined, and the file is not read, when it is larger than `maxBytes`.
+
+### Function resolveJailed
+
+```ts
+resolveJailed(root: string, requested: string): Promise<string>
+```
+
+Resolves `requested` (relative to `root`, or absolute) to an absolute path
+guaranteed to lie inside `root`.
+
+The lexical check alone is not enough: a symlink inside the root can point
+outside it. So after resolving, the deepest existing ancestor is
+`realpath`-ed and containment is checked again. Do not remove that step.
+
+### Function shellTool
+
+```ts
+shellTool(options: ShellToolOptions): ToolDefinition
+```
+
+A `shell` tool that runs allowlisted binaries via `execFile`, never through
+a shell, so there is no metacharacter interpolation. `command` must be a
+bare name that is on the allowlist; anything containing a path separator is
+rejected, so an allowlisted name cannot be satisfied by an arbitrary binary
+at some path (e.g. `/tmp/x/git`).
+
+### Type Alias ShellToolOptions
+
+```ts
+ShellToolOptions:
+```
+
+### Function withFileLock
+
+```ts
+withFileLock(file: string, fn: () => Promise<T>): Promise<T>
+```
+
+Runs `fn` while holding an in-process lock on `file`, so concurrent tool calls on the same file
+(the agent loop runs one step's calls in parallel) take turns instead of losing each other's
+update. `file` should be a real path, as `resolveJailed` returns. This does not coordinate
+between processes.
+
+### Function withFileLocks
+
+```ts
+withFileLocks(files: string[], fn: () => Promise<T>): Promise<T>
+```
+
+Like `withFileLock` for several files at once, taken in a fixed order so callers cannot deadlock.
+
+### Function workspaceTools
+
+```ts
+workspaceTools(options: WorkspaceToolsOptions): ToolDefinition[]
+```
+
+The full toolset for a workspace rooted at `root`. Writes, commits and shell
+all require approval unless explicitly relaxed.
+
+### Type Alias WorkspaceToolsOptions
+
+```ts
+WorkspaceToolsOptions: FsToolOptions & { git?: boolean; shell?: Omit<ShellToolOptions, "root"> }
+```
+
+### Function writeFileAtomic
+
+```ts
+writeFileAtomic(file: string, content: string, options: WriteFileAtomicOptions): Promise<void>
+```
+
+Replaces `file` with `content` so readers see the old content or the new, never a partial file:
+the content goes to a temporary file in the same directory, which then takes the file's place
+with a single `rename`. An existing file keeps its permissions. A crash or error leaves the
+original intact and removes the temporary file.
+
+With `expected` set, the file is re-read immediately before the swap and the write is refused if
+another writer got there first. For `expected: null` the swap is exact (`link` fails if the file
+exists). For existing files the check narrows the race to the instant between the re-read and
+the `rename` but does not close it against another process; use `withFileLock` to
+serialize writers within this one.
+
+### Type Alias WriteFileAtomicOptions
+
+```ts
+WriteFileAtomicOptions:
+```
+
+## intellibrix
+
+### Type Alias Action
+
+```ts
+Action:
+```
+
+Represents an action in a step with an optional name, description and a method.
+To be used in a `Step` of a `Program`.
+
+### Type Alias ApprovalDecision
+
+```ts
+ApprovalDecision: boolean | { edit: unknown }
+```
+
+A decision returned by an approval hook. `true`/`false` approve or deny the
+call outright; `{ edit }` approves the call but substitutes its input first.
+
+### Type Alias ApprovalHook
+
+```ts
+ApprovalHook: (call: { input: unknown; runId: string; toolName: string; trust?: Trust }) => ApprovalDecision | Promise<ApprovalDecision>
+```
+
+A hook invoked before a gated tool call executes. Return `true`/`false` to
+approve or deny, or `{ edit }` to approve with substituted input.
+
+### Type Alias AskOptions
+
+```ts
+AskOptions:
+```
+
+Options for a single `ask`/`stream` call.
+
+### Type Alias AskResult
+
+```ts
+AskResult:
+```
+
+### Class Brick
+
+```ts
+Brick
+```
+
+A Brick is the core of the framework. It encapsulates various functionality such as AI, data storage and retrieval, processing, and logging.
+Many Bricks can be combined to form a `Structure`, which may be easily passed around your application.
+
+- `constructor(options: BrickOptions): Brick`: Creates a new Brick instance.
+- `ai`: The intelligence of the Brick instance.
+- `db`: The key-value store of the Brick instance.
+- `events`: The event emitter of the Brick instance.
+- `id`: The unique identifier of the Brick instance.
+- `log`: The logger used by the Brick instance.
+- `name`: The name of the Brick instance.
+- `structure`: The parent Structure of the Brick instance, if any.
+- `usage`: Accumulates token usage/cost across every `ask()` call on this Brick.
+- `programs`
+- `ask(prompt: string, options: AskOptions): Promise<AskResult>`: Runs a prompt through this Brick's `ai`, offering its programs (via `Brick.tools`) plus any tools attached via `Brick.use`.
+- `deprogram(name: string): void`: Removes a program from the private map of programs by its name.
+- `keepAlive(on: boolean): void`: Toggles the keep alive flag of the Brick instance, which will prevent the Node process from exiting
+- `program(program: Program): void`: Adds a program to the private map of programs.
+- `run(name: string, payload: any): Promise<any>`: Runs a program by its name with a given payload.
+- `schedule(task: Task): Task`: Schedules a `Task` to run on a given schedule.
+- `task(name: string): Task | undefined`: Returns a `Task` by its name.
+- `tools(): ToolDefinition[]`: Exposes every registered program as a `ToolDefinition`, each `execute` calling `this.run(program.name, input)`.
+- `toolset(): ToolDefinition[]`: Every tool this Brick offers: its programs (via `Brick.tools`) plus anything attached via `Brick.use`.
+- `unschedule(name: string): void`: Unschedules a task by its name.
+- `use(toolsets: ToolDefinition[][]): Brick`: Attaches external tool arrays (e.g. MCP-sourced tools) to this Brick, included whenever `ask()` builds its tool list.
+
+### Type Alias BrickOptions
+
+```ts
+BrickOptions:
+```
+
+Represents the options for creating a Brick instance.
+
+### Interface Checkpointer
+
+```ts
+Checkpointer
+```
+
+A save/load hook a durable-execution backend can implement against.
+
+This is deliberately a small seam, not a workflow engine: no retry or
+journaling semantics, no exactly-once guarantees. A production
+`Checkpointer` (backed by Temporal, Inngest, a database, etc.) is expected
+to be supplied by the application, not intellibrix itself.
+
+- `load(runId: string): Promise<CheckpointState | undefined>`
+- `save(runId: string, state: CheckpointState): Promise<void>`
+
+### Type Alias CheckpointState
+
+```ts
+CheckpointState:
+```
+
+The saveable state of an in-progress agent-loop run.
+
+### Type Alias ContractCase
+
+```ts
+ContractCase:
+```
+
+A single named check from a store contract. Register each with your test
+runner: `for (const c of cases) it(c.name, c.run)`.
+
+### Interface ConversationMemory
+
+```ts
+ConversationMemory
+```
+
+Persists and retrieves conversation history by thread id.
+
+- `append(threadId: string, message: Message): Promise<void>`
+- `clear(threadId: string): Promise<void>`
+- `getMessages(threadId: string): Promise<Message[]>`
+
+### Function conversationMemoryContract
+
+```ts
+conversationMemoryContract(make: Factory<ConversationMemory>): ContractCase[]
+```
+
+Behavior every `ConversationMemory` implementation must share.
+
+### Function customProvider
+
+```ts
+customProvider(fn: (prompt: string) => Promise<string>): Provider
+```
+
+Wraps a plain async function as a `Provider`, for simple custom
+integrations that don't need the full agent-loop machinery.
+
+### Variable defaultPriceTable
+
+```ts
+defaultPriceTable: PriceTable
+```
+
+A conservative, non-exhaustive starting price table. Applications are
+expected to maintain their own; this is a convenience default, not a
+pricing source of truth, and goes stale as vendors change prices.
+
+### Variable defaultToolCallParsers
+
+```ts
+defaultToolCallParsers: TextToolCallParser[]
+```
+
+The parsers `textToolCalls` uses unless `parsers` is given.
+
+### Function defineTool
+
+```ts
+defineTool(def: ToolDefinition<In, Out>): ToolDefinition<In, Out>
+```
+
+Defines a `ToolDefinition`. Purely an identity function with a
+narrower generic-inference signature than a plain object literal.
+
+### Type Alias EmbedOptions
+
+```ts
+EmbedOptions:
+```
+
+Options for an embedding request.
+
+### Type Alias FilePart
+
+```ts
+FilePart:
+```
+
+An arbitrary file attachment, referenced by URL or inlined as base64 data.
+
+### Type Alias FinishReason
+
+```ts
+FinishReason: "stop" | "tool-calls" | "length" | "content-filter" | "error" | "other"
+```
+
+The reason a model step finished.
+
+### Function fromJSONSchema
+
+```ts
+fromJSONSchema(schema: JSONSchema): JSONSchemaBackedSchema<T>
+```
+
+Wraps a raw JSON Schema as a Standard Schema, validated at runtime with Ajv.
+Lets tools sourced from JSON Schema (e.g. MCP) sit behind the same
+`~standard` interface as Zod-based tools, so `loop.ts` stays unaware of the
+distinction.
+
+### Type Alias GenerateRequest
+
+```ts
+GenerateRequest:
+```
+
+A request for a single model step.
+
+### Function getSharedLogger
+
+```ts
+getSharedLogger(options?: { logJSON?: boolean; pinoOptions?: LoggerOptions<never> }): Logger
+```
+
+Returns a process-wide shared pino logger, created lazily on first use and
+shared across every `Brick`/`Structure` instance.
+
+### Function getTracer
+
+```ts
+getTracer(name: string): Tracer
+```
+
+Memoizes a single attempt to load `@opentelemetry/api` (an optional peer)
+and wrap its tracer behind our structural `Tracer` shape, falling
+back to a permanent no-op tracer/span pair if the package isn't installed
+or the attempt otherwise fails. Never throws.
+
+### Variable hermesToolCalls
+
+```ts
+hermesToolCalls: TextToolCallParser
+```
+
+JSON calls in `<tool_call>` tags, as emitted by Hermes, Qwen and many other
+open models: `<tool_call>{"name":"read_file","arguments":{"path":"a.txt"}}</tool_call>`.
+
+### Type Alias ImageOptions
+
+```ts
+ImageOptions:
+```
+
+Options for an image-generation request.
+
+### Type Alias ImagePart
+
+```ts
+ImagePart:
+```
+
+An image, referenced by URL or inlined as base64 data.
+
+### Class InMemoryCheckpointer
+
+```ts
+InMemoryCheckpointer
+```
+
+The default `Checkpointer`: an in-memory `Map`. State does not
+survive process restarts; suitable for local development and tests, and as
+the loop's default so behavior is unchanged for callers who don't opt in.
+
+- `constructor(): InMemoryCheckpointer`
+- `load(runId: string): Promise<CheckpointState | undefined>`
+- `save(runId: string, state: CheckpointState): Promise<void>`
+
+### Class Intelligence
+
+```ts
+Intelligence
+```
+
+Represents an intelligence service that can be used by a `Brick` to
+process and respond to messages, backed by any `Provider`.
+
+- `constructor(options: IntelligenceOptions): Intelligence`
+- `checkpointer`
+- `maxSteps`
+- `memory`
+- `model`
+- `onEvent`
+- `onRunEvent`
+- `onToolApproval`
+- `provider`
+- `system`
+- `tools`
+- `usage`: Accumulates token usage/cost across every `ask`/`object` call on this instance.
+- `ask(prompt: string | Message, options: AskOptions): Promise<AskResult>`: Sends a prompt through the agent loop and returns the final result.
+- `embed(input: string[]): Promise<number[][]>`: Generates embeddings for the given input strings, if the provider supports it.
+- `image(prompt: string): Promise<{ data?: string; url?: string }>`: Generates an image from a prompt, if the provider supports it.
+- `object(schema: StandardSchemaV1<T, T>, prompt: string | Message): Promise<T>`: Forces a structured response via a synthetic tool call matching `schema`, returning its parsed input.
+- `stream(prompt: string | Message, options: AskOptions): AsyncIterable<StreamEvent>`: Sends a prompt through the agent loop, streaming events as they occur.
+
+### Type Alias IntelligenceOptions
+
+```ts
+IntelligenceOptions:
+```
+
+Options for creating an `Intelligence` instance.
+
+### Variable invokeToolCalls
+
+```ts
+invokeToolCalls: TextToolCallParser
+```
+
+`<invoke name="…">` blocks with `<parameter name="…">` children, optionally
+inside a wrapper tag such as `<function_calls>` or `<dots_function_call>`:
+`<invoke name="read_file"><parameter name="path">a.txt</parameter></invoke>`.
+Parameter values are decoded like `xmlToolCalls`.
+
+### Function isFilePart
+
+```ts
+isFilePart(part: Part): part is FilePart
+```
+
+Type guard for `FilePart`.
+
+### Function isImagePart
+
+```ts
+isImagePart(part: Part): part is ImagePart
+```
+
+Type guard for `ImagePart`.
+
+### Function isTextPart
+
+```ts
+isTextPart(part: Part): part is TextPart
+```
+
+Type guard for `TextPart`.
+
+### Function isToolCallPart
+
+```ts
+isToolCallPart(part: Part): part is ToolCallPart
+```
+
+Type guard for `ToolCallPart`.
+
+### Function isToolResultPart
+
+```ts
+isToolResultPart(part: Part): part is ToolResultPart
+```
+
+Type guard for `ToolResultPart`.
+
+### Type Alias JSONSchema
+
+```ts
+JSONSchema: Record<string, unknown>
+```
+
+A raw JSON Schema object, e.g. as advertised by an MCP server's tool.
+
+### Type Alias JSONSchemaBackedSchema
+
+```ts
+JSONSchemaBackedSchema: StandardSchemaV1<T> & StandardJSONSchemaV1<T>
+```
+
+A Standard Schema that also exposes its source JSON Schema via the Standard
+JSON Schema interface, so it round-trips through `toolToJSONSchema()`.
+
+### Variable jsonToolCalls
+
+```ts
+jsonToolCalls: TextToolCallParser
+```
+
+A reply that is nothing but a JSON tool call (optionally in a code fence),
+e.g. `{"tool": "read_file", "args": {"path": "a.txt"}}`. The name may be under
+`name`, `tool`, `tool_name` or `function`, and the input under `arguments`,
+`args`, `parameters` or `input`; a JSON array holds several calls.
+
+Not a default parser, because plain JSON is also a legitimate answer. Opt in
+with `knownToolsOnly: true` so only calls to offered tools are converted:
+`textToolCalls(p, { parsers: [...defaultToolCallParsers, jsonToolCalls], knownToolsOnly: true })`.
+
+### Interface KeyValueStore
+
+```ts
+KeyValueStore
+```
+
+A simple, provider-agnostic key-value store.
+
+- `delete(key: string): Promise<boolean>`
+- `dump(): Promise<Record<string, any>>`
+- `get(key: string): Promise<any>`
+- `load(data: Record<string, any>): Promise<void>`
+- `set(key: string, value: any): Promise<void>`
+
+### Function keyValueStoreContract
+
+```ts
+keyValueStoreContract(make: Factory<KeyValueStore>): ContractCase[]
+```
+
+Behavior every `KeyValueStore` implementation must share. Runner-agnostic
+(plain `node:assert`), so any package can reuse it from `intellibrix/testing`.
+
+### Type Alias LoopEvent
+
+```ts
+LoopEvent: { stepIndex: number; type: "step-start" } | { result: StepResult; stepIndex: number; type: "step-finish" } | { input: unknown; toolCallId: string; toolName: string; type: "tool-call-start" } | { input: unknown; toolCallId: string; toolName: string; type: "tool-call-approval-required" } | { toolCallId: string; toolName: string; type: "tool-call-denied" } | { isError?: boolean; output: unknown; toolCallId: string; toolName: string; type: "tool-call-finish" } | { messages: Message[]; steps: number; type: "loop-finish" } | { error: unknown; type: "error" }
+```
+
+Typed events emitted at every stage of `runAgentLoop`.
+
+### Type Alias LoopOptions
+
+```ts
+LoopOptions:
+```
+
+### Type Alias LoopResult
+
+```ts
+LoopResult:
+```
+
+### Class MemoryConversationMemory
+
+```ts
+MemoryConversationMemory
+```
+
+An in-memory `ConversationMemory`, keyed by thread id.
+
+- `constructor(): MemoryConversationMemory`
+- `append(threadId: string, message: Message): Promise<void>`
+- `clear(threadId: string): Promise<void>`
+- `getMessages(threadId: string): Promise<Message[]>`
+
+### Class MemoryKeyValueStore
+
+```ts
+MemoryKeyValueStore
+```
+
+An in-memory `KeyValueStore`. The default store used by a `Brick`
+when no other is configured.
+
+- `constructor(): MemoryKeyValueStore`
+- `delete(key: string): Promise<boolean>`
+- `dump(): Promise<Record<string, any>>`
+- `get(key: string): Promise<any>`
+- `load(data: Record<string, any>): Promise<void>`
+- `set(key: string, value: any): Promise<void>`
+
+### Class MemoryVectorStore
+
+```ts
+MemoryVectorStore
+```
+
+An in-memory `VectorStore` using brute-force cosine similarity.
+Fine for small datasets; see `@intellibrix/sql`'s `PgVectorStore` or
+`@intellibrix/memory-sqlite`'s `SQLiteVectorStore` for larger ones.
+
+- `constructor(): MemoryVectorStore`
+- `delete(ids: string[]): Promise<void>`
+- `query(vector: number[], opts?: { topK?: number }): Promise<VectorMatch[]>`
+- `upsert(records: VectorRecord[]): Promise<void>`
+
+### Type Alias Message
+
+```ts
+Message:
+```
+
+A normalized chat message, provider-agnostic.
+
+### Class MockProvider
+
+```ts
+MockProvider
+```
+
+A `Provider` implementation scripted with a fixed array of steps,
+for deterministic tests with zero network calls. Each `generate`/`stream`
+call consumes the next step in order; consuming past the end throws
+`MockProvider: script exhausted`.
+
+- `constructor(steps: MockStep[]): MockProvider`
+- `id`
+- `generate(_req: GenerateRequest): Promise<StepResult>`
+- `stream(req: GenerateRequest): AsyncIterable<StreamEvent>`
+
+### Type Alias MockStep
+
+```ts
+MockStep: { finishReason?: FinishReason; text: string } | { finishReason?: FinishReason; toolCalls: { input: unknown; toolName: string }[] }
+```
+
+A single scripted step for `MockProvider`: either a plain text reply
+or one or more tool calls.
+
+### Function mockTool
+
+```ts
+mockTool(name: string, impl: (input: In) => Out | Promise<Out>, opts?: { description?: string }): { description: string; execute: (input: In) => Promise<Out>; input: any; name: string }
+```
+
+Convenience helper for defining a simple mock tool in tests.
+
+### Type Alias ParsedToolCall
+
+```ts
+ParsedToolCall:
+```
+
+A tool call recovered from model-generated text.
+
+### Type Alias Part
+
+```ts
+Part: TextPart | ImagePart | FilePart | ToolCallPart | ToolResultPart
+```
+
+A single unit of content within a `Message`.
+
+### Type Alias PriceTable
+
+```ts
+PriceTable: Record<string, { inputPerMillion: number; outputPerMillion: number }>
+```
+
+Per-million-token pricing for a `"provider:model"` key.
+
+### Type Alias Program
+
+```ts
+Program:
+```
+
+Represents a program with a name, optional description and a list of steps.
+To be used in a `Brick`.
+
+### Interface Provider
+
+```ts
+Provider
+```
+
+A model provider. Implementations perform exactly **one** model step per
+`generate`/`stream` call; `runAgentLoop` in `loop.ts` owns iteration.
+This is the seam `@intellibrix/ai-sdk`'s adapters implement.
+
+- `id`
+- `embed(input: string[], opts?: EmbedOptions): Promise<number[][]>`
+- `generate(req: GenerateRequest): Promise<StepResult>`
+- `image(prompt: string, opts?: ImageOptions): Promise<{ data?: string; url?: string }>`
+- `stream(req: GenerateRequest): AsyncIterable<StreamEvent>`
+
+### Variable pythonicToolCalls
+
+```ts
+pythonicToolCalls: TextToolCallParser
+```
+
+Pythonic calls wrapped in special tokens, as emitted by e.g. Liquid's LFM
+models: `<|tool_call_start|>[read_file(path='a.txt')]<|tool_call_end|>`.
+
+### Type Alias RecordedStep
+
+```ts
+RecordedStep:
+```
+
+One recorded `generate()` call: the (serializable) request and the result
+it produced.
+
+### Function recordProvider
+
+```ts
+recordProvider(inner: Provider, opts: { onRecord: (step: RecordedStep) => void | Promise<void> }): Provider
+```
+
+Wraps a real `Provider`, intercepting every `generate`/`stream` call
+and reporting the (serialized) request/result pair to `onRecord`.
+Persistence is the caller's job, so this stays filesystem-free.
+
+### Function replayProvider
+
+```ts
+replayProvider(fixtures: RecordedStep[]): Provider
+```
+
+Plays back a fixed array of `RecordedStep`s in call order. Throws
+(`replayProvider: fixtures exhausted`) when the run asks for more steps than were recorded.
+
+### Function resetSharedLogger
+
+```ts
+resetSharedLogger(): void
+```
+
+Resets the shared logger singleton. Intended for use in tests only.
+
+### Function resetTracer
+
+```ts
+resetTracer(): void
+```
+
+Test-only: clears the memoized tracer so `getTracer()` re-attempts resolution.
+
+### Function resolveNeedsApproval
+
+```ts
+resolveNeedsApproval(tool: ToolDefinition<In, any>, input: In, ctx: ToolContext): Promise<boolean>
+```
+
+Resolves a tool's `needsApproval` (static or predicate) for a given call.
+
+### Type Alias Role
+
+```ts
+Role: "system" | "user" | "assistant" | "tool"
+```
+
+The role of a message's author.
+
+### Function runAgentLoop
+
+```ts
+runAgentLoop(opts: LoopOptions): Promise<LoopResult>
+```
+
+Runs a single agent loop: generate -> append -> (if tool calls) execute in
+parallel, gated by approval -> append results -> repeat, until the model
+stops calling tools, `stopWhen` returns true, `maxSteps` is reached, or the
+loop is aborted.
+
+### Type Alias RunEvent
+
+```ts
+RunEvent: { brickName?: string; runId: string; type: "run:start" } | { brickName?: string; runId: string; steps: number; type: "run:finish" } | { model: string; runId: string; stepIndex: number; type: "model:start" } | { durationMs: number; model: string; runId: string; stepIndex: number; type: "model:finish" } | { input: unknown; runId: string; toolCallId: string; toolName: string; type: "tool:call" } | { durationMs: number; output: unknown; runId: string; toolCallId: string; toolName: string; type: "tool:result" } | { error: unknown; runId: string; toolCallId: string; toolName: string; type: "tool:error" } | { input: unknown; runId: string; toolCallId: string; toolName: string; trust?: Trust; type: "approval:requested" } | { decision: ApprovalDecision; runId: string; toolCallId: string; toolName: string; type: "approval:resolved" }
+```
+
+Structural observability events, layered onto `LoopEvent` (additive,
+not a replacement, so nothing already consuming `LoopEvent`s breaks). Emitted
+at the same call sites `loop.ts` already defines: around each
+`Provider.generate`/`stream` call, around the existing parallel tool
+dispatch, around the existing `onToolApproval` hook, and once per
+`runAgentLoop()` call (and again around `brick.ask()`'s own invocation of
+it, annotated with a `brickName`).
+
+### Type Alias RunEventHandler
+
+```ts
+RunEventHandler: (event: RunEvent) => void
+```
+
+A callback invoked with each `RunEvent`, wired via `LoopOptions.onRunEvent`.
+
+### Type Alias SerializableGenerateRequest
+
+```ts
+SerializableGenerateRequest: Omit<GenerateRequest, "abortSignal" | "tools"> & { tools?: { description: string; name: string }[] }
+```
+
+`GenerateRequest` minus non-serializable fields (`abortSignal`, and tool
+`execute`/`needsApproval` functions; tools are reduced to their
+name/description/schema).
+
+### Type Alias Span
+
+```ts
+Span:
+```
+
+A structural span, shaped closely enough to `@opentelemetry/api`'s `Span`
+to be a drop-in for anyone bridging into a real OTel setup, but never
+re-exported from that package, so `tsc` never needs `@opentelemetry/api`
+installed to typecheck core.
+
+### Type Alias Step
+
+```ts
+Step:
+```
+
+Represents a step in a program with an optional name, description and a list of actions.
+To be used in a `Program`.
+
+### Type Alias StepResult
+
+```ts
+StepResult:
+```
+
+The result of a single model step.
+
+### Type Alias StreamEvent
+
+```ts
+StreamEvent: { text: string; type: "text-delta" } | { input: unknown; toolCallId: string; toolName: string; type: "tool-call" } | { result: StepResult; type: "finish" } | { error: unknown; type: "error" }
+```
+
+A single streamed event during a model step.
+
+### Class Structure
+
+```ts
+Structure
+```
+
+Represents a Structure that can contain multiple `Brick`s.
+
+- `constructor(options: StructureOptions, bricks: Brick[]): Structure`: Creates a new instance of the Structure class.
+- `events`
+- `id`
+- `log`
+- `name`
+- `state`
+- `usage`: Accumulates token usage/cost across every Brick added to this Structure.
+- `bricks`
+- `add(brick: Brick): void`: Adds a brick to the structure.
+- `demolish(): void`: Removes all bricks from the structure.
+- `get(id: string): Brick | undefined`: Gets a brick from the structure by its ID.
+- `remove(brick: Brick): void`: Removes a brick from the structure.
+
+### Type Alias StructureEvents
+
+```ts
+StructureEvents:
+```
+
+Typed events emitted on a `Structure`'s event bus.
+
+### Type Alias StructureOptions
+
+```ts
+StructureOptions:
+```
+
+Represents the options for creating a Structure instance.
+
+### Type Alias Task
+
+```ts
+Task:
+```
+
+Represents a Scheduled Task with a name, optional description, schedule, start flag, optional timezone and a method.
+
+Tasks are powered by the [cron](https://www.npmjs.com/package/cron) package.
+
+An object of this type can be passed to the `Brick.schedule` method.
+
+### Function textMessage
+
+```ts
+textMessage(role: Role, text: string, trust?: Trust): Message
+```
+
+Convenience constructor for a single-text-part `Message`.
+
+### Function textOf
+
+```ts
+textOf(message: Message): string
+```
+
+Extracts and concatenates all text parts of a `Message`.
+
+### Type Alias TextPart
+
+```ts
+TextPart:
+```
+
+A block of text content.
+
+### Interface TextToolCallParser
+
+```ts
+TextToolCallParser
+```
+
+Recognizes one text-based tool-call format that some models emit in place of
+native tool calls.
+
+- `markers`: Literal strings that begin a tool call.
+- `name`
+- `parse(text: string, accept?: (toolName: string) => boolean): { calls: ParsedToolCall[]; text: string }`: Extracts every tool call from `text`, returning them with the text that remains.
+
+### Function textToolCalls
+
+```ts
+textToolCalls(inner: Provider, opts: TextToolCallsOptions): Provider
+```
+
+Wraps a `Provider` so models that write tool calls as plain text
+(instead of using the API's native tool calling) still drive the agent loop.
+
+Only a step that returns no native tool calls is inspected; recognized calls
+are lifted out of the text into real `tool-call` parts and the step's
+`finishReason` becomes `'tool-calls'`. Everything else (approvals, schema
+validation, `Unknown tool` errors) then happens in `loop.ts` exactly as for
+a native call. Still one model step per call.
+
+### Type Alias TextToolCallsOptions
+
+```ts
+TextToolCallsOptions:
+```
+
+### Type Alias ToolCallPart
+
+```ts
+ToolCallPart:
+```
+
+A request from the model to call a tool.
+
+### Type Alias ToolContext
+
+```ts
+ToolContext:
+```
+
+Context passed to a `ToolDefinition`'s `execute` function.
+
+### Type Alias ToolDefinition
+
+```ts
+ToolDefinition:
+```
+
+A typed tool a `Provider` can be offered and the agent loop can execute.
+
+### Type Alias ToolResultPart
+
+```ts
+ToolResultPart:
+```
+
+The result of executing a tool call.
+
+### Function toolToJSONSchema
+
+```ts
+toolToJSONSchema(tool: ToolDefinition): Record<string, unknown>
+```
+
+Returns a tool's input as JSON Schema (draft 2020-12), using the Standard
+JSON Schema interface when the schema implements it (Zod 4 does), and
+falling back to a permissive object schema otherwise.
+
+### Type Alias Tracer
+
+```ts
+Tracer:
+```
+
+A structural tracer. `startSpan` begins a span the caller must `end()`.
+
+### Type Alias Trust
+
+```ts
+Trust: "trusted" | "untrusted"
+```
+
+Trust level of a `Part`. Defaults to `'trusted'` when omitted, so
+hand-written messages need no change. Content fetched or read from outside
+the process (workspace reads, GitHub data, MCP tool results, HTTP fetches)
+should be tagged `'untrusted'` at the point of creation. This is the concrete
+surface for indirect prompt-injection defense: `loop.ts`'s tool dispatch and
+`tool.ts`'s `needsApproval` predicate both receive this status alongside a
+call, so a guardrail policy can key off it.
+
+### Type Alias Usage
+
+```ts
+Usage:
+```
+
+Token usage reported by a single model step.
+
+### Class UsageAccumulator
+
+```ts
+UsageAccumulator
+```
+
+Accumulates token usage (and, optionally, cost) across model calls.
+`runAgentLoop` owns a per-run accumulator; a `Brick` or `Structure` can
+hold a long-lived one and pass `.child()` into each call so totals roll up
+across calls (and across bricks, for a `Structure`).
+
+- `constructor(priceTable: PriceTable, parent?: UsageAccumulator): UsageAccumulator`
+- `totals`
+- `add(usage: Usage, modelKey?: string): void`: Adds one model step's usage to the running totals (and to any parent this accumulator is a `.child()` of).
+- `child(): UsageAccumulator`: Creates a new accumulator whose `.add()` calls roll up into this one, for per-call/per-brick totals that still contribute to a parent's grand total.
+
+### Type Alias UsageTotals
+
+```ts
+UsageTotals:
+```
+
+Running totals accumulated across one or more `.add()` calls.
+
+### Function validateToolInput
+
+```ts
+validateToolInput(tool: ToolDefinition<In, any>, input: unknown): Promise<In>
+```
+
+Validates `input` against a tool's input schema, throwing a descriptive
+error if validation fails, synchronously unwrapping an async validator.
+
+### Type Alias VectorMatch
+
+```ts
+VectorMatch: VectorRecord & { score: number }
+```
+
+A vector-similarity search result.
+
+### Type Alias VectorRecord
+
+```ts
+VectorRecord:
+```
+
+A single entry in a `VectorStore`.
+
+### Interface VectorStore
+
+```ts
+VectorStore
+```
+
+A provider-agnostic vector store for semantic search / retrieval.
+
+- `delete(ids: string[]): Promise<void>`
+- `query(vector: number[], opts?: { topK?: number }): Promise<VectorMatch[]>`
+- `upsert(records: VectorRecord[]): Promise<void>`
+
+### Function vectorStoreContract
+
+```ts
+vectorStoreContract(make: Factory<VectorStore>, opts: { dimensions?: number }): ContractCase[]
+```
+
+Behavior every `VectorStore` implementation must share. `dimensions`
+is the vector length the store under test was constructed for (default 3).
+
+### Function withSpan
+
+```ts
+withSpan(name: string, fn: (span: Span) => Promise<T>, tracer: Tracer): Promise<T>
+```
+
+Runs `fn` inside a span named `name`, recording any thrown exception and
+always ending the span. Test-only escape hatch: pass a `tracer` to avoid
+the memoized global.
+
+### Variable xmlToolCalls
+
+```ts
+xmlToolCalls: TextToolCallParser
+```
+
+Function/parameter tags inside `<tool_call>`, as emitted by Qwen3-Coder and
+similar models:
+`<tool_call><function=read_file><parameter=path>a.txt</parameter></function></tool_call>`.
+Parameter values stay strings unless they are JSON objects, arrays, booleans or null.

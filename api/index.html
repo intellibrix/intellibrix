@@ -1,0 +1,300 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>intellibrix - v0.0.0</title><meta name="description" content="Documentation for intellibrix"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="index.html" class="title">intellibrix - v0.0.0</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>intellibrix - v0.0.0</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="🧱-intellibrix-🧱" class="tsd-anchor-link">🧱 Intellibrix 🧱 <!-- omit in toc --><a href="#🧱-intellibrix-🧱" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<h2 id="ai-powered-software-component-framework" class="tsd-anchor-link">AI-Powered Software Component Framework <!-- omit in toc --><a href="#ai-powered-software-component-framework" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<blockquote>
+<p>“Software and cathedrals are much the same; first we build them, then we pray.” --Sam Redwine</p>
+</blockquote>
+<p>Made with ❤️ by <a href="https://github.com/mathiscode">Jay Mathis</a></p>
+<p><a href="https://www.npmjs.com/package/intellibrix"><img src="https://nodei.co/npm/intellibrix.png?downloads=true&amp;downloadRank=true&amp;stars=true" alt="NPM"></a></p>
+<p><a href="https://intellibrix.dev"><img src="https://img.shields.io/badge/view-docs-blue?style=for-the-badge" alt="View Docs"></a>
+<a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/made_with-typescript-blue?style=for-the-badge" alt="Made with TypeScript"></a></p>
+<p><a href="https://www.npmjs.com/package/intellibrix"><img src="https://img.shields.io/npm/v/intellibrix?color=success" alt="npm"></a>
+<a href="https://github.com/intellibrix/intellibrix/actions/workflows/ci.yml"><img src="https://github.com/intellibrix/intellibrix/actions/workflows/ci.yml/badge.svg?branch=master" alt="CI"></a>
+<a href="https://github.com/intellibrix/intellibrix/commit/master"><img src="https://img.shields.io/github/last-commit/intellibrix/intellibrix.svg" alt="Last Commit"></a>
+<a href="https://github.com/intellibrix/intellibrix/issues"><img src="https://img.shields.io/github/issues/intellibrix/intellibrix.svg" alt="Open issues"></a>
+<a href="https://github.com/intellibrix/intellibrix/issues?q=is%3Aissue+is%3Aclosed"><img src="https://img.shields.io/github/issues-closed/intellibrix/intellibrix.svg" alt="Closed issues"></a></p>
+<p><a href="https://github.com/sponsors/mathiscode"><img src="https://img.shields.io/github/sponsors/mathiscode?color=red" alt="Sponsors"></a>
+<a href="https://github.com/intellibrix/intellibrix/graphs/contributors"><img src="https://img.shields.io/github/contributors/intellibrix/intellibrix?color=yellow" alt="Contributors"></a>
+<a href="https://github.com/intellibrix/intellibrix/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="GitHub license"></a>
+<a href="https://github.com/intellibrix/intellibrix/compare"><img src="https://img.shields.io/badge/PRs-welcome-blue.svg" alt="PRs Welcome"></a></p>
+<p><a href="https://github.com/intellibrix"><img src="https://img.shields.io/github/followers/intellibrix?style=social" alt="Followers"></a>
+<a href="https://github.com/intellibrix/intellibrix"><img src="https://img.shields.io/github/watchers/intellibrix/intellibrix?style=social" alt="Watchers"></a>
+<a href="https://github.com/intellibrix/intellibrix"><img src="https://img.shields.io/github/stars/intellibrix/intellibrix?style=social" alt="Stars"></a></p>
+<hr>
+<p><img src="https://raw.githubusercontent.com/intellibrix/intellibrix/master/assets/intellibrix-diagram.svg" alt="Diagram"></p>
+<hr>
+<p>Intellibrix is a model-agnostic, TypeScript-native framework for building AI-capable software out of composable components. It pairs a small structural model (<code>Structure</code> → <code>Brick</code> → <code>Program</code> → <code>Step</code> → <code>Action</code>) with a typed agent loop, tools, memory, multi-agent composition and MCP support, plus ready-made bricks for agentic software engineering.</p>
+<blockquote>
+<p><strong>1.0 is a clean-break rewrite.</strong> Coming from 0.x? See <a href="media/MIGRATION.md">MIGRATION.md</a>.</p>
+</blockquote>
+<ul>
+<li><a href="#why-intellibrix">Why Intellibrix</a></li>
+<li><a href="#quick-start">Quick start</a></li>
+<li><a href="#concepts">Concepts</a></li>
+<li><a href="#features">Features</a></li>
+<li><a href="#examples">Examples</a></li>
+<li><a href="#packages">Packages</a></li>
+<li><a href="#safety-model">Safety model</a></li>
+<li><a href="#use-cases">Use-cases</a></li>
+<li><a href="#development">Development</a></li>
+</ul>
+<hr>
+<h2 id="why-intellibrix" class="tsd-anchor-link">Why Intellibrix<a href="#why-intellibrix" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li><strong>No vendor lock-in.</strong> Swap models by changing a string: <code>provider('anthropic:claude-sonnet-5')</code>, <code>provider('openai:gpt-4.1')</code>, or any OpenAI-compatible endpoint (Ollama, vLLM, OpenRouter).</li>
+<li><strong>Agent logic is ordinary, testable code.</strong> Programs and tools are typed and schema-validated, and runs can be mocked or replayed deterministically with no network.</li>
+<li><strong>Guardrails are built in.</strong> Destructive tools require approval by default, and content from outside your process is tagged untrusted.</li>
+<li><strong>A thin layer over standards:</strong> the <a href="https://ai-sdk.dev">AI SDK</a>, <a href="https://modelcontextprotocol.io">MCP</a>, <a href="https://standardschema.dev">Standard Schema</a> (Zod 4 and friends) and OpenTelemetry. You aren't betting on a proprietary runtime.</li>
+</ul>
+<h2 id="quick-start" class="tsd-anchor-link">Quick start<a href="#quick-start" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Requires Node 22+.</p>
+<pre><code class="sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">install</span><span class="hl-1"> </span><span class="hl-2">intellibrix</span><span class="hl-1"> </span><span class="hl-2">@intellibrix/ai-sdk</span><span class="hl-1"> </span><span class="hl-2">zod</span><span class="hl-1"> </span><span class="hl-2">@ai-sdk/anthropic</span><br/><span class="hl-3"># or scaffold a project:</span><br/><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-2">@intellibrix/cli</span><span class="hl-1"> </span><span class="hl-2">init</span><span class="hl-1"> </span><span class="hl-2">my-agent</span>
+</code><button type="button">Copy</button></pre>
+
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">provider</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@intellibrix/ai-sdk&#39;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">Brick</span><span class="hl-1">, </span><span class="hl-5">Intelligence</span><span class="hl-1">, </span><span class="hl-5">defineTool</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;intellibrix&#39;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">z</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;zod&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">brick</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Brick</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">name:</span><span class="hl-1"> </span><span class="hl-2">&#39;assistant&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">intelligence:</span><span class="hl-1"> </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Intelligence</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-5">provider:</span><span class="hl-1"> </span><span class="hl-0">provider</span><span class="hl-1">(</span><span class="hl-2">&#39;anthropic:claude-sonnet-5&#39;</span><span class="hl-1">),</span><br/><span class="hl-1">    </span><span class="hl-5">model:</span><span class="hl-1"> </span><span class="hl-2">&#39;claude-sonnet-5&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-5">system:</span><span class="hl-1"> </span><span class="hl-2">&#39;You are a concise assistant.&#39;</span><br/><span class="hl-1">  })</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">use</span><span class="hl-1">([</span><span class="hl-0">defineTool</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">name:</span><span class="hl-1"> </span><span class="hl-2">&#39;get_time&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">description:</span><span class="hl-1"> </span><span class="hl-2">&#39;Get the current time as an ISO string&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">input:</span><span class="hl-1"> </span><span class="hl-5">z</span><span class="hl-1">.</span><span class="hl-0">object</span><span class="hl-1">({}),</span><br/><span class="hl-1">  </span><span class="hl-0">execute</span><span class="hl-5">:</span><span class="hl-1"> </span><span class="hl-6">async</span><span class="hl-1"> () </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Date</span><span class="hl-1">().</span><span class="hl-0">toISOString</span><span class="hl-1">()</span><br/><span class="hl-1">})])</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> { </span><span class="hl-7">text</span><span class="hl-1"> } = </span><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">ask</span><span class="hl-1">(</span><span class="hl-2">&#39;What time is it?&#39;</span><span class="hl-1">)</span><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">text</span><span class="hl-1">)</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Guides, a cookbook and the full API reference are at <a href="https://intellibrix.dev">intellibrix.dev</a>.</p>
+<h2 id="concepts" class="tsd-anchor-link">Concepts<a href="#concepts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>A <strong><code>Brick</code></strong> is a software component that provides specific functionality.</li>
+<li>A <strong><code>Structure</code></strong> is a collection of Bricks that share state (<code>structure.state</code>) and usage accounting, and can coordinate.</li>
+<li>A <strong><code>Program</code></strong> is a named, optionally schema-typed workflow on a Brick. Every Program is automatically exposed to models as a tool (<code>brick.tools()</code>).</li>
+<li>A Program contains <strong><code>Steps</code></strong>, which contain <strong><code>Actions</code></strong>, executed in sequence to process and transform data.</li>
+<li>An <strong><code>Intelligence</code></strong> gives a Brick model access via a <code>Provider</code>. A Provider performs exactly one model step per call; <code>runAgentLoop</code> owns iteration, tool dispatch and approvals.</li>
+<li><strong>Tools</strong> (<code>defineTool</code>) are typed functions a model may call. Attach them with <code>brick.use(...)</code>, or get everything with <code>brick.toolset()</code>.</li>
+<li><strong>Bricks and Structures</strong> emit events, log via a shared Pino logger, and can run scheduled <strong>Tasks</strong>.</li>
+</ul>
+<p>You aren't limited to these: extend a Brick and make it work however you want.</p>
+<h2 id="features" class="tsd-anchor-link">Features<a href="#features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="model-agnostic-intelligence" class="tsd-anchor-link">Model-agnostic Intelligence<a href="#model-agnostic-intelligence" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="typescript"><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">intelligence</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Intelligence</span><span class="hl-1">({ </span><span class="hl-5">provider:</span><span class="hl-1"> </span><span class="hl-0">provider</span><span class="hl-1">(</span><span class="hl-2">&#39;openai:gpt-4.1&#39;</span><span class="hl-1">), </span><span class="hl-5">model:</span><span class="hl-1"> </span><span class="hl-2">&#39;gpt-4.1&#39;</span><span class="hl-1"> })</span><br/><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">intelligence</span><span class="hl-1">.</span><span class="hl-0">ask</span><span class="hl-1">(</span><span class="hl-2">&#39;Summarize this&#39;</span><span class="hl-1">, { </span><span class="hl-5">threadId:</span><span class="hl-1"> </span><span class="hl-2">&#39;chat-1&#39;</span><span class="hl-1"> })   </span><span class="hl-3">// → { text, messages, steps, usage }</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">intelligence</span><span class="hl-1">.</span><span class="hl-0">object</span><span class="hl-1">(</span><span class="hl-5">z</span><span class="hl-1">.</span><span class="hl-0">object</span><span class="hl-1">({ </span><span class="hl-5">sentiment:</span><span class="hl-1"> </span><span class="hl-5">z</span><span class="hl-1">.</span><span class="hl-0">enum</span><span class="hl-1">([</span><span class="hl-2">&#39;pos&#39;</span><span class="hl-1">, </span><span class="hl-2">&#39;neg&#39;</span><span class="hl-1">]) }), </span><span class="hl-2">&#39;I love it&#39;</span><span class="hl-1">) </span><span class="hl-3">// validated output</span><br/><span class="hl-4">for</span><span class="hl-1"> </span><span class="hl-4">await</span><span class="hl-1"> (</span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">event</span><span class="hl-1"> </span><span class="hl-6">of</span><span class="hl-1"> </span><span class="hl-5">intelligence</span><span class="hl-1">.</span><span class="hl-0">stream</span><span class="hl-1">(</span><span class="hl-2">&#39;Tell me a story&#39;</span><span class="hl-1">)) { </span><span class="hl-3">/* StreamEvents */</span><span class="hl-1"> }</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">intelligence</span><span class="hl-1">.</span><span class="hl-0">embed</span><span class="hl-1">(</span><span class="hl-2">&#39;some text&#39;</span><span class="hl-1">)</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">intelligence</span><span class="hl-1">.</span><span class="hl-0">image</span><span class="hl-1">(</span><span class="hl-2">&#39;a shiny red apple&#39;</span><span class="hl-1">)                       </span><span class="hl-3">// if the provider supports it</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Vendor adapters (<code>@ai-sdk/anthropic</code>, <code>@ai-sdk/openai</code>, <code>@ai-sdk/google</code>, <code>@ai-sdk/openai-compatible</code>) are optional peers, loaded lazily. Use <code>compatibleProvider(model, { baseURL, apiKey })</code> for local or self-hosted models, or <code>aiSdkProvider(languageModel)</code> to wrap any AI SDK model.</p>
+<h3 id="models-that-write-tool-calls-as-text" class="tsd-anchor-link">Models that write tool calls as text<a href="#models-that-write-tool-calls-as-text" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Some open and free models print tool calls into their reply (<code>&lt;|tool_call_start|&gt;[read_file(path='a.txt')]&lt;|tool_call_end|&gt;</code>, or Hermes/Qwen-style <code>&lt;tool_call&gt;{...}&lt;/tool_call&gt;</code>) instead of using native tool calling. Wrap the provider and they drive the agent loop like any other:</p>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">textToolCalls</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;intellibrix&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">intelligence</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Intelligence</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">provider:</span><span class="hl-1"> </span><span class="hl-0">textToolCalls</span><span class="hl-1">(</span><span class="hl-0">compatibleProvider</span><span class="hl-1">(</span><span class="hl-5">model</span><span class="hl-1">, { </span><span class="hl-5">baseURL</span><span class="hl-1">, </span><span class="hl-5">apiKey</span><span class="hl-1"> })),</span><br/><span class="hl-1">  </span><span class="hl-5">model</span><br/><span class="hl-1">})</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Native tool calls pass through untouched, markup is held back while streaming, and approvals and schema validation still apply. Pass <code>parsers</code> to add other formats, or <code>knownToolsOnly</code> to ignore calls to tools you didn't offer.</p>
+<h3 id="typed-tools-and-programs" class="tsd-anchor-link">Typed tools and Programs<a href="#typed-tools-and-programs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="typescript"><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">program</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">name:</span><span class="hl-1"> </span><span class="hl-2">&#39;word_count&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">description:</span><span class="hl-1"> </span><span class="hl-2">&#39;Count the words in a piece of text.&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">input:</span><span class="hl-1"> </span><span class="hl-5">z</span><span class="hl-1">.</span><span class="hl-0">object</span><span class="hl-1">({ </span><span class="hl-5">text:</span><span class="hl-1"> </span><span class="hl-5">z</span><span class="hl-1">.</span><span class="hl-0">string</span><span class="hl-1">() }),</span><br/><span class="hl-1">  </span><span class="hl-5">steps:</span><span class="hl-1"> [{ </span><span class="hl-5">actions:</span><span class="hl-1"> [{ </span><span class="hl-0">method</span><span class="hl-5">:</span><span class="hl-1"> </span><span class="hl-6">async</span><span class="hl-1"> ({ </span><span class="hl-5">text</span><span class="hl-1"> }) </span><span class="hl-6">=&gt;</span><span class="hl-1"> ({ </span><span class="hl-5">words:</span><span class="hl-1"> </span><span class="hl-5">text</span><span class="hl-1">.</span><span class="hl-0">split</span><span class="hl-1">(</span><span class="hl-8">/\s</span><span class="hl-9">+</span><span class="hl-8">/</span><span class="hl-1">).</span><span class="hl-0">filter</span><span class="hl-1">(</span><span class="hl-5">Boolean</span><span class="hl-1">).</span><span class="hl-5">length</span><span class="hl-1"> }) }] }]</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">run</span><span class="hl-1">(</span><span class="hl-2">&#39;word_count&#39;</span><span class="hl-1">, { </span><span class="hl-5">text:</span><span class="hl-1"> </span><span class="hl-2">&#39;hello brick world&#39;</span><span class="hl-1"> }) </span><span class="hl-3">// validated, run directly…</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">ask</span><span class="hl-1">(</span><span class="hl-2">&#39;How many words are in &quot;hello brick world&quot;?&#39;</span><span class="hl-1">) </span><span class="hl-3">// …or called by the model as a tool</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="multi-agent-structures-" class="tsd-anchor-link">Multi-agent structures (<code>@intellibrix/structures</code>)<a href="#multi-agent-structures-" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">supervisor</span><span class="hl-1">, </span><span class="hl-5">router</span><span class="hl-1">, </span><span class="hl-5">sequential</span><span class="hl-1">, </span><span class="hl-5">parallel</span><span class="hl-1">, </span><span class="hl-5">handoffTool</span><span class="hl-1">, </span><span class="hl-5">asTool</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@intellibrix/structures&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">team</span><span class="hl-1"> = </span><span class="hl-0">supervisor</span><span class="hl-1">({ </span><span class="hl-5">supervisor:</span><span class="hl-1"> </span><span class="hl-5">leadIntelligence</span><span class="hl-1">, </span><span class="hl-5">bricks:</span><span class="hl-1"> [</span><span class="hl-5">researcher</span><span class="hl-1">, </span><span class="hl-5">writer</span><span class="hl-1">], </span><span class="hl-5">maxDepth:</span><span class="hl-1"> </span><span class="hl-10">3</span><span class="hl-1"> })</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">team</span><span class="hl-1">.</span><span class="hl-0">ask</span><span class="hl-1">(</span><span class="hl-2">&#39;Write a briefing on Structures&#39;</span><span class="hl-1">)</span>
+</code><button type="button">Copy</button></pre>
+
+<ul>
+<li><code>supervisor</code>: a lead model delegates to sub-bricks, each wrapped as a tool.</li>
+<li><code>router</code>: one structured classification step, then dispatch to the matching brick.</li>
+<li><code>sequential</code> / <code>parallel</code>: pipelines and fan-out.</li>
+<li><code>handoffTool</code>: transfer control between bricks.</li>
+<li><code>structure:hop</code> events let you reconstruct the full call graph of a run.</li>
+</ul>
+<h3 id="mcp-both-directions-" class="tsd-anchor-link">MCP, both directions (<code>@intellibrix/mcp</code>)<a href="#mcp-both-directions-" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">mcpTools</span><span class="hl-1">, </span><span class="hl-5">serveMcp</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@intellibrix/mcp&#39;</span><br/><br/><span class="hl-3">// Mount a remote server&#39;s tools into a Brick…</span><br/><span class="hl-6">const</span><span class="hl-1"> { </span><span class="hl-7">tools</span><span class="hl-1">, </span><span class="hl-7">close</span><span class="hl-1"> } = </span><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-0">mcpTools</span><span class="hl-1">({ </span><span class="hl-5">transport:</span><span class="hl-1"> </span><span class="hl-2">&#39;stdio&#39;</span><span class="hl-1">, </span><span class="hl-5">command:</span><span class="hl-1"> </span><span class="hl-2">&#39;npx&#39;</span><span class="hl-1">, </span><span class="hl-5">args:</span><span class="hl-1"> [</span><span class="hl-2">&#39;some-mcp-server&#39;</span><span class="hl-1">] })</span><br/><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">use</span><span class="hl-1">(</span><span class="hl-5">tools</span><span class="hl-1">)</span><br/><br/><span class="hl-3">// …or expose your Brick/Structure to Claude Desktop, Cursor, etc.</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-0">serveMcp</span><span class="hl-1">(</span><span class="hl-5">brick</span><span class="hl-1">, { </span><span class="hl-5">transport:</span><span class="hl-1"> </span><span class="hl-2">&#39;stdio&#39;</span><span class="hl-1"> })</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Sampling and elicitation are supported. Or from the CLI: <code>intellibrix mcp serve ./src/brick.ts</code>.</p>
+<h3 id="memory-and-storage" class="tsd-anchor-link">Memory and storage<a href="#memory-and-storage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li>Interfaces: <code>KeyValueStore</code>, <code>ConversationMemory</code>, <code>VectorStore</code>, with in-memory implementations in core.</li>
+<li><code>@intellibrix/memory-sqlite</code>: zero-dependency <code>node:sqlite</code> conversation memory and vector store.</li>
+<li><code>@intellibrix/sql</code>: SQL key-value store (Sequelize) and Postgres + pgvector <code>PgVectorStore</code> (HNSW).</li>
+<li>Conformance suites (<code>intellibrix/testing</code>) validate your own store implementations.</li>
+</ul>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">SQLiteConversationMemory</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@intellibrix/memory-sqlite&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">intelligence</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Intelligence</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">provider</span><span class="hl-1">, </span><span class="hl-5">model</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">memory:</span><span class="hl-1"> </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">SQLiteConversationMemory</span><span class="hl-1">({ </span><span class="hl-5">path:</span><span class="hl-1"> </span><span class="hl-2">&#39;./chat.db&#39;</span><span class="hl-1"> })</span><br/><span class="hl-1">})</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">intelligence</span><span class="hl-1">.</span><span class="hl-0">ask</span><span class="hl-1">(</span><span class="hl-2">&#39;My name is Ada&#39;</span><span class="hl-1">, { </span><span class="hl-5">threadId:</span><span class="hl-1"> </span><span class="hl-2">&#39;ada&#39;</span><span class="hl-1"> })</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">intelligence</span><span class="hl-1">.</span><span class="hl-0">ask</span><span class="hl-1">(</span><span class="hl-2">&#39;What is my name?&#39;</span><span class="hl-1">, { </span><span class="hl-5">threadId:</span><span class="hl-1"> </span><span class="hl-2">&#39;ada&#39;</span><span class="hl-1"> }) </span><span class="hl-3">// remembers</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="observability-and-testing" class="tsd-anchor-link">Observability and testing<a href="#observability-and-testing" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><code>onRunEvent</code> emits <code>run:*</code>, <code>model:*</code>, <code>tool:*</code> and <code>approval:*</code> events.</li>
+<li>Optional OpenTelemetry spans (<code>@opentelemetry/api</code> is an optional peer).</li>
+<li>Token and cost accounting that rolls up Brick → Structure (<code>brick.usage</code>).</li>
+<li><code>Checkpointer</code> seam for durable execution, with <code>recordProvider</code> / <code>replayProvider</code> for deterministic fixtures.</li>
+<li><code>intellibrix/testing</code> provides <code>MockProvider</code> and <code>mockTool</code> for offline tests.</li>
+</ul>
+<h3 id="events-logging-and-tasks" class="tsd-anchor-link">Events, logging and tasks<a href="#events-logging-and-tasks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="typescript"><span class="hl-5">structure</span><span class="hl-1">.</span><span class="hl-5">events</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;add&#39;</span><span class="hl-1">, ({ </span><span class="hl-5">brick</span><span class="hl-1"> }) </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">`Added </span><span class="hl-6">${</span><span class="hl-5">brick</span><span class="hl-11">.</span><span class="hl-5">id</span><span class="hl-6">}</span><span class="hl-2">`</span><span class="hl-1">))</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">structure</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Structure</span><span class="hl-1">({ </span><span class="hl-5">name:</span><span class="hl-1"> </span><span class="hl-2">&#39;My Structure&#39;</span><span class="hl-1">, </span><span class="hl-5">logLevel:</span><span class="hl-1"> </span><span class="hl-2">&#39;debug&#39;</span><span class="hl-1"> }) </span><span class="hl-3">// Pino, one shared transport</span><br/><br/><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">schedule</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">name:</span><span class="hl-1"> </span><span class="hl-2">&#39;Nightly&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">schedule:</span><span class="hl-1"> </span><span class="hl-2">&#39;0 0 * * *&#39;</span><span class="hl-1">, </span><span class="hl-3">// cron syntax or a Date</span><br/><span class="hl-1">  </span><span class="hl-5">start:</span><span class="hl-1"> </span><span class="hl-6">true</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">method</span><span class="hl-5">:</span><span class="hl-1"> () </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">&#39;Running nightly job&#39;</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">unschedule</span><span class="hl-1">(</span><span class="hl-2">&#39;Nightly&#39;</span><span class="hl-1">)</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Set <code>INTELLIBRIX_LOG_STDERR</code> to log JSON to stderr (required for stdio MCP servers).</p>
+<h2 id="examples" class="tsd-anchor-link">Examples<a href="#examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Runnable examples live in <a href="media/examples"><code>examples/</code></a>:</p>
+<table>
+<thead>
+<tr>
+<th>Example</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>coding-agent</code></td>
+<td>A terminal coding agent with jailed workspace tools and human approvals, backed by OpenRouter (<code>OPENROUTER_API_KEY</code>)</td>
+</tr>
+<tr>
+<td><code>supervisor</code></td>
+<td>Multi-agent delegation, running offline with <code>MockProvider</code></td>
+</tr>
+<tr>
+<td><code>qa</code></td>
+<td>A custom <code>Brick</code> subclass with a Program</td>
+</tr>
+<tr>
+<td><code>mcp-server</code></td>
+<td>A Brick served over MCP</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="typescript"><span class="hl-3">// A coding agent with human-in-the-loop approvals</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">brick</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">TerminalBrick</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">intelligence:</span><span class="hl-1"> </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Intelligence</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-5">provider:</span><span class="hl-1"> </span><span class="hl-0">compatibleProvider</span><span class="hl-1">(</span><span class="hl-2">&#39;openrouter/free&#39;</span><span class="hl-1">, {</span><br/><span class="hl-1">      </span><span class="hl-5">baseURL:</span><span class="hl-1"> </span><span class="hl-2">&#39;https://openrouter.ai/api/v1&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-5">apiKey:</span><span class="hl-1"> </span><span class="hl-5">process</span><span class="hl-1">.</span><span class="hl-5">env</span><span class="hl-1">.</span><span class="hl-7">OPENROUTER_API_KEY</span><br/><span class="hl-1">    }),</span><br/><span class="hl-1">    </span><span class="hl-5">model:</span><span class="hl-1"> </span><span class="hl-2">&#39;openrouter/free&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-5">tools:</span><span class="hl-1"> </span><span class="hl-0">workspaceTools</span><span class="hl-1">({ </span><span class="hl-5">root</span><span class="hl-1">, </span><span class="hl-5">shell:</span><span class="hl-1"> { </span><span class="hl-5">allow:</span><span class="hl-1"> [</span><span class="hl-2">&#39;node&#39;</span><span class="hl-1">, </span><span class="hl-2">&#39;pnpm&#39;</span><span class="hl-1">, </span><span class="hl-2">&#39;git&#39;</span><span class="hl-1">] } }),</span><br/><span class="hl-1">    </span><span class="hl-0">onToolApproval</span><span class="hl-5">:</span><span class="hl-1"> </span><span class="hl-6">async</span><span class="hl-1"> (</span><span class="hl-5">call</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">print</span><span class="hl-1">(</span><span class="hl-2">`Approve </span><span class="hl-6">${</span><span class="hl-5">call</span><span class="hl-11">.</span><span class="hl-5">toolName</span><span class="hl-6">}</span><span class="hl-2">(</span><span class="hl-6">${</span><span class="hl-7">JSON</span><span class="hl-11">.</span><span class="hl-0">stringify</span><span class="hl-11">(</span><span class="hl-5">call</span><span class="hl-11">.</span><span class="hl-5">input</span><span class="hl-11">)</span><span class="hl-6">}</span><span class="hl-2">)? [y/N] `</span><span class="hl-1">)</span><br/><span class="hl-1">      </span><span class="hl-4">return</span><span class="hl-1"> (</span><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">brick</span><span class="hl-1">.</span><span class="hl-0">input</span><span class="hl-1">()).</span><span class="hl-0">trim</span><span class="hl-1">().</span><span class="hl-0">toLowerCase</span><span class="hl-1">() === </span><span class="hl-2">&#39;y&#39;</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">  })</span><br/><span class="hl-1">})</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-0">chatRepl</span><span class="hl-1">(</span><span class="hl-5">brick</span><span class="hl-1">)</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="packages" class="tsd-anchor-link">Packages<a href="#packages" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>intellibrix</code></td>
+<td>Core: Brick, Structure, Intelligence, agent loop, tools, events, approvals, memory interfaces, testing utilities</td>
+</tr>
+<tr>
+<td><code>@intellibrix/ai-sdk</code></td>
+<td>Provider adapter: <code>provider('vendor:model')</code>, <code>compatibleProvider</code>, <code>aiSdkProvider</code></td>
+</tr>
+<tr>
+<td><code>@intellibrix/structures</code></td>
+<td>Multi-agent composition: supervisor, router, pipelines, handoffs</td>
+</tr>
+<tr>
+<td><code>@intellibrix/mcp</code></td>
+<td>MCP client (mount remote tools) and server (expose Bricks)</td>
+</tr>
+<tr>
+<td><code>@intellibrix/memory-sqlite</code></td>
+<td><code>node:sqlite</code> conversation memory and vector store</td>
+</tr>
+<tr>
+<td><code>@intellibrix/sql</code></td>
+<td>SQL key-value store and pgvector <code>VectorStore</code></td>
+</tr>
+<tr>
+<td><code>@intellibrix/workspace</code></td>
+<td>Jailed filesystem tools, allowlisted shell, git tools</td>
+</tr>
+<tr>
+<td><code>@intellibrix/agent-tools</code></td>
+<td><code>apply_patch</code>, <code>run_checks</code>, <code>todo</code>, <code>calculator</code>, <code>datetime</code>, <code>json_query</code>, <code>diff</code>, <code>memory</code>, <code>fetch_url</code>, <code>web_search</code> and more for coding agents</td>
+</tr>
+<tr>
+<td><code>@intellibrix/sandbox</code></td>
+<td>Code execution in a local Podman/Docker container or a hosted sandbox (E2B, Daytona, Cloudflare)</td>
+</tr>
+<tr>
+<td><code>@intellibrix/github</code></td>
+<td>Issue, PR and review tools; HMAC-verified webhook bridge</td>
+</tr>
+<tr>
+<td><code>@intellibrix/express</code></td>
+<td>Express brick with <code>/ask</code> and SSE streaming routes</td>
+</tr>
+<tr>
+<td><code>@intellibrix/terminal</code></td>
+<td>TerminalKit brick and <code>chatRepl</code></td>
+</tr>
+<tr>
+<td><code>@intellibrix/i18n</code></td>
+<td>i18next-powered internationalization brick</td>
+</tr>
+<tr>
+<td><code>@intellibrix/cli</code></td>
+<td><code>intellibrix init</code> and <code>intellibrix mcp serve</code></td>
+</tr>
+</tbody>
+</table>
+<p>You can also publish your own Bricks. To have one under the <code>@intellibrix</code> scope, contact <code>dev@intellibrix.dev</code>.</p>
+<h2 id="safety-model" class="tsd-anchor-link">Safety model<a href="#safety-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li><strong>Approvals.</strong> <code>needsApproval</code> gates shell, file writes, git commits and sandboxed code execution by default. Supply <code>onToolApproval</code> to decide, and a call can be approved, denied or edited. Tools behind <code>serveMcp</code> are denied unless you provide <code>onToolApproval</code>.</li>
+<li><strong>Untrusted content.</strong> Every message <code>Part</code> may carry <code>trust: 'trusted' | 'untrusted'</code>. Workspace reads, GitHub data and MCP results are tagged <code>untrusted</code>, so approval policies can key off provenance to defend against indirect prompt injection.</li>
+<li><strong>Jailed workspace.</strong> File tools are confined to a root and re-checked after <code>realpath</code>, so symlinks can't escape.</li>
+</ul>
+<p>See the <a href="media/THREAT_MODEL.md">threat model</a> for what each defense covers and its limits, and <a href="media/SECURITY.md">SECURITY.md</a> to report a vulnerability.</p>
+<h2 id="use-cases" class="tsd-anchor-link">Use-cases<a href="#use-cases" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li><strong>Coding and repo agents:</strong> PR-review bots and issue triage driven by webhooks.</li>
+<li><strong>Multi-agent assistants:</strong> a supervisor with specialist bricks, or a router in front of a Q&amp;A bot.</li>
+<li><strong>MCP servers:</strong> expose your capabilities to Claude Desktop, Cursor and other clients.</li>
+<li><strong>Chat and AI backends:</strong> Express with streaming, persistent thread memory and RAG over pgvector or SQLite.</li>
+<li><strong>Scheduled automation:</strong> cron tasks combined with LLM steps.</li>
+<li><strong>Local-first tools:</strong> Ollama plus <code>node:sqlite</code> with no external services.</li>
+</ul>
+<hr>
+<h2 id="development" class="tsd-anchor-link">Development<a href="#development" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>This is a pnpm monorepo (Node 22+). See <a href="media/CONTRIBUTING.md">CONTRIBUTING.md</a> for how to contribute, and <a href="media/AGENTS.md">AGENTS.md</a> if you are an AI coding agent.</p>
+<pre><code class="sh"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> </span><span class="hl-2">https://github.com/intellibrix/intellibrix.git</span><span class="hl-1"> </span><span class="hl-3"># or your fork</span><br/><span class="hl-0">cd</span><span class="hl-1"> </span><span class="hl-2">intellibrix</span><br/><span class="hl-0">pnpm</span><span class="hl-1"> </span><span class="hl-2">install</span><br/><span class="hl-0">pnpm</span><span class="hl-1"> </span><span class="hl-6">-r</span><span class="hl-1"> </span><span class="hl-2">typecheck</span><br/><span class="hl-0">pnpm</span><span class="hl-1"> </span><span class="hl-2">biome</span><span class="hl-1"> </span><span class="hl-2">ci</span><span class="hl-1"> </span><span class="hl-2">.</span><br/><span class="hl-0">pnpm</span><span class="hl-1"> </span><span class="hl-6">-r</span><span class="hl-1"> </span><span class="hl-2">test</span><br/><span class="hl-0">pnpm</span><span class="hl-1"> </span><span class="hl-6">-r</span><span class="hl-1"> </span><span class="hl-2">build</span><br/><span class="hl-0">pnpm</span><span class="hl-1"> </span><span class="hl-2">docs:site</span><span class="hl-1">   </span><span class="hl-3"># docs site + typedoc API reference + llms.txt</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Tests run offline using <code>MockProvider</code>; no API keys are needed.</p>
+<h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>MIT</p>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#🧱-intellibrix-🧱"><span>🧱 <wbr/>Intellibrix 🧱 </span></a>
+<ul>
+<li><a href="#ai-powered-software-component-framework"><span>AI-<wbr/>Powered <wbr/>Software <wbr/>Component <wbr/>Framework </span></a></li>
+<li><a href="#why-intellibrix"><span>Why <wbr/>Intellibrix</span></a></li>
+<li><a href="#quick-start"><span>Quick start</span></a></li>
+<li><a href="#concepts"><span>Concepts</span></a></li>
+<li><a href="#features"><span>Features</span></a></li>
+<li>
+<ul>
+<li><a href="#model-agnostic-intelligence"><span>Model-<wbr/>agnostic <wbr/>Intelligence</span></a></li>
+<li><a href="#models-that-write-tool-calls-as-text"><span>Models that write tool calls as text</span></a></li>
+<li><a href="#typed-tools-and-programs"><span>Typed tools and <wbr/>Programs</span></a></li>
+<li><a href="#multi-agent-structures-"><span>Multi-<wbr/>agent structures ()</span></a></li>
+<li><a href="#mcp-both-directions-"><span>MCP, both directions ()</span></a></li>
+<li><a href="#memory-and-storage"><span>Memory and storage</span></a></li>
+<li><a href="#observability-and-testing"><span>Observability and testing</span></a></li>
+<li><a href="#events-logging-and-tasks"><span>Events, logging and tasks</span></a></li></ul></li>
+<li><a href="#examples"><span>Examples</span></a></li>
+<li><a href="#packages"><span>Packages</span></a></li>
+<li><a href="#safety-model"><span>Safety model</span></a></li>
+<li><a href="#use-cases"><span>Use-<wbr/>cases</span></a></li>
+<li><a href="#development"><span>Development</span></a></li>
+<li><a href="#license"><span>License</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="modules.html">intellibrix - v0.0.0</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
