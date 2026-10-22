@@ -11,7 +11,7 @@ Made with ❤️ by [Jay Mathis](https://github.com/mathiscode)
 [![View Docs](https://img.shields.io/badge/view-docs-blue?style=for-the-badge)](https://intellibrix.dev)
 [![Made with TypeScript](https://img.shields.io/badge/made_with-typescript-blue?style=for-the-badge)](https://www.typescriptlang.org)
 
-[![Version](https://img.shields.io/github/package-json/v/intellibrix/intellibrix?color=success)](https://www.npmjs.com/package/intellibrix)
+[![npm](https://img.shields.io/npm/v/intellibrix?color=success)](https://www.npmjs.com/package/intellibrix)
 [![CI](https://github.com/intellibrix/intellibrix/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/intellibrix/intellibrix/actions/workflows/ci.yml)
 [![Last Commit](https://img.shields.io/github/last-commit/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/commit/master)
 [![Open issues](https://img.shields.io/github/issues/intellibrix/intellibrix.svg)](https://github.com/intellibrix/intellibrix/issues)
