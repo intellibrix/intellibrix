@@ -1,6 +1,6 @@
 {
   "name": "@intellibrix/github",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "GitHub tools + webhook bridge for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",

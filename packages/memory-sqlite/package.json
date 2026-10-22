@@ -1,6 +1,6 @@
 {
   "name": "@intellibrix/memory-sqlite",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "node:sqlite conversation memory + vector store for intellibrix",
   "author": "Jay Mathis <code@mathis.network>",
   "license": "MIT",
