@@ -14,7 +14,7 @@
 <h1>Type Alias LoopOptions</h1></div>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">LoopOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#abortsignal">abortSignal</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AbortSignal</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#brick">brick</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#brickname">brickName</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#checkpointer">checkpointer</a><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/intellibrix.Core.Checkpointer.html" class="tsd-signature-type tsd-kind-interface">Checkpointer</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxsteps">maxSteps</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#messages">messages</a><span class="tsd-signature-symbol">:</span> <a href="intellibrix.Core.Message.html" class="tsd-signature-type tsd-kind-type-alias">Message</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#model">model</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#onevent">onEvent</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">event</span><span class="tsd-signature-symbol">:</span> <a href="intellibrix.Core.LoopEvent.html" class="tsd-signature-type tsd-kind-type-alias">LoopEvent</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#onrunevent">onRunEvent</a><span class="tsd-signature-symbol">?:</span> <a href="intellibrix.Core.RunEventHandler.html" class="tsd-signature-type tsd-kind-type-alias">RunEventHandler</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#ontoolapproval">onToolApproval</a><span class="tsd-signature-symbol">?:</span> <a href="intellibrix.Core.ApprovalHook.html" class="tsd-signature-type tsd-kind-type-alias">ApprovalHook</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#provider">provider</a><span class="tsd-signature-symbol">:</span> <a href="../interfaces/intellibrix.Core.Provider.html" class="tsd-signature-type tsd-kind-interface">Provider</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#resume">resume</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#runid">runId</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#stopwhen">stopWhen</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">result</span><span class="tsd-signature-symbol">:</span> <a href="intellibrix.Core.StepResult.html" class="tsd-signature-type tsd-kind-type-alias">StepResult</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#system">system</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#tools">tools</a><span class="tsd-signature-symbol">?:</span> <a href="intellibrix.Core.ToolDefinition.html" class="tsd-signature-type tsd-kind-type-alias">ToolDefinition</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L44">loop.ts:44</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L44">loop.ts:44</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -46,90 +46,90 @@
 <h3 class="tsd-anchor-link" id="abortsignal"><code class="tsd-tag">Optional</code><span>abort<wbr/>Signal</span><a href="#abortsignal" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">abortSignal</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AbortSignal</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L59">loop.ts:59</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L59">loop.ts:59</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="brick"><code class="tsd-tag">Optional</code><span>brick</span><a href="#brick" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">brick</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L61">loop.ts:61</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L61">loop.ts:61</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="brickname"><code class="tsd-tag">Optional</code><span>brick<wbr/>Name</span><a href="#brickname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">brickName</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>Annotates <code>run:start</code>/<code>run:finish</code> <code>RunEvent</code>s, e.g. with the owning Brick's name.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L58">loop.ts:58</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L58">loop.ts:58</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="checkpointer"><code class="tsd-tag">Optional</code><span>checkpointer</span><a href="#checkpointer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkpointer</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/intellibrix.Core.Checkpointer.html" class="tsd-signature-type tsd-kind-interface">Checkpointer</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L62">loop.ts:62</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L62">loop.ts:62</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="maxsteps"><code class="tsd-tag">Optional</code><span>max<wbr/>Steps</span><a href="#maxsteps" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maxSteps</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L50">loop.ts:50</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L50">loop.ts:50</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="messages"><span>messages</span><a href="#messages" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">messages</span><span class="tsd-signature-symbol">:</span> <a href="intellibrix.Core.Message.html" class="tsd-signature-type tsd-kind-type-alias">Message</a><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L48">loop.ts:48</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L48">loop.ts:48</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="model"><span>model</span><a href="#model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">model</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L46">loop.ts:46</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L46">loop.ts:46</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="onevent"><code class="tsd-tag">Optional</code><span>on<wbr/>Event</span><a href="#onevent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onEvent</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">event</span><span class="tsd-signature-symbol">:</span> <a href="intellibrix.Core.LoopEvent.html" class="tsd-signature-type tsd-kind-type-alias">LoopEvent</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L54">loop.ts:54</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L54">loop.ts:54</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="onrunevent"><code class="tsd-tag">Optional</code><span>on<wbr/>Run<wbr/>Event</span><a href="#onrunevent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onRunEvent</span><span class="tsd-signature-symbol">?:</span> <a href="intellibrix.Core.RunEventHandler.html" class="tsd-signature-type tsd-kind-type-alias">RunEventHandler</a></div>
 <div class="tsd-comment tsd-typography"><p>Structural observability events, layered onto <code>onEvent</code>'s <code>LoopEvent</code>s.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L56">loop.ts:56</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L56">loop.ts:56</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="ontoolapproval"><code class="tsd-tag">Optional</code><span>on<wbr/>Tool<wbr/>Approval</span><a href="#ontoolapproval" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onToolApproval</span><span class="tsd-signature-symbol">?:</span> <a href="intellibrix.Core.ApprovalHook.html" class="tsd-signature-type tsd-kind-type-alias">ApprovalHook</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L53">loop.ts:53</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L53">loop.ts:53</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="provider"><span>provider</span><a href="#provider" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">provider</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/intellibrix.Core.Provider.html" class="tsd-signature-type tsd-kind-interface">Provider</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L45">loop.ts:45</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L45">loop.ts:45</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="resume"><code class="tsd-tag">Optional</code><span>resume</span><a href="#resume" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">resume</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p>When true, resumes from the checkpointer's saved state for <code>runId</code> instead of starting fresh.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L64">loop.ts:64</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L64">loop.ts:64</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="runid"><code class="tsd-tag">Optional</code><span>run<wbr/>Id</span><a href="#runid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">runId</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L60">loop.ts:60</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L60">loop.ts:60</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="stopwhen"><code class="tsd-tag">Optional</code><span>stop<wbr/>When</span><a href="#stopwhen" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">stopWhen</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">result</span><span class="tsd-signature-symbol">:</span> <a href="intellibrix.Core.StepResult.html" class="tsd-signature-type tsd-kind-type-alias">StepResult</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>Called once per step; return <code>true</code> to stop the loop after this step.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L52">loop.ts:52</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L52">loop.ts:52</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="system"><code class="tsd-tag">Optional</code><span>system</span><a href="#system" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">system</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L47">loop.ts:47</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L47">loop.ts:47</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="tools"><code class="tsd-tag">Optional</code><span>tools</span><a href="#tools" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">tools</span><span class="tsd-signature-symbol">?:</span> <a href="intellibrix.Core.ToolDefinition.html" class="tsd-signature-type tsd-kind-type-alias">ToolDefinition</a><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/16b49aa1597c747c4964d75b8db24de3f6f99779/packages/core/src/loop.ts#L49">loop.ts:49</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/intellibrix/intellibrix/blob/c8b2afbbbdfb7e098c539a7ce223db4f5f5c4972/packages/core/src/loop.ts#L49">loop.ts:49</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
