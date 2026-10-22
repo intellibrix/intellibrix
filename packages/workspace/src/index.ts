@@ -12,6 +12,7 @@ export * from './atomic.js'
 export * from './fs-tools.js'
 export * from './git.js'
 export * from './jail.js'
+export * from './read.js'
 export * from './shell.js'
 export * from './tracker.js'
 

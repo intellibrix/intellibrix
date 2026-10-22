@@ -211,6 +211,83 @@ class PythonLiteralParser {
   }
 }
 
+/** `String.replace` for `open…close` spans without a backtracking regex, so unclosed openers stay linear. */
+function replaceBlocks(
+  text: string,
+  open: string,
+  close: string,
+  replace: (block: string, body: string) => string,
+): string {
+  let out = ''
+  let pos = 0
+  for (;;) {
+    const start = text.indexOf(open, pos)
+    if (start < 0) break
+    const bodyStart = start + open.length
+    const end = text.indexOf(close, bodyStart)
+    if (end < 0) break
+    const stop = end + close.length
+    out += text.slice(pos, start) + replace(text.slice(start, stop), text.slice(bodyStart, end))
+    pos = stop
+  }
+  return out + text.slice(pos)
+}
+
+/** `<function=name>…</function>` spans, with an optional surrounding `<tool_call>` wrapper. */
+function replaceFunctionBlocks(
+  text: string,
+  replace: (whole: string, toolName: string, body: string) => string,
+): string {
+  const OPEN = '<function='
+  const CLOSE = '</function>'
+  const WRAP_OPEN = '<tool_call>'
+  const WRAP_CLOSE = '</tool_call>'
+  const isSpace = (c: string | undefined) => c !== undefined && /\s/.test(c)
+  let out = ''
+  let pos = 0
+  let from = 0
+  for (;;) {
+    const open = text.indexOf(OPEN, from)
+    if (open < 0) break
+    const nameEnd = text.indexOf('>', open + OPEN.length)
+    const toolName = nameEnd < 0 ? '' : text.slice(open + OPEN.length, nameEnd)
+    if (nameEnd < 0 || toolName === '' || /\s/.test(toolName) || toolName.includes('<')) {
+      from = open + OPEN.length
+      continue
+    }
+    const close = text.indexOf(CLOSE, nameEnd + 1)
+    if (close < 0) break
+    let start = open
+    let before = open
+    while (before > pos && isSpace(text[before - 1])) before--
+    if (before - WRAP_OPEN.length >= pos && text.startsWith(WRAP_OPEN, before - WRAP_OPEN.length)) {
+      start = before - WRAP_OPEN.length
+    }
+    let stop = close + CLOSE.length
+    let after = stop
+    while (isSpace(text[after])) after++
+    if (text.startsWith(WRAP_CLOSE, after)) stop = after + WRAP_CLOSE.length
+    out +=
+      text.slice(pos, start) +
+      replace(text.slice(start, stop), toolName, text.slice(nameEnd + 1, close))
+    pos = stop
+    from = stop
+  }
+  return out + text.slice(pos)
+}
+
+/** Strips one surrounding Markdown code fence (` ``` ` or ` ```json `) and the whitespace inside it. */
+function stripCodeFence(text: string): string {
+  let body = text.trim()
+  if (body.startsWith('```')) {
+    body = body.slice(3)
+    if (body.startsWith('json')) body = body.slice(4)
+    body = body.trimStart()
+  }
+  if (body.endsWith('```')) body = body.slice(0, -3).trimEnd()
+  return body
+}
+
 /**
  * Pythonic calls wrapped in special tokens, as emitted by e.g. Liquid's LFM
  * models: `<|tool_call_start|>[read_file(path='a.txt')]<|tool_call_end|>`.
@@ -220,9 +297,11 @@ export const pythonicToolCalls: TextToolCallParser = {
   markers: ['<|tool_call_start|>'],
   parse(text, accept) {
     const calls: ParsedToolCall[] = []
-    const remaining = text.replace(
-      /<\|tool_call_start\|>([\s\S]*?)<\|tool_call_end\|>/g,
-      (block, body: string) => {
+    const remaining = replaceBlocks(
+      text,
+      '<|tool_call_start|>',
+      '<|tool_call_end|>',
+      (block, body) => {
         try {
           const parsed = new PythonLiteralParser(body).parseCalls()
           if (accept && !parsed.every((c) => accept(c.toolName))) return block
@@ -250,7 +329,7 @@ export const hermesToolCalls: TextToolCallParser = {
   markers: ['<tool_call>'],
   parse(text, accept) {
     const calls: ParsedToolCall[] = []
-    const remaining = text.replace(/<tool_call>([\s\S]*?)<\/tool_call>/g, (block, body: string) => {
+    const remaining = replaceBlocks(text, '<tool_call>', '</tool_call>', (block, body) => {
       try {
         const parsed = JSON.parse(body.trim()) as {
           name?: unknown
@@ -299,9 +378,7 @@ export const xmlToolCalls: TextToolCallParser = {
   markers: ['<tool_call>', '<function='],
   parse(text, accept) {
     const calls: ParsedToolCall[] = []
-    const block =
-      /(?:<tool_call>\s*)?<function=([^>\s]+)>([\s\S]*?)<\/function>(?:\s*<\/tool_call>)?/g
-    const remaining = text.replace(block, (whole, toolName: string, body: string) => {
+    const remaining = replaceFunctionBlocks(text, (whole, toolName, body) => {
       if (accept && !accept(toolName)) return whole
       const input: Record<string, unknown> = {}
       const param = /<parameter=([^>\s]+)>([\s\S]*?)<\/parameter>/g
@@ -390,10 +467,7 @@ export const jsonToolCalls: TextToolCallParser = {
   name: 'json',
   markers: ['{"tool"', '{"name"', '{"function"', '{"tool_name"', '```json'],
   parse(text, accept) {
-    const body = text
-      .trim()
-      .replace(/^```(?:json)?\s*/, '')
-      .replace(/\s*```$/, '')
+    const body = stripCodeFence(text)
     try {
       const parsed: unknown = JSON.parse(body)
       const calls = (Array.isArray(parsed) ? parsed : [parsed]).map(jsonCall)

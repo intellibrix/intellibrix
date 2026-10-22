@@ -4,7 +4,14 @@ import https from 'node:https'
 import { BlockList, isIP } from 'node:net'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
-import { htmlToMarkdown, pageTitle } from './html.js'
+import {
+  firstElementInner,
+  htmlToMarkdown,
+  pageTitle,
+  removeElements,
+  stripComments,
+  stripTags,
+} from './html.js'
 import { parseRobots, type Robots, robotsAllows } from './robots.js'
 
 const MAX_REDIRECTS = 5
@@ -208,15 +215,20 @@ const ENTITIES: Record<string, string> = {
 
 /** A readable plain-text rendering of an HTML page: no scripts, styles or markup. */
 export function htmlToText(html: string): { title?: string; text: string } {
-  const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1]
-  const text = html
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<(script|style|noscript|template|svg|title)\b[\s\S]*?<\/\1>/gi, '')
-    .replace(
+  const title = firstElementInner(html, 'title')
+  const text = stripTags(
+    removeElements(stripComments(html), [
+      'script',
+      'style',
+      'noscript',
+      'template',
+      'svg',
+      'title',
+    ]).replace(
       /<\/(p|div|section|article|header|footer|li|tr|h[1-6]|pre|blockquote)>|<br\s*\/?>/gi,
       '\n',
-    )
-    .replace(/<[^>]+>/g, '')
+    ),
+  )
     .replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (whole, name: string) => {
       if (name.startsWith('#')) {
         const code =

@@ -1,5 +1,4 @@
-import { readFile, stat } from 'node:fs/promises'
-import { resolveJailed } from '@intellibrix/workspace'
+import { readTextFile, resolveJailed } from '@intellibrix/workspace'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
 
@@ -193,9 +192,8 @@ export function diffTool(options: DiffToolOptions): ToolDefinition {
     }
     if (s.text !== undefined) return { name: which, text: s.text }
     const file = await resolveJailed(options.root, s.path as string)
-    const size = (await stat(file)).size
-    if (size > maxBytes) throw new Error(`${s.path} is ${size} bytes; the limit is ${maxBytes}`)
-    const text = await readFile(file, 'utf8')
+    const { size, text } = await readTextFile(file, maxBytes)
+    if (text === undefined) throw new Error(`${s.path} is ${size} bytes; the limit is ${maxBytes}`)
     if (text.includes('\u0000')) throw new Error(`${s.path} looks like a binary file`)
     return { name: s.path as string, text }
   }

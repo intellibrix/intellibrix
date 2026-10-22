@@ -146,12 +146,99 @@ export function parseHtml(html: string): El {
   return root
 }
 
+/** Removes `<!-- … -->` comments; an unterminated one is left as it is. */
+export function stripComments(html: string): string {
+  let out = ''
+  let pos = 0
+  for (;;) {
+    const start = html.indexOf('<!--', pos)
+    if (start < 0) break
+    const end = html.indexOf('-->', start + 4)
+    if (end < 0) break
+    out += html.slice(pos, start)
+    pos = end + 3
+  }
+  return out + html.slice(pos)
+}
+
+/** Removes tags until none are left, so nested fragments like `<<b>script>` cannot survive. */
+export function stripTags(html: string): string {
+  let text = html
+  for (let prev = ''; prev !== text; ) {
+    prev = text
+    text = text.replace(/<[^>]+>/g, '')
+  }
+  return text
+}
+
+/**
+ * Finds each `<tag …>…</tag>` element (case-insensitive) without a backtracking regex, so a page
+ * of unclosed tags stays linear. `keep` receives the spans outside matches and `onMatch` each match.
+ */
+function scanElements(
+  html: string,
+  tags: readonly string[],
+  onMatch: (tag: string, inner: string) => string,
+): string {
+  const opener = new RegExp(`<(${tags.join('|')})\\b`, 'gi')
+  const closers = new Map<string, RegExp>()
+  const exhausted = new Set<string>()
+  let out = ''
+  let pos = 0
+  for (;;) {
+    opener.lastIndex = pos
+    const open = opener.exec(html)
+    if (!open) break
+    const tag = (open[1] as string).toLowerCase()
+    const gt = html.indexOf('>', open.index + open[0].length)
+    if (gt < 0) break
+    if (exhausted.has(tag)) {
+      out += html.slice(pos, gt + 1)
+      pos = gt + 1
+      continue
+    }
+    const closer = closers.get(tag) ?? new RegExp(`</${tag}\\s*>`, 'gi')
+    closers.set(tag, closer)
+    closer.lastIndex = gt + 1
+    const close = closer.exec(html)
+    if (!close) {
+      exhausted.add(tag)
+      out += html.slice(pos, gt + 1)
+      pos = gt + 1
+      continue
+    }
+    out += html.slice(pos, open.index) + onMatch(tag, html.slice(gt + 1, close.index))
+    pos = close.index + close[0].length
+  }
+  return out + html.slice(pos)
+}
+
+/** Drops whole elements (and everything inside them) for the given tags. */
+export function removeElements(html: string, tags: readonly string[]): string {
+  return scanElements(html, tags, () => '')
+}
+
+/** The inner HTML of the first `<tag>` element, if it has a closing tag. */
+export function firstElementInner(html: string, tag: string): string | undefined {
+  let found: string | undefined
+  scanElements(html, [tag], (_, inner) => {
+    found ??= inner
+    return ''
+  })
+  return found
+}
+
 /** Remove raw-text elements the tree builder should never see inside. */
 function stripRawText(html: string): string {
-  return html.replace(
-    /<(script|style|noscript|template|svg|iframe|textarea)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,
-    '',
-  )
+  return removeElements(html, [
+    'script',
+    'style',
+    'noscript',
+    'template',
+    'svg',
+    'iframe',
+    'textarea',
+  ])
 }
 
 const find = (node: El, test: (el: El) => boolean, out: El[] = []): El[] => {
@@ -304,7 +391,9 @@ function renderTable(el: El, ctx: Ctx): string {
   const rows = find(el, (e) => e.tag === 'tr').map((tr) =>
     tr.children
       .filter((c): c is El => typeof c !== 'string' && (c.tag === 'td' || c.tag === 'th'))
-      .map((cell) => renderChildren(cell, ctx).replace(/\s+/g, ' ').replace(/\|/g, '\\|').trim()),
+      .map((cell) =>
+        renderChildren(cell, ctx).replace(/\s+/g, ' ').replace(/[\\|]/g, '\\$&').trim(),
+      ),
   )
   if (rows.length === 0) return ''
   const width = Math.max(...rows.map((r) => r.length))
@@ -390,10 +479,10 @@ function render(node: Node, ctx: Ctx): string {
 /** The page title: `<title>`, else the Open Graph title, else the first `h1`. */
 export function pageTitle(html: string): string | undefined {
   const title =
-    /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1] ??
+    firstElementInner(html, 'title') ??
     /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["']/i.exec(html)?.[1] ??
-    /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html)?.[1]
-  const text = title ? collapse(decodeEntities(title.replace(/<[^>]+>/g, ''))).trim() : ''
+    firstElementInner(html, 'h1')
+  const text = title ? collapse(decodeEntities(stripTags(title))).trim() : ''
   return text || undefined
 }
 
@@ -403,7 +492,7 @@ export function pageTitle(html: string): string | undefined {
  * content (`<article>` or `<main>`) is kept unless `wholePage` is set.
  */
 export function htmlToMarkdown(html: string, options: MarkdownOptions = {}): string {
-  const tree = parseHtml(stripRawText(html.replace(/<!--[\s\S]*?-->/g, '')))
+  const tree = parseHtml(stripRawText(stripComments(html)))
   const el = options.wholePage
     ? prune(find(tree, (e) => e.tag === 'body')[0] ?? tree, false)
     : mainContent(tree).el

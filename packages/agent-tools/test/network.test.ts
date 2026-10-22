@@ -8,6 +8,7 @@ import {
   askUserTool,
   delegateTool,
   fetchUrlTool,
+  htmlToMarkdown,
   htmlToText,
   isPrivateAddress,
 } from '../src/index.js'
@@ -342,5 +343,24 @@ describe('agentTools extras', () => {
       'ask_user',
       'delegate',
     ])
+  })
+})
+
+describe('html scanning on hostile input', () => {
+  it('stays fast on many unclosed openers', () => {
+    const start = Date.now()
+    for (const open of ['<title>', '<script>', '<!--']) {
+      htmlToText(open.repeat(50_000))
+      if (open === '<!--') htmlToMarkdown(open.repeat(50_000))
+    }
+    expect(Date.now() - start).toBeLessThan(3000)
+  })
+
+  it('removes scripts and comments, and nested tag fragments', () => {
+    const { title, text } = htmlToText(
+      '<title>T</title><!-- hid --><script>x()</script><p>a<<b>script>b</p>',
+    )
+    expect(title).toBe('T')
+    expect(text).not.toMatch(/hid|x\(\)|<script/)
   })
 })

@@ -1,5 +1,4 @@
-import { readFile, stat } from 'node:fs/promises'
-import { resolveJailed } from '@intellibrix/workspace'
+import { readTextFile, resolveJailed } from '@intellibrix/workspace'
 import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
 
@@ -776,9 +775,11 @@ export function jsonQueryTool(options: JsonQueryToolOptions): ToolDefinition {
       let text = json as string
       if (path !== undefined) {
         const file = await resolveJailed(options.root, path)
-        const size = (await stat(file)).size
-        if (size > maxBytes) throw new Error(`${path} is ${size} bytes; the limit is ${maxBytes}`)
-        text = await readFile(file, 'utf8')
+        const read = await readTextFile(file, maxBytes)
+        if (read.text === undefined) {
+          throw new Error(`${path} is ${read.size} bytes; the limit is ${maxBytes}`)
+        }
+        text = read.text
       }
       let data: Json
       try {

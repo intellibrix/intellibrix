@@ -6,6 +6,7 @@ import { defineTool, type ToolDefinition } from 'intellibrix'
 import { z } from 'zod'
 import { withFileLock, writeFileAtomic } from './atomic.js'
 import { resolveJailed } from './jail.js'
+import { readTextFile } from './read.js'
 import type { FileTracker } from './tracker.js'
 
 const MAX_READ_BYTES = 256 * 1024
@@ -72,20 +73,18 @@ export function fsTools({ root, approveWrites = true, tracker }: FsToolOptions):
     resultTrust: 'untrusted',
     execute: async ({ path: p, offset, limit, lineNumbers }) => {
       const file = await resolveJailed(root, p)
-      const info = await stat(file)
       const ranged = offset !== undefined || limit !== undefined
-      if (!ranged && !lineNumbers && info.size <= MAX_READ_BYTES) {
-        const content = await readFile(file, 'utf8')
-        tracker?.recordRead(file, content)
-        return { path: p, content }
-      }
-      if (info.size > MAX_RANGED_READ_BYTES || (!ranged && info.size > MAX_READ_BYTES)) {
-        const limitBytes = ranged ? MAX_RANGED_READ_BYTES : MAX_READ_BYTES
+      const limitBytes = ranged ? MAX_RANGED_READ_BYTES : MAX_READ_BYTES
+      const { size, text } = await readTextFile(file, limitBytes)
+      if (text === undefined) {
         throw new Error(
-          `File is ${info.size} bytes; the limit is ${limitBytes}${ranged ? '' : '. Pass offset and limit to read part of it'}`,
+          `File is ${size} bytes; the limit is ${limitBytes}${ranged ? '' : '. Pass offset and limit to read part of it'}`,
         )
       }
-      const text = await readFile(file, 'utf8')
+      if (!ranged && !lineNumbers) {
+        tracker?.recordRead(file, text)
+        return { path: p, content: text }
+      }
       // A slice counts as a read: the model chose to look at the file, and a later change is caught.
       tracker?.recordRead(file, text)
       const lines = text.split('\n')
@@ -175,8 +174,9 @@ export function fsTools({ root, approveWrites = true, tracker }: FsToolOptions):
         let text: string
         try {
           full = await resolveJailed(realRoot, file)
-          if ((await stat(full)).size > MAX_READ_BYTES) continue
-          text = await readFile(full, 'utf8')
+          const read = await readTextFile(full, MAX_READ_BYTES)
+          if (read.text === undefined) continue
+          text = read.text
           lines = text.split('\n')
         } catch {
           continue // symlink escaping the jail, unreadable, or a directory

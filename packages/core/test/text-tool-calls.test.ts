@@ -279,3 +279,22 @@ describe('jsonToolCalls', () => {
     )
   })
 })
+
+describe('text tool call scanning', () => {
+  it('stays fast on many unclosed openers', () => {
+    const start = Date.now()
+    for (const parser of [hermesToolCalls, pythonicToolCalls, xmlToolCalls]) {
+      parser.parse('<tool_call><|tool_call_start|><function=a>'.repeat(20_000), undefined)
+    }
+    expect(Date.now() - start).toBeLessThan(3000)
+  })
+
+  it('parses an xml call inside a tool_call wrapper and leaves the rest', () => {
+    const out = xmlToolCalls.parse(
+      'hi <tool_call>\n<function=read_file><parameter=path>a.txt</parameter></function>\n</tool_call> bye',
+      undefined,
+    )
+    expect(out.calls).toEqual([{ toolName: 'read_file', input: { path: 'a.txt' } }])
+    expect(out.text).toBe('hi  bye')
+  })
+})

@@ -10,7 +10,7 @@ export function parseRobots(text: string): Robots {
   let collecting = false
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.replace(/#.*/, '').trim()
-    const m = /^([A-Za-z-]+)\s*:\s*(.*)$/.exec(line)
+    const m = /^([A-Za-z-]+)\s*:(.*)$/.exec(line)
     if (!m) continue
     const field = (m[1] as string).toLowerCase()
     const value = (m[2] as string).trim()
