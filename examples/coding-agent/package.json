@@ -17,11 +17,11 @@
     "ai": "^7.0.0",
     "intellibrix": "workspace:^",
     "terminal-kit": "^3.0.0",
-    "zod": "^4.6.2"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "tsx": "^4.19.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.0"
   }
 }

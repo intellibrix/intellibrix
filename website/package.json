@@ -9,7 +9,7 @@
     "preview": "astro preview --host 0.0.0.0 --port 10100"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.42.6",
-    "astro": "^7.4.0"
+    "@astrojs/starlight": "^0.42.7",
+    "astro": "^7.4.4"
   }
 }
