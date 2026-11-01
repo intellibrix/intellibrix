@@ -57,7 +57,7 @@
     "terminal-kit": "^3.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^26.6.6",
     "@types/terminal-kit": "^2.5.1",
     "terminal-kit": "^3.0.0",
     "tsdown": "^0.23.1",
